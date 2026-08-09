@@ -34,6 +34,34 @@ public sealed class FlutterVersionProbeRobustnessTests
     }
 
     [Fact]
+    public async Task ProbeAsync_WindowsOemBellSeparator_ParsesWithoutChangingRawEvidence()
+    {
+        var output = new[]
+        {
+            Out("Flutter 3.44.8 \a channel stable \a https://github.com/flutter/flutter.git"),
+            Out("Framework \a revision abc123def (today) \a 2026-08-09"),
+            Out("Engine \a revision engine987"),
+            Out("Tools \a Dart 3.12.2 \a DevTools 2.57.0")
+        };
+        var process = Process(ProcessExecutionStatus.Succeeded, 0, output);
+        var probe = new FlutterVersionProbe(new ResultRunner(process));
+
+        var result = await probe.ProbeAsync(
+            new FlutterVersionProbeRequest(Flutter(@"C:\flutter\bin\flutter.bat")));
+
+        Assert.Equal(FlutterVersionProbeStatus.Succeeded, result.Status);
+        Assert.Equal("3.44.8", result.FlutterVersion);
+        Assert.Equal("stable", result.Channel);
+        Assert.Equal("abc123def", result.FrameworkRevision);
+        Assert.Equal("engine987", result.EngineRevision);
+        Assert.Equal("3.12.2", result.DartVersion);
+        Assert.Equal("2.57.0", result.DevToolsVersion);
+        Assert.Same(process, result.ProcessResult);
+        Assert.Equal(output, result.ProcessResult!.Output);
+        Assert.Contains('\a', result.ProcessResult.Output[0].Text);
+    }
+
+    [Fact]
     public async Task ProbeAsync_RunnerFailure_ReturnsProbeFailedWithoutInventingEvidence()
     {
         var probe = new FlutterVersionProbe(new ThrowingRunner(new InvalidOperationException("start failed")));
