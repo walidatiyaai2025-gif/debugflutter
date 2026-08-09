@@ -80,15 +80,15 @@ public sealed class WorkspaceLockResolverIntegrationTests
             CreateNoWindow = true
         };
 
+        startInfo.Environment["FBD_LOCK_FILE"] = filePath;
         startInfo.ArgumentList.Add("-NoProfile");
         startInfo.ArgumentList.Add("-NonInteractive");
         startInfo.ArgumentList.Add("-Command");
         startInfo.ArgumentList.Add(
-            "$path = $args[0]; " +
-            "$stream = [System.IO.File]::Open($path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None); " +
+            "$path = [Environment]::GetEnvironmentVariable('FBD_LOCK_FILE'); " +
+            "$script:stream = [System.IO.FileStream]::new($path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None); " +
             "[Console]::Out.WriteLine('LOCKED'); [Console]::Out.Flush(); " +
-            "try { Start-Sleep -Seconds 60 } finally { $stream.Dispose() }");
-        startInfo.ArgumentList.Add(filePath);
+            "try { Start-Sleep -Seconds 60 } finally { $script:stream.Dispose() }");
 
         var process = new Process { StartInfo = startInfo };
         Assert.True(process.Start());
