@@ -5,14 +5,13 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-416` — Build immutable EnvironmentSnapshot
+`FBD-417` — Environment Doctor dashboard UI
 
-Status: `DONE`
-PR: `#68` — `[FBD-416] Build immutable EnvironmentSnapshot`
-Final validated feature head: `6846dc19b9e61227e26baafcd406071fd0aefe02`
-Final validation workflow: `31315412520`
-Final validation job: `93249726313`
-Integration merge commit: `9df79ae7d4bad4dff669d8ced2d71763af2a5a64`
+Status: `DONE` pending final-head CI and merge
+PR: `#72` — `[FBD-417] Environment Doctor dashboard UI`
+Validated code head: `6d0ead92c8b2d2b64e9558627c480eca17cca185`
+Validation workflow: `31316276686`
+Successful validation rerun job: `93252202572`
 
 ## Recently completed environment work
 
@@ -33,27 +32,32 @@ Integration merge commit: `9df79ae7d4bad4dff669d8ced2d71763af2a5a64`
 - `FBD-415` — Android license status — DONE — PR `#58`
 - `FBD-416` — immutable EnvironmentSnapshot composition — DONE — PR `#68`
   - integration merge commit `9df79ae7d4bad4dff669d8ced2d71763af2a5a64`
+- `FBD-417` — Environment Doctor dashboard UI — DONE pending final-head CI/merge — PR `#72`
 
 ## Verified completed sequence
 
 Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
 
-Environment discovery and composition: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416`.
+Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417`.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
+## Validation note
+
+The first FBD-417 CI attempt built successfully and all FBD-417 tests passed, but two unrelated existing Git integration tests hit their bounded 5-second Git lookup timeout on the hosted runner. Re-running the exact same job on the exact same feature SHA passed the full suite. No unrelated Git test thresholds or implementation were changed.
+
 ## Next task
 
-`FBD-417` — Environment Doctor dashboard UI
+`FBD-418` — Refresh environment action
 
-Reason: FBD-416 provides one immutable, internally consistent snapshot that the dashboard can consume without re-running discovery logic inside the UI.
+Reason: FBD-417 now displays the immutable environment snapshot, while explicit re-scan without restarting the application remains intentionally outside that task.
 
-Acceptance: each environment component is displayed with state/path/version/action information sourced from the snapshot.
+Acceptance: re-scanning updates the Environment Doctor dashboard with a new snapshot without restarting the application.
 
 ## Resume instruction
 
-Start from integration commit `9df79ae7d4bad4dff669d8ced2d71763af2a5a64` or a newer `agent/fbd-foundation` head. Consume `IEnvironmentSnapshotService` / `EnvironmentSnapshot`; do not duplicate detector orchestration in the ViewModel and do not add repair behavior inside FBD-417.
+Start from the latest `agent/fbd-foundation` head after FBD-417 is merged. Extend the existing `EnvironmentDoctorViewModel` to request a fresh `IEnvironmentSnapshotService` capture explicitly; do not duplicate detector orchestration, recreate the ViewModel, or add repair behavior inside FBD-418.
 
 ## Bookkeeping note
 
-`docs/TASK_BOARD.md` still contains stale READY/TODO states for some already merged environment tasks. Reconcile those statuses in a documentation/integration bookkeeping change without reimplementing completed feature logic.
+`docs/TASK_BOARD.md` contains stale READY/TODO states for several already merged environment tasks. Keep feature work driven by this verified checkpoint until those historical rows are reconciled in a dedicated documentation/integration bookkeeping change.
