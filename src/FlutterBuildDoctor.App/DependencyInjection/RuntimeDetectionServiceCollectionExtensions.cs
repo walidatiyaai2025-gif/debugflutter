@@ -44,6 +44,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IKotlinPluginVersionParser, KotlinPluginVersionParser>();
         services.TryAddSingleton<IAndroidSdkRequirementsParser, AndroidSdkRequirementsParser>();
         services.TryAddSingleton<IAndroidIdentifierParser, AndroidIdentifierParser>();
+        services.TryAddSingleton<IReleaseVersionParser, ReleaseVersionParser>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
         services.TryAddSingleton<IAndroidCommandLineToolsDetector, AndroidCommandLineToolsDetector>();
