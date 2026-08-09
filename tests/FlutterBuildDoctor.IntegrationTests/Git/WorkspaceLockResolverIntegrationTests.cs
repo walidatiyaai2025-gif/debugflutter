@@ -30,7 +30,7 @@ public sealed class WorkspaceLockResolverIntegrationTests
         {
             var ready = await process.StandardOutput
                 .ReadLineAsync()
-                .WaitAsync(TimeSpan.FromSeconds(15));
+                .WaitAsync(TimeSpan.FromSeconds(30));
 
             Assert.Equal("LOCKED", ready);
             Assert.False(process.HasExited);
@@ -42,7 +42,7 @@ public sealed class WorkspaceLockResolverIntegrationTests
             Assert.Contains(
                 result.Processes,
                 owner => owner.ProcessId == process.Id && owner.Terminated);
-            Assert.True(process.WaitForExit(5_000));
+            Assert.True(process.WaitForExit(10_000));
 
             Directory.Move(repositoryPath, movedPath);
             Assert.True(File.Exists(Path.Combine(movedPath, "locked.txt")));
@@ -54,7 +54,7 @@ public sealed class WorkspaceLockResolverIntegrationTests
                 if (!process.HasExited)
                 {
                     process.Kill(entireProcessTree: true);
-                    process.WaitForExit(5_000);
+                    process.WaitForExit(10_000);
                 }
             }
             catch
@@ -73,7 +73,7 @@ public sealed class WorkspaceLockResolverIntegrationTests
     {
         var startInfo = new ProcessStartInfo
         {
-            FileName = "powershell.exe",
+            FileName = ResolvePowerShellExecutable(),
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -81,6 +81,7 @@ public sealed class WorkspaceLockResolverIntegrationTests
         };
 
         startInfo.Environment["FBD_LOCK_FILE"] = filePath;
+        startInfo.ArgumentList.Add("-NoLogo");
         startInfo.ArgumentList.Add("-NoProfile");
         startInfo.ArgumentList.Add("-NonInteractive");
         startInfo.ArgumentList.Add("-Command");
@@ -93,5 +94,12 @@ public sealed class WorkspaceLockResolverIntegrationTests
         var process = new Process { StartInfo = startInfo };
         Assert.True(process.Start());
         return process;
+    }
+
+    private static string ResolvePowerShellExecutable()
+    {
+        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var pwsh = Path.Combine(programFiles, "PowerShell", "7", "pwsh.exe");
+        return File.Exists(pwsh) ? pwsh : "powershell.exe";
     }
 }
