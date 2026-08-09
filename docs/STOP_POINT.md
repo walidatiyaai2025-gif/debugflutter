@@ -7,9 +7,11 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-601` — Locate Flutter project root
 
-Status: `DONE` pending exact PR CI and merge
-Branch: `agent/fbd-601-project-root`
-Branch validation workflow: `31321852865`
+Status: `DONE` pending final-head CI and merge
+PR: `#92` — `[FBD-601] Locate Flutter project root`
+Validated implementation head: `1ba7a7c0fda936fe85bf90fc56afcfa1e4534790`
+PR validation workflow: `31322040008`
+PR validation job: `93266424883`
 
 ## Verified completed sequence
 
@@ -19,7 +21,7 @@ Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD
 
 Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504`.
 
-Project Analyzer: `FBD-601` is branch-validated and awaiting exact PR merge validation.
+Project Analyzer: `FBD-601` implementation is validated and awaiting final receipt-head CI/merge.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
@@ -32,7 +34,8 @@ Do not reimplement these tasks. Continue from the active integration branch.
 - skips reparse-point directories instead of following them
 - prefers a valid repository-root Flutter project while retaining nested candidates as evidence
 - selects one nested root only when it is unambiguous
-- returns explicit states for missing repository, missing pubspec, no Flutter filesystem evidence, ambiguity, traversal limits, and inspection failure
+- refuses to prove a unique nested root when directory inspection was incomplete
+- returns explicit states for invalid input, missing repository, missing pubspec, no Flutter filesystem evidence, ambiguity, traversal limits, and inspection failure
 - does not modify repository files or run Flutter, Dart, Gradle, or package commands
 
 ## Next critical-path task
