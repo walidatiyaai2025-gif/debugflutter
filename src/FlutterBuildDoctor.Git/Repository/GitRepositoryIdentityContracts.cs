@@ -19,7 +19,6 @@ public sealed record GitRepositoryIdentity(
     string? BranchName = null,
     string? Upstream = null,
     string? RemoteName = null,
-    string? RemoteUrl = null,
     bool IsDetached = false)
 {
     public string ShortCommitSha
@@ -38,8 +37,7 @@ public sealed record GitRepositoryIdentityResult(
     ProcessResult? BranchResult = null,
     ProcessResult? CommitResult = null,
     ProcessResult? UpstreamResult = null,
-    ProcessResult? RemoteResult = null,
-    ProcessResult? RemoteUrlResult = null)
+    ProcessResult? RemoteResult = null)
 {
     public bool IsSuccess => Status == GitRepositoryIdentityStatus.Succeeded;
 }
