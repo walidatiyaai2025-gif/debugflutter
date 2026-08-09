@@ -162,33 +162,19 @@ public sealed class DartEntryTargetDetector : IDartEntryTargetDetector
                 continue;
             }
 
-            for (var index = entries.Length - 1; index >= 0; index--)
-            {
-                var entry = entries[index];
-                string fullPath;
-                FileAttributes attributes;
-                try
-                {
-                    fullPath = Path.GetFullPath(entry);
-                    if (!IsWithinPath(fullPath, libDirectory))
-                    {
-                        AddIssue(
-                            issues,
-                            DartEntryScanIssueKind.ReparsePointSkipped,
-                            ToSafeRelativeProjectPath(root, entry),
-                            "Entry resolved outside the lib boundary and was skipped.");
-                        continue;
-                    }
+            var candidateFiles = new List<CandidateWorkItem>();
+            var childDirectories = new List<string>();
 
-                    attributes = File.GetAttributes(fullPath);
-                }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or PathTooLongException or System.Security.SecurityException)
-                {
-                    AddIssue(
+            foreach (var entry in entries)
+            {
+                if (!TryInspectEntryMetadata(
+                        root,
+                        libDirectory,
+                        entry,
                         issues,
-                        DartEntryScanIssueKind.EnumerationFailed,
-                        ToSafeRelativeProjectPath(root, entry),
-                        $"Entry metadata could not be inspected: {ex.Message}");
+                        out var fullPath,
+                        out var attributes))
+                {
                     continue;
                 }
 
@@ -217,32 +203,43 @@ public sealed class DartEntryTargetDetector : IDartEntryTargetDetector
                         continue;
                     }
 
-                    pending.Push(new DirectoryWorkItem(fullPath, current.Depth + 1));
+                    childDirectories.Add(fullPath);
                     continue;
                 }
 
                 if (!TryClassifyCandidate(libDirectory, fullPath, out var kind, out var flavorHint))
                     continue;
 
+                candidateFiles.Add(new CandidateWorkItem(
+                    fullPath,
+                    attributes,
+                    kind,
+                    flavorHint));
+            }
+
+            foreach (var candidate in candidateFiles
+                         .OrderBy(item => item.Kind)
+                         .ThenBy(item => item.Path, StringComparer.Ordinal))
+            {
                 if (targets.Count >= MaxCandidateFiles)
                 {
                     candidateLimitReached = true;
                     AddIssue(
                         issues,
                         DartEntryScanIssueKind.CandidateLimitReached,
-                        ToSafeRelativeProjectPath(root, fullPath),
+                        ToSafeRelativeProjectPath(root, candidate.Path),
                         $"Candidate scan stopped after {MaxCandidateFiles} main-like Dart files.");
                     break;
                 }
 
-                var relativeTargetPath = ToSafeRelativeProjectPath(root, fullPath);
-                if (isReparsePoint)
+                var relativeTargetPath = ToSafeRelativeProjectPath(root, candidate.Path);
+                if ((candidate.Attributes & FileAttributes.ReparsePoint) != 0)
                 {
                     targets.Add(new DartEntryTarget(
-                        fullPath,
+                        candidate.Path,
                         relativeTargetPath,
-                        kind,
-                        flavorHint,
+                        candidate.Kind,
+                        candidate.FlavorHint,
                         DartEntryTargetInspectionStatus.UnsafePath,
                         null,
                         "Candidate is a reparse point/symbolic link and was not read."));
@@ -254,8 +251,20 @@ public sealed class DartEntryTargetDetector : IDartEntryTargetDetector
                     continue;
                 }
 
-                targets.Add(InspectCandidate(fullPath, relativeTargetPath, kind, flavorHint));
+                targets.Add(InspectCandidate(
+                    candidate.Path,
+                    relativeTargetPath,
+                    candidate.Kind,
+                    candidate.FlavorHint));
             }
+
+            if (candidateLimitReached)
+                break;
+
+            // Stack is LIFO. Push reverse-sorted directories so traversal stays deterministic
+            // and lexicographically earlier directories are visited first.
+            for (var index = childDirectories.Count - 1; index >= 0; index--)
+                pending.Push(new DirectoryWorkItem(childDirectories[index], current.Depth + 1));
         }
 
         targets.Sort(CompareTargets);
@@ -303,6 +312,44 @@ public sealed class DartEntryTargetDetector : IDartEntryTargetDetector
             status == DartEntryTargetDetectionStatus.Succeeded
                 ? $"Detected {targets.Count} runnable canonical/conventional Dart entry target(s) without executing Flutter or Dart."
                 : $"Detected {targets.Count} main-like Dart candidate(s); unresolved or unsafe candidates are preserved explicitly.");
+    }
+
+    private static bool TryInspectEntryMetadata(
+        string root,
+        string libDirectory,
+        string entry,
+        ICollection<DartEntryScanIssue> issues,
+        out string fullPath,
+        out FileAttributes attributes)
+    {
+        fullPath = string.Empty;
+        attributes = default;
+
+        try
+        {
+            fullPath = Path.GetFullPath(entry);
+            if (!IsWithinPath(fullPath, libDirectory))
+            {
+                AddIssue(
+                    issues,
+                    DartEntryScanIssueKind.ReparsePointSkipped,
+                    ToSafeRelativeProjectPath(root, entry),
+                    "Entry resolved outside the lib boundary and was skipped.");
+                return false;
+            }
+
+            attributes = File.GetAttributes(fullPath);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or PathTooLongException or System.Security.SecurityException)
+        {
+            AddIssue(
+                issues,
+                DartEntryScanIssueKind.EnumerationFailed,
+                ToSafeRelativeProjectPath(root, entry),
+                $"Entry metadata could not be inspected: {ex.Message}");
+            return false;
+        }
     }
 
     private static DartEntryTarget InspectCandidate(
@@ -770,4 +817,9 @@ public sealed class DartEntryTargetDetector : IDartEntryTargetDetector
             message);
 
     private readonly record struct DirectoryWorkItem(string Path, int Depth);
+    private readonly record struct CandidateWorkItem(
+        string Path,
+        FileAttributes Attributes,
+        DartEntryTargetKind Kind,
+        string? FlavorHint);
 }
