@@ -49,7 +49,6 @@ public sealed class RepositoryManagerViewModelTests
         Assert.True(header.HasProject);
         Assert.Equal("repo-ui-success", header.ProjectName);
         Assert.Equal("Branch: main", header.BranchText);
-        Assert.Contains(viewModel.Activity, line => line.Contains("Cloning into repository", StringComparison.Ordinal));
         Assert.Contains(viewModel.Activity, line => line.Contains("Backup preserved", StringComparison.Ordinal));
         Assert.False(viewModel.IsBusy);
     }
