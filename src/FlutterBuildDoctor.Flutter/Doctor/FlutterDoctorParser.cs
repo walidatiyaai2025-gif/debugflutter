@@ -57,6 +57,15 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
             }
             else
             {
+                if (line.Stream != ProcessStream.StdOut && current.Kind != FlutterDoctorSectionKind.Unknown)
+                {
+                    unknownEvidence.Add(new FlutterDoctorUnknownEvidence(
+                        FlutterDoctorUnknownEvidenceKind.UnclassifiedLine,
+                        index,
+                        new[] { line },
+                        "Non-stdout line was preserved inside a recognized doctor section but is not structured doctor output."));
+                }
+
                 current.Lines.Add(line);
             }
         }
