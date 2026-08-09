@@ -130,20 +130,10 @@ public sealed class AndroidLicenseDetector : IAndroidLicenseDetector
 
     private static ProcessRequest BuildProbeRequest(string sdkManagerPath)
     {
-        if (sdkManagerPath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) ||
-            sdkManagerPath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase))
-        {
-            var command = $"call \"{sdkManagerPath}\" --licenses < NUL";
-            return new ProcessRequest(
-                "cmd.exe",
-                new[] { "/d", "/v:off", "/s", "/c", command },
-                Timeout: ProbeTimeout,
-                DisplayName: "Read Android license status");
-        }
-
+        var command = $"call \"{sdkManagerPath}\" --licenses < NUL";
         return new ProcessRequest(
-            sdkManagerPath,
-            new[] { "--licenses" },
+            "cmd.exe",
+            new[] { "/d", "/v:off", "/s", "/c", command },
             Timeout: ProbeTimeout,
             DisplayName: "Read Android license status");
     }
