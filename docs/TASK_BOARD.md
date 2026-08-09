@@ -13,7 +13,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | DONE | Solution builds with all planned projects and tests |
 | FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | DONE | App starts through DI and ViewModels resolve from container |
 | FBD-003 | Implement Serilog logging baseline | Systems Engineer | P0 | FBD-001 | DONE | File + in-app structured logs with timestamps and levels |
-| FBD-004 | Add global exception handling | Tech Lead | P0 | FBD-002,FBD-003 | READY | UI/thread/task exceptions captured and surfaced safely |
+| FBD-004 | Add global exception handling | Tech Lead | P0 | FBD-002,FBD-003 | DONE | UI/thread/task exceptions captured and surfaced safely |
 | FBD-005 | Define Domain enums/status contracts | Tech Lead | P0 | FBD-001 | DONE | Shared Ready/Missing/Broken/Incompatible/etc. contracts compile |
 | FBD-006 | Add unit + integration test projects | QA | P0 | FBD-001 | DONE | Tests execute from CLI and CI |
 | FBD-007 | Add editorconfig/analyzers/code conventions | Tech Lead | P1 | FBD-001 | TODO | Build uses agreed style/analyzer configuration |
