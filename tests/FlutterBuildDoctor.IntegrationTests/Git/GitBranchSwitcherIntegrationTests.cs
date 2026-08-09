@@ -1,6 +1,5 @@
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Git.Branches;
-using FlutterBuildDoctor.Infrastructure.Environment;
 using FlutterBuildDoctor.Infrastructure.Processes;
 
 namespace FlutterBuildDoctor.IntegrationTests.Git;
@@ -115,12 +114,12 @@ public sealed class GitBranchSwitcherIntegrationTests
     private static async Task<GitRepositoryFixture> CreateRepositoryAsync()
     {
         var runner = new ProcessRunner();
-        var detector = new GitToolDetector(runner);
-        var git = await detector.DetectAsync();
-        Assert.True(git.Installed, git.Message);
-        Assert.False(string.IsNullOrWhiteSpace(git.Path));
+        var repository = new GitRepositoryFixture("git.exe", runner);
 
-        var repository = new GitRepositoryFixture(git.Path!, runner);
+        // GitToolDetector has its own integration coverage. These branch-switch tests
+        // exercise real Git commands and must not inherit the detector's deliberately
+        // short 5-second UI probe timeout when a hosted Windows runner is under load.
+        await RunGitAsync(repository, "--version");
         await RunGitAsync(repository, "init");
         await RunGitAsync(repository, "config", "user.name", "Flutter Build Doctor Tests");
         await RunGitAsync(repository, "config", "user.email", "flutter-build-doctor@example.invalid");
