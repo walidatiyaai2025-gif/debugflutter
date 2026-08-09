@@ -61,8 +61,8 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | READY | Git status shown with path/version |
-| FBD-302 | Validate repository URL | Systems Engineer | P0 | FBD-301 | TODO | Invalid URL blocked with clear reason |
+| FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | DONE | Git status shown with path/version |
+| FBD-302 | Validate repository URL | Systems Engineer | P0 | FBD-301 | READY | Invalid URL blocked with clear reason |
 | FBD-303 | Clone repository | Systems Engineer | P0 | FBD-301 | TODO | Clone supports target workspace and progress logs |
 | FBD-304 | Fetch branches | Systems Engineer | P0 | FBD-303 | TODO | Remote/local branch list available |
 | FBD-305 | Checkout/switch branch | Systems Engineer | P0 | FBD-304 | TODO | Selected branch checked out safely |

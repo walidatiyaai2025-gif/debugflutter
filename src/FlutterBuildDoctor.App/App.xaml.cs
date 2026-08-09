@@ -28,6 +28,7 @@ public partial class App : System.Windows.Application
                 {
                     services.AddFlutterBuildDoctorLogging();
                     services.AddFlutterBuildDoctorExceptionHandling();
+                    services.AddFlutterBuildDoctorRuntimeDetection();
                     services.AddFlutterBuildDoctorPresentation();
                 })
                 .UseSerilog((_, services, loggerConfiguration) =>
