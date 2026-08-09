@@ -29,10 +29,15 @@ public sealed class FlutterVersionProbeTests
         Assert.Equal(FlutterVersionProbeStatus.Succeeded, result.Status);
         Assert.Equal("3.44.8", result.FlutterVersion);
         Assert.Equal("stable", result.Channel);
+        Assert.Equal("https://github.com/flutter/flutter.git", result.RepositoryUrl);
         Assert.Equal("abc123def", result.FrameworkRevision);
+        Assert.Equal("2026-08-04 12:00:00 +0000", result.FrameworkDate);
+        Assert.Equal("engine987", result.EngineHash);
+        Assert.Equal("old-engine", result.EngineRevision);
+        Assert.Equal("2026-08-04 12:00:00.000Z", result.EngineDate);
         Assert.Equal("3.12.2", result.DartVersion);
-        Assert.Equal("engine987", result.EngineRevision);
         Assert.Equal("2.57.0", result.DevToolsVersion);
+        Assert.True(result.HasRequiredVersionFields);
         Assert.Same(process, result.ProcessResult);
         Assert.Equal(output, result.ProcessResult!.Output);
         Assert.Equal(output, streamed);
@@ -61,6 +66,7 @@ public sealed class FlutterVersionProbeTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("beta", result.Channel);
+        Assert.Null(result.EngineHash);
         Assert.Equal("eee222", result.EngineRevision);
         var request = Assert.Single(runner.Requests);
         Assert.Equal(@"C:\tools\flutter.exe", request.FileName);
@@ -85,6 +91,7 @@ public sealed class FlutterVersionProbeTests
         Assert.Equal("stable", result.Channel);
         Assert.Equal("3.12.2", result.DartVersion);
         Assert.Null(result.FrameworkRevision);
+        Assert.False(result.HasRequiredVersionFields);
         Assert.Contains("framework revision", result.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Same(process, result.ProcessResult);
     }
