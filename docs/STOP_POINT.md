@@ -5,14 +5,13 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-502` — Parse Flutter Doctor sections
+`FBD-503` — Preserve unknown doctor output
 
-Status: `DONE`
-PR: `#80` — `[FBD-502] Parse Flutter Doctor sections`
-Final validated feature head: `eb45e0c8ea420c13b88f591d93b2b8627fda1675`
-Final validation workflow: `31319646013`
-Final validation job: `93260436882`
-Integration merge commit: `8a82c171b94ae5abc87940abe01d759b2222c028`
+Status: `DONE` pending final-head CI and merge
+PR: `#84` — `[FBD-503] Preserve unknown doctor output`
+Validated feature head before receipt: `5c68e8e16de808a1afe4832616d0751648558dac`
+Feature validation workflow: `31320316425`
+Feature validation job: `93262108440`
 
 ## Verified completed sequence
 
@@ -20,27 +19,29 @@ Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305
 
 Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417 → FBD-418`.
 
-Flutter Doctor pipeline: `FBD-501 → FBD-502` is implemented, validated, and merged.
+Flutter Doctor pipeline: `FBD-501 → FBD-502 → FBD-503` is implemented; FBD-503 is awaiting final-head validation and merge.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
-## FBD-502 validation note
+## FBD-503 validation note
 
-FBD-502 consumes the exact FBD-501 `FlutterDoctorExecutionResult.ProcessResult`; it does not rerun Flutter. Known section headers are converted to typed kind/status records while exact `ProcessOutputLine` objects and the original `ProcessResult` remain available. Unknown section headers are retained as `Unknown` and cannot corrupt subsequent known sections.
+FBD-503 extends the exact FBD-502 parser result and does not rerun `flutter doctor -v`. Unknown section groups, malformed section-like stdout lines, and unclassified/preamble/stderr lines are exposed as ordered typed evidence while preserving the exact original `ProcessOutputLine` objects and existing `Sections`, `UnsectionedLines`, `Execution`, and `ProcessResult` evidence.
 
-The final PR-head workflow `31319646013` / job `93260436882` passed Restore, Release Build, full Tests, artifact upload, and cleanup on head `eb45e0c8ea420c13b88f591d93b2b8627fda1675` before PR #80 was squash-merged as `8a82c171b94ae5abc87940abe01d759b2222c028`.
+The prior team FBD-503 branch had diverged from integration and included stale experimental history. The valid FBD-503 implementation was therefore transplanted without redesign onto clean branch `agent/fbd-503-preserve-unknown-output-clean` from integration head `18a65a65f43aa03bd2986a381957a9c9ca69a4fe`; no force-push or stale placeholder history was reintroduced.
+
+Feature validation workflow `31320316425` / job `93262108440` passed Restore, Release Build, full Tests, artifact upload, and cleanup on feature head `5c68e8e16de808a1afe4832616d0751648558dac` before the documentation receipt was added.
 
 ## Next task
 
-`FBD-503` — Preserve unknown doctor output
+`FBD-504` — Run `flutter --version` structured probe
 
-Reason: FBD-502 recognizes and types known Flutter Doctor sections while retaining source evidence. FBD-503 is the next parser-layer task and formalizes unknown/preamble/malformed output so future Flutter output changes degrade gracefully instead of disappearing.
+Reason: FBD-503 completes the unknown-output preservation policy for the doctor parser. FBD-504 is the next P0 Flutter tooling task and adds an executable version probe while keeping FBD-404 cached-metadata detection intact.
 
-Acceptance: parser output explicitly exposes unknown doctor sections and unclassified raw lines with their original stream/text evidence while keeping known section parsing unchanged.
+Acceptance: Flutter/Dart/channel/framework revision data is parsed from a bounded `flutter --version` command with raw process evidence preserved.
 
 ## Resume instruction
 
-Start from integration commit `8a82c171b94ae5abc87940abe01d759b2222c028` or a newer `agent/fbd-foundation` head after this receipt reconciliation is merged. Extend the FBD-502 parser result; do not rerun `flutter doctor -v`, do not repair the environment, and do not normalize or discard original `ProcessOutputLine` evidence.
+Start from the latest `agent/fbd-foundation` head after FBD-503 is merged. Implement FBD-504 as a structured probe over the already detected Flutter executable; do not replace FBD-404 detection, do not rerun `flutter doctor -v`, and preserve the canonical `IProcessRunner` cancellation/timeout/raw-evidence behavior.
 
 ## Bookkeeping note
 
