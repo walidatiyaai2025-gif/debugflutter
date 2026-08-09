@@ -128,7 +128,7 @@ public sealed partial class GitRepositoryUrlValidator : IGitRepositoryUrlValidat
            value.StartsWith("\\\\", StringComparison.Ordinal) ||
            value.StartsWith("./", StringComparison.Ordinal) ||
            value.StartsWith("../", StringComparison.Ordinal) ||
-           value.StartsWith('/', StringComparison.Ordinal);
+           value.StartsWith("/", StringComparison.Ordinal);
 
     [GeneratedRegex("^[A-Za-z]:[\\\\/]", RegexOptions.CultureInvariant)]
     private static partial Regex WindowsDrivePathRegex();
