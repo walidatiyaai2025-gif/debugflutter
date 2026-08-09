@@ -1,6 +1,7 @@
 using FlutterBuildDoctor.App.Services;
 using FlutterBuildDoctor.App.ViewModels;
 using FlutterBuildDoctor.Application.Processes;
+using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Repository;
 
 namespace FlutterBuildDoctor.IntegrationTests.Git;
@@ -22,6 +23,7 @@ public sealed class RepositoryManagerViewModelTests
                 backupPath,
                 "Repository imported successfully.");
         });
+        var pull = NeverPull();
         var identityService = new StubIdentityService(request =>
             new GitRepositoryIdentityResult(
                 GitRepositoryIdentityStatus.Succeeded,
@@ -33,7 +35,7 @@ public sealed class RepositoryManagerViewModelTests
                     "origin"),
                 "identity loaded"));
         var header = new ProjectHeaderViewModel(identityService);
-        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, header)
+        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, pull, header)
         {
             RepositoryUrl = "https://github.com/example/repo.git",
             Branch = "main",
@@ -51,6 +53,7 @@ public sealed class RepositoryManagerViewModelTests
         Assert.Equal("Branch: main", header.BranchText);
         Assert.Contains(viewModel.Activity, line => line.Contains("Backup preserved", StringComparison.Ordinal));
         Assert.False(viewModel.IsBusy);
+        Assert.True(viewModel.PullCommand.CanExecute(null));
     }
 
     [Fact]
@@ -61,7 +64,7 @@ public sealed class RepositoryManagerViewModelTests
             throw new InvalidOperationException("Coordinator must not run without Git."));
         var header = new ProjectHeaderViewModel(new StubIdentityService(_ =>
             throw new InvalidOperationException("Header must not load.")));
-        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, header)
+        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, NeverPull(), header)
         {
             RepositoryUrl = "https://github.com/example/repo.git",
             Branch = "main",
@@ -74,6 +77,7 @@ public sealed class RepositoryManagerViewModelTests
         Assert.Contains("not found", viewModel.StatusMessage, StringComparison.OrdinalIgnoreCase);
         Assert.False(header.HasProject);
         Assert.False(viewModel.IsBusy);
+        Assert.False(viewModel.PullCommand.CanExecute(null));
     }
 
     [Fact]
@@ -88,7 +92,7 @@ public sealed class RepositoryManagerViewModelTests
         var identity = new StubIdentityService(_ =>
             throw new InvalidOperationException("Identity must not load after failed import."));
         var header = new ProjectHeaderViewModel(identity);
-        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, header)
+        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, NeverPull(), header)
         {
             RepositoryUrl = "https://github.com/example/repo.git",
             Branch = "main",
@@ -102,6 +106,94 @@ public sealed class RepositoryManagerViewModelTests
         Assert.False(header.HasProject);
         Assert.False(viewModel.IsBusy);
     }
+
+    [Fact]
+    public async Task PullCommand_FastForwarded_UsesValidatedPullAndRefreshesProjectIdentity()
+    {
+        var repositoryPath = Path.Combine(Path.GetTempPath(), "FlutterBuildDoctorTests", "repo-ui-pull");
+        var afterSha = new string('b', 40);
+        var resolver = new StubGitResolver(new GitExecutableResolution(true, "git.exe", "2.55.0", "Git ready"));
+        var coordinator = new StubImportCoordinator((_, _) =>
+            throw new InvalidOperationException("Import must not run during pull."));
+        var pull = new StubGitPullService((request, progress) =>
+        {
+            Assert.Equal(repositoryPath, request.RepositoryPath);
+            Assert.Equal("git.exe", request.GitExecutablePath);
+            progress?.Report(new ProcessOutputLine(DateTimeOffset.UtcNow, ProcessStream.StdOut, "Updating aaaaaaaa..bbbbbbbb"));
+            return new GitPullResult(
+                GitPullStatus.FastForwarded,
+                CurrentBranch: "main",
+                Upstream: "origin/main",
+                BeforeCommitSha: new string('a', 40),
+                AfterCommitSha: afterSha,
+                Message: "Fast-forwarded current branch.");
+        });
+        var identity = new StubIdentityService(request =>
+            new GitRepositoryIdentityResult(
+                GitRepositoryIdentityStatus.Succeeded,
+                new GitRepositoryIdentity(
+                    request.RepositoryPath,
+                    afterSha,
+                    "main",
+                    "origin/main",
+                    "origin"),
+                "identity loaded"));
+        var header = new ProjectHeaderViewModel(identity);
+        using var viewModel = new RepositoryManagerViewModel(resolver, coordinator, pull, header)
+        {
+            RepositoryPath = repositoryPath
+        };
+
+        Assert.True(viewModel.PullCommand.CanExecute(null));
+
+        await viewModel.PullCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, pull.CallCount);
+        Assert.Contains("Updated to bbbbbbbb", viewModel.StatusMessage, StringComparison.Ordinal);
+        Assert.Contains(viewModel.Activity, line => line.Contains("Updating aaaaaaaa..bbbbbbbb", StringComparison.Ordinal));
+        Assert.True(header.HasProject);
+        Assert.Equal("Commit: bbbbbbbb", header.CommitText);
+        Assert.False(viewModel.IsBusy);
+    }
+
+    [Fact]
+    public async Task PullCommand_UpToDate_ReportsNoChangeAndKeepsRepositoryReady()
+    {
+        var repositoryPath = Path.Combine(Path.GetTempPath(), "FlutterBuildDoctorTests", "repo-ui-pull-current");
+        var currentSha = new string('c', 40);
+        var resolver = new StubGitResolver(new GitExecutableResolution(true, "git.exe", "2.55.0", "Git ready"));
+        var pull = new StubGitPullService((_, _) =>
+            new GitPullResult(
+                GitPullStatus.UpToDate,
+                CurrentBranch: "main",
+                Upstream: "origin/main",
+                BeforeCommitSha: currentSha,
+                AfterCommitSha: currentSha,
+                Message: "Already up to date."));
+        var header = new ProjectHeaderViewModel(new StubIdentityService(request =>
+            new GitRepositoryIdentityResult(
+                GitRepositoryIdentityStatus.Succeeded,
+                new GitRepositoryIdentity(request.RepositoryPath, currentSha, "main", "origin/main", "origin"),
+                "identity loaded")));
+        using var viewModel = new RepositoryManagerViewModel(
+            resolver,
+            new StubImportCoordinator((_, _) => throw new InvalidOperationException()),
+            pull,
+            header)
+        {
+            RepositoryPath = repositoryPath
+        };
+
+        await viewModel.PullCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, pull.CallCount);
+        Assert.Contains("already up to date", viewModel.StatusMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Commit: cccccccc", header.CommitText);
+        Assert.False(viewModel.IsBusy);
+    }
+
+    private static StubGitPullService NeverPull()
+        => new((_, _) => throw new InvalidOperationException("Pull must not run in this test."));
 
     private sealed class StubGitResolver : IGitExecutableResolver
     {
@@ -124,6 +216,25 @@ public sealed class RepositoryManagerViewModelTests
 
         public Task<RepositoryImportResult> ImportAsync(
             RepositoryImportRequest request,
+            IProgress<ProcessOutputLine>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            return Task.FromResult(_handler(request, progress));
+        }
+    }
+
+    private sealed class StubGitPullService : IGitPullService
+    {
+        private readonly Func<GitPullRequest, IProgress<ProcessOutputLine>?, GitPullResult> _handler;
+
+        public StubGitPullService(Func<GitPullRequest, IProgress<ProcessOutputLine>?, GitPullResult> handler)
+            => _handler = handler;
+
+        public int CallCount { get; private set; }
+
+        public Task<GitPullResult> PullAsync(
+            GitPullRequest request,
             IProgress<ProcessOutputLine>? progress = null,
             CancellationToken cancellationToken = default)
         {
