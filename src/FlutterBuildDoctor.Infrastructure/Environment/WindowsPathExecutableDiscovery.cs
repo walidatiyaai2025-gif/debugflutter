@@ -137,8 +137,7 @@ public sealed class WindowsPathExecutableDiscovery : IPathExecutableDiscovery
             try
             {
                 var expanded = Environment.ExpandEnvironmentVariables(trimmed);
-                fullPath = Path.GetFullPath(expanded)
-                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                fullPath = NormalizeDirectoryPath(Path.GetFullPath(expanded));
             }
             catch (Exception ex) when (IsPathException(ex))
             {
@@ -183,7 +182,7 @@ public sealed class WindowsPathExecutableDiscovery : IPathExecutableDiscovery
                 continue;
             }
 
-            if (!extension.StartsWith('.', StringComparison.Ordinal))
+            if (!extension.StartsWith(".", StringComparison.Ordinal))
             {
                 extension = "." + extension;
             }
@@ -220,6 +219,18 @@ public sealed class WindowsPathExecutableDiscovery : IPathExecutableDiscovery
         return extensions
             .Select(extension => executableName + extension)
             .ToArray();
+    }
+
+    private static string NormalizeDirectoryPath(string fullPath)
+    {
+        var root = Path.GetPathRoot(fullPath);
+        if (!string.IsNullOrEmpty(root) &&
+            string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase))
+        {
+            return fullPath;
+        }
+
+        return fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
 
     private static string TrimMatchingQuotes(string value)
