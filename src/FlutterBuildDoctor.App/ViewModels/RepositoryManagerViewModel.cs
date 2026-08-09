@@ -103,15 +103,13 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
             }
 
             StatusMessage = "Importing repository...";
-            var progress = CreateActivityProgress();
-
             var result = await _importCoordinator.ImportAsync(
                 new RepositoryImportRequest(
                     git.Path,
                     RepositoryUrl,
                     Branch,
                     WorkspaceDirectory),
-                progress,
+                CreateActivityProgress(),
                 _operationCancellation.Token);
 
             StatusMessage = result.Message ?? result.Status.ToString();
@@ -167,7 +165,8 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
     [RelayCommand(CanExecute = nameof(CanPull))]
     private async Task PullAsync()
     {
-        if (IsBusy || string.IsNullOrWhiteSpace(RepositoryPath))
+        var repositoryPath = RepositoryPath;
+        if (IsBusy || string.IsNullOrWhiteSpace(repositoryPath))
         {
             return;
         }
@@ -193,7 +192,7 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
 
             StatusMessage = "Pulling current branch with fast-forward-only safety...";
             var result = await _gitPullService.PullAsync(
-                new GitPullRequest(git.Path, RepositoryPath),
+                new GitPullRequest(git.Path, repositoryPath),
                 CreateActivityProgress(),
                 _operationCancellation.Token);
 
@@ -207,7 +206,7 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
 
             var identity = await _projectHeader.LoadAsync(
                 git.Path,
-                RepositoryPath,
+                repositoryPath,
                 _operationCancellation.Token);
 
             if (!identity.IsSuccess)
