@@ -31,6 +31,13 @@ public enum FlutterDoctorSectionStatus
     Unknown
 }
 
+public enum FlutterDoctorUnknownEvidenceKind
+{
+    UnknownSection = 0,
+    MalformedSectionHeader,
+    UnclassifiedLine
+}
+
 public sealed record FlutterDoctorSection(
     FlutterDoctorSectionKind Kind,
     FlutterDoctorSectionStatus Status,
@@ -41,17 +48,26 @@ public sealed record FlutterDoctorSection(
     public bool IsRecognized => Kind != FlutterDoctorSectionKind.Unknown;
 }
 
+public sealed record FlutterDoctorUnknownEvidence(
+    FlutterDoctorUnknownEvidenceKind Kind,
+    int StartIndex,
+    IReadOnlyList<ProcessOutputLine> Lines,
+    string Reason);
+
 public sealed record FlutterDoctorParseResult(
     FlutterDoctorParseStatus Status,
     FlutterDoctorExecutionResult Execution,
     IReadOnlyList<FlutterDoctorSection> Sections,
     IReadOnlyList<ProcessOutputLine> UnsectionedLines,
+    IReadOnlyList<FlutterDoctorUnknownEvidence> UnknownEvidence,
     string Message)
 {
     public ProcessResult? ProcessResult => Execution.ProcessResult;
 
     public bool HasRecognizedSections
         => Sections.Any(section => section.IsRecognized);
+
+    public bool HasUnknownEvidence => UnknownEvidence.Count > 0;
 }
 
 public interface IFlutterDoctorParser
