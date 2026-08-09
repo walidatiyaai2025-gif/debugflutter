@@ -23,7 +23,8 @@ public sealed record ProcessRequest(
     IReadOnlyDictionary<string, string?>? Environment = null,
     TimeSpan? Timeout = null,
     string? DisplayName = null,
-    bool RedactCommand = false);
+    bool RedactCommand = false,
+    IReadOnlyCollection<string>? SensitiveValues = null);
 
 public sealed record ProcessOutputLine(
     DateTimeOffset Timestamp,
@@ -37,7 +38,8 @@ public sealed record ProcessResult(
     DateTimeOffset FinishedAt,
     IReadOnlyList<ProcessOutputLine> Output,
     string SanitizedCommand,
-    string? FailureReason = null)
+    string? FailureReason = null,
+    ProcessExecutionReceipt? ExecutionReceipt = null)
 {
     public TimeSpan Duration => FinishedAt - StartedAt;
     public bool IsSuccess => Status == ProcessExecutionStatus.Succeeded;

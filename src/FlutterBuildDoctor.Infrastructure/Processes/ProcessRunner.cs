@@ -6,14 +6,28 @@ namespace FlutterBuildDoctor.Infrastructure.Processes;
 
 public sealed class ProcessRunner : IProcessRunner
 {
+    private readonly IProcessSecretRedactor _secretRedactor;
+
+    public ProcessRunner(IProcessSecretRedactor? secretRedactor = null)
+    {
+        _secretRedactor = secretRedactor ?? new DefaultProcessSecretRedactor();
+    }
+
     public async Task<ProcessResult> RunAsync(
         ProcessRequest request,
         IProgress<ProcessOutputLine>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.FileName);
+        ArgumentNullException.ThrowIfNull(request.Arguments);
 
+        var executionId = Guid.NewGuid();
         var startedAt = DateTimeOffset.UtcNow;
+        var sanitizedCommand = _secretRedactor.SanitizeCommand(request);
+        var displayName = _secretRedactor.RedactText(
+            string.IsNullOrWhiteSpace(request.DisplayName) ? request.FileName : request.DisplayName,
+            request);
         var output = new ConcurrentQueue<ProcessOutputLine>();
         using var process = new Process { StartInfo = CreateStartInfo(request), EnableRaisingEvents = true };
 
@@ -66,20 +80,40 @@ public sealed class ProcessRunner : IProcessRunner
             if (text is null)
                 return;
 
-            var line = new ProcessOutputLine(DateTimeOffset.UtcNow, stream, text);
+            var line = new ProcessOutputLine(
+                DateTimeOffset.UtcNow,
+                stream,
+                _secretRedactor.RedactText(text, request));
             output.Enqueue(line);
             progress?.Report(line);
         }
 
-        ProcessResult Finish(ProcessExecutionStatus status, int? exitCode, string? failureReason) =>
-            new(
+        ProcessResult Finish(ProcessExecutionStatus status, int? exitCode, string? failureReason)
+        {
+            var finishedAt = DateTimeOffset.UtcNow;
+            var safeFailureReason = failureReason is null
+                ? null
+                : _secretRedactor.RedactText(failureReason, request);
+            var receipt = new ProcessExecutionReceipt(
+                executionId,
+                displayName,
+                sanitizedCommand,
+                startedAt,
+                finishedAt,
+                status,
+                exitCode,
+                safeFailureReason);
+
+            return new ProcessResult(
                 status,
                 exitCode,
                 startedAt,
-                DateTimeOffset.UtcNow,
+                finishedAt,
                 output.ToArray(),
-                BuildSanitizedCommand(request),
-                failureReason);
+                sanitizedCommand,
+                safeFailureReason,
+                receipt);
+        }
     }
 
     private static ProcessStartInfo CreateStartInfo(ProcessRequest request)
@@ -112,16 +146,6 @@ public sealed class ProcessRunner : IProcessRunner
 
         return startInfo;
     }
-
-    private static string BuildSanitizedCommand(ProcessRequest request) =>
-        request.RedactCommand
-            ? $"{request.FileName} [REDACTED]"
-            : string.Join(' ', new[] { request.FileName }.Concat(request.Arguments.Select(Quote)));
-
-    private static string Quote(string value) =>
-        value.Any(char.IsWhiteSpace)
-            ? $"\"{value.Replace("\"", "\\\"")}\""
-            : value;
 
     private static void TryKillTree(Process process)
     {
