@@ -13,6 +13,7 @@ public sealed class ExceptionHandlingTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFlutterBuildDoctorExceptionHandling();
+        services.AddFlutterBuildDoctorRuntimeDetection();
         services.AddFlutterBuildDoctorPresentation();
 
         using var provider = services.BuildServiceProvider();
