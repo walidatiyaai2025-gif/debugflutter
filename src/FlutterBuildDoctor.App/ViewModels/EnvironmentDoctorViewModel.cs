@@ -15,6 +15,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IJavaInstallationDetector _javaInstallationDetector;
     private readonly IEnvironmentVariableReader _environmentVariableReader;
     private readonly IAndroidSdkRootDetector _androidSdkRootDetector;
+    private readonly IAndroidCommandLineToolsDetector _androidCommandLineToolsDetector;
     private CancellationTokenSource? _scanCancellation;
 
     [ObservableProperty]
@@ -51,6 +52,12 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private string _androidSdkDetails = "Run Environment Doctor to validate ANDROID_HOME / ANDROID_SDK_ROOT.";
 
     [ObservableProperty]
+    private string _commandLineToolsSummary = "Not scanned";
+
+    [ObservableProperty]
+    private string _commandLineToolsDetails = "Run Environment Doctor to detect sdkmanager and Android command-line tools.";
+
+    [ObservableProperty]
     private DateTimeOffset? _lastScannedAt;
 
     public EnvironmentDoctorViewModel(
@@ -58,13 +65,15 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IFlutterSdkDetector flutterSdkDetector,
         IJavaInstallationDetector javaInstallationDetector,
         IEnvironmentVariableReader environmentVariableReader,
-        IAndroidSdkRootDetector androidSdkRootDetector)
+        IAndroidSdkRootDetector androidSdkRootDetector,
+        IAndroidCommandLineToolsDetector androidCommandLineToolsDetector)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
         _javaInstallationDetector = javaInstallationDetector ?? throw new ArgumentNullException(nameof(javaInstallationDetector));
         _environmentVariableReader = environmentVariableReader ?? throw new ArgumentNullException(nameof(environmentVariableReader));
         _androidSdkRootDetector = androidSdkRootDetector ?? throw new ArgumentNullException(nameof(androidSdkRootDetector));
+        _androidCommandLineToolsDetector = androidCommandLineToolsDetector ?? throw new ArgumentNullException(nameof(androidCommandLineToolsDetector));
     }
 
     public bool CanScan => !IsBusy;
@@ -88,7 +97,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         }
 
         IsBusy = true;
-        StatusMessage = "Scanning Git, Flutter, Java and Android SDK...";
+        StatusMessage = "Scanning Git, Flutter, Java, Android SDK and sdkmanager...";
         _scanCancellation = new CancellationTokenSource();
 
         try
@@ -109,6 +118,10 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             var environment = _environmentVariableReader.Read();
             var androidSdk = _androidSdkRootDetector.Detect(environment);
             ApplyAndroidSdk(androidSdk, environment);
+
+            token.ThrowIfCancellationRequested();
+            var commandLineTools = _androidCommandLineToolsDetector.Detect(androidSdk);
+            ApplyCommandLineTools(commandLineTools);
 
             HasScanned = true;
             LastScannedAt = DateTimeOffset.Now;
@@ -206,6 +219,22 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         AndroidSdkDetails = JoinDetails(
             candidate?.NormalizedPath ?? effectiveVariable,
             result.Message);
+    }
+
+    private void ApplyCommandLineTools(AndroidCommandLineToolsDetectionResult result)
+    {
+        var candidate = result.EffectiveCandidate;
+        CommandLineToolsSummary = result.IsSuccess
+            ? JoinSummary(candidate?.Revision, "sdkmanager")
+            : result.Status switch
+            {
+                AndroidCommandLineToolsDetectionStatus.CommandLineToolsMissing => "Missing",
+                AndroidCommandLineToolsDetectionStatus.EffectiveSdkManagerMissing => "sdkmanager missing",
+                AndroidCommandLineToolsDetectionStatus.MetadataInvalid => "Metadata invalid",
+                AndroidCommandLineToolsDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
+                _ => result.Status.ToString()
+            };
+        CommandLineToolsDetails = JoinDetails(candidate?.SdkManagerPath ?? candidate?.InstallationPath, result.Message);
     }
 
     private static string JoinSummary(string? primary, string? secondary)
