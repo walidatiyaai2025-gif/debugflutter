@@ -23,6 +23,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IAndroidAvdManagerDetector _androidAvdManagerDetector;
     private readonly IAndroidLicenseDetector? _androidLicenseDetector;
     private readonly IWindowsEnvironmentDetector? _windowsEnvironmentDetector;
+    private readonly IAndroidStudioDetector? _androidStudioDetector;
     private CancellationTokenSource? _scanCancellation;
 
     [ObservableProperty] private bool _isBusy;
@@ -30,6 +31,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     [ObservableProperty] private string _statusMessage = "Environment has not been scanned yet.";
     [ObservableProperty] private string _windowsSummary = "Not scanned";
     [ObservableProperty] private string _windowsDetails = "Run Environment Doctor to detect Windows version, build and architecture.";
+    [ObservableProperty] private string _androidStudioSummary = "Not scanned";
+    [ObservableProperty] private string _androidStudioDetails = "Run Environment Doctor to detect Android Studio installations.";
     [ObservableProperty] private string _gitSummary = "Not scanned";
     [ObservableProperty] private string _gitDetails = "Run Environment Doctor to detect Git.";
     [ObservableProperty] private string _flutterSummary = "Not scanned";
@@ -67,7 +70,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IAndroidEmulatorDetector androidEmulatorDetector,
         IAndroidAvdManagerDetector androidAvdManagerDetector,
         IAndroidLicenseDetector? androidLicenseDetector = null,
-        IWindowsEnvironmentDetector? windowsEnvironmentDetector = null)
+        IWindowsEnvironmentDetector? windowsEnvironmentDetector = null,
+        IAndroidStudioDetector? androidStudioDetector = null)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
@@ -82,6 +86,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         _androidAvdManagerDetector = androidAvdManagerDetector ?? throw new ArgumentNullException(nameof(androidAvdManagerDetector));
         _androidLicenseDetector = androidLicenseDetector;
         _windowsEnvironmentDetector = windowsEnvironmentDetector;
+        _androidStudioDetector = androidStudioDetector;
     }
 
     public bool CanScan => !IsBusy;
@@ -99,18 +104,24 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private async Task ScanAsync()
     {
         if (IsBusy) return;
-
         IsBusy = true;
-        StatusMessage = "Scanning Windows, Git, Flutter, Java, Android SDK, sdkmanager, avdmanager, licenses, ADB, installed platforms, build-tools and emulator...";
+        StatusMessage = "Scanning Windows, Android Studio, Git, Flutter, Java, Android SDK, sdkmanager, avdmanager, licenses, ADB, installed platforms, build-tools and emulator...";
         _scanCancellation = new CancellationTokenSource();
 
         try
         {
             var token = _scanCancellation.Token;
+            WindowsEnvironmentInfo? windows = null;
             if (_windowsEnvironmentDetector is not null)
             {
                 token.ThrowIfCancellationRequested();
-                ApplyWindows(_windowsEnvironmentDetector.Detect());
+                windows = _windowsEnvironmentDetector.Detect();
+                ApplyWindows(windows);
+                if (_androidStudioDetector is not null)
+                {
+                    token.ThrowIfCancellationRequested();
+                    ApplyAndroidStudio(_androidStudioDetector.Detect(windows));
+                }
             }
 
             var toolStatuses = await _environmentScanner.ScanAsync(token);
@@ -126,7 +137,6 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             token.ThrowIfCancellationRequested();
             var commandLineTools = _androidCommandLineToolsDetector.Detect(androidSdk);
             ApplyCommandLineTools(commandLineTools);
-
             token.ThrowIfCancellationRequested();
             ApplyAvdManager(_androidAvdManagerDetector.Detect(commandLineTools));
 
@@ -149,14 +159,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             LastScannedAt = DateTimeOffset.Now;
             StatusMessage = "Environment scan complete.";
         }
-        catch (OperationCanceledException)
-        {
-            StatusMessage = "Environment scan cancelled.";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Environment scan failed unexpectedly: {ex.Message}";
-        }
+        catch (OperationCanceledException) { StatusMessage = "Environment scan cancelled."; }
+        catch (Exception ex) { StatusMessage = $"Environment scan failed unexpectedly: {ex.Message}"; }
         finally
         {
             _scanCancellation?.Dispose();
@@ -181,15 +185,38 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     {
         WindowsSummary = result.IsSuccess
             ? JoinSummary(result.Description, result.BuildNumber is null ? result.OsArchitecture : $"build {result.BuildNumber} • {result.OsArchitecture}")
-            : result.Status switch
-            {
-                WindowsEnvironmentDetectionStatus.NotWindows => "Not Windows",
-                WindowsEnvironmentDetectionStatus.Unavailable => "Unavailable",
-                _ => result.Status.ToString()
-            };
+            : result.Status switch { WindowsEnvironmentDetectionStatus.NotWindows => "Not Windows", WindowsEnvironmentDetectionStatus.Unavailable => "Unavailable", _ => result.Status.ToString() };
         var bitness = result.Is64BitOperatingSystem ? "64-bit OS" : "32-bit OS";
         var process = string.IsNullOrWhiteSpace(result.ProcessArchitecture) ? null : $"process {result.ProcessArchitecture}";
         WindowsDetails = JoinDetails(result.Version, JoinSummary(bitness, JoinSummary(process, result.Message)));
+    }
+
+    private void ApplyAndroidStudio(AndroidStudioDetectionResult result)
+    {
+        if (result.IsSuccess)
+        {
+            var primary = result.Installations.FirstOrDefault();
+            AndroidStudioSummary = primary is null
+                ? "Detected"
+                : JoinSummary(primary.Version ?? primary.BuildNumber, result.Installations.Count == 1 ? "1 installation" : $"{result.Installations.Count} installations");
+        }
+        else
+        {
+            AndroidStudioSummary = result.Status switch
+            {
+                AndroidStudioDetectionStatus.NotWindows => "Not Windows",
+                AndroidStudioDetectionStatus.Missing => "Not found",
+                AndroidStudioDetectionStatus.InspectionFailed => "Inspection failed",
+                _ => result.Status.ToString()
+            };
+        }
+
+        var evidence = result.Installations.Count == 0 ? null : string.Join(" | ", result.Installations.Select(installation =>
+        {
+            var identity = JoinSummary(installation.Version, installation.BuildNumber);
+            return $"{identity} [{installation.DiscoverySource}/{installation.MetadataSource}] {installation.ExecutablePath}";
+        }));
+        AndroidStudioDetails = JoinDetails(evidence, result.Message);
     }
 
     private void ApplyGit(ToolStatus? git)
@@ -215,14 +242,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
 
     private void ApplyAndroidSdk(AndroidSdkRootDetectionResult result, EnvironmentVariableSnapshot environment)
     {
-        AndroidSdkSummary = result.IsSuccess ? "Ready" : result.Status switch
-        {
-            AndroidSdkRootDetectionStatus.MissingEffectiveRoot => "Missing",
-            AndroidSdkRootDetectionStatus.EffectiveRootInvalid => "Invalid",
-            _ => result.Status.ToString()
-        };
-        var effectiveVariable = environment.AndroidSdkRoot.EffectiveValue ?? environment.AndroidHome.EffectiveValue;
-        AndroidSdkDetails = JoinDetails(result.EffectiveCandidate?.NormalizedPath ?? effectiveVariable, result.Message);
+        AndroidSdkSummary = result.IsSuccess ? "Ready" : result.Status switch { AndroidSdkRootDetectionStatus.MissingEffectiveRoot => "Missing", AndroidSdkRootDetectionStatus.EffectiveRootInvalid => "Invalid", _ => result.Status.ToString() };
+        AndroidSdkDetails = JoinDetails(result.EffectiveCandidate?.NormalizedPath ?? environment.AndroidSdkRoot.EffectiveValue ?? environment.AndroidHome.EffectiveValue, result.Message);
     }
 
     private void ApplyCommandLineTools(AndroidCommandLineToolsDetectionResult result)
@@ -274,15 +295,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     {
         AndroidPlatformsSummary = result.IsSuccess
             ? result.InstalledApiLevels.Count == 0 ? "No usable platforms" : string.Join(" • ", result.InstalledApiLevels.Select(api => $"API {api}"))
-            : result.Status switch
-            {
-                AndroidPlatformDetectionStatus.PlatformsDirectoryMissing => "platforms missing",
-                AndroidPlatformDetectionStatus.NoPlatformsInstalled => "None installed",
-                AndroidPlatformDetectionStatus.PartialInstallationsOnly => "Partial/broken only",
-                AndroidPlatformDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
-                AndroidPlatformDetectionStatus.InspectionFailed => "Inspection failed",
-                _ => result.Status.ToString()
-            };
+            : result.Status switch { AndroidPlatformDetectionStatus.PlatformsDirectoryMissing => "platforms missing", AndroidPlatformDetectionStatus.NoPlatformsInstalled => "None installed", AndroidPlatformDetectionStatus.PartialInstallationsOnly => "Partial/broken only", AndroidPlatformDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable", AndroidPlatformDetectionStatus.InspectionFailed => "Inspection failed", _ => result.Status.ToString() };
         var evidence = result.Platforms.Count == 0 ? null : string.Join(" | ", result.Platforms.Select(platform => $"{platform.PackageId}: {(platform.IsUsable ? "ready" : "partial")}{(string.IsNullOrWhiteSpace(platform.Revision) ? string.Empty : $" rev {platform.Revision}")}{(platform.IsPreview && !string.IsNullOrWhiteSpace(platform.CodeName) ? $" {platform.CodeName}" : string.Empty)}"));
         AndroidPlatformsDetails = JoinDetails(evidence, result.Message);
     }
@@ -297,15 +310,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         }
         else
         {
-            AndroidBuildToolsSummary = result.Status switch
-            {
-                AndroidBuildToolsDetectionStatus.BuildToolsDirectoryMissing => "build-tools missing",
-                AndroidBuildToolsDetectionStatus.NoBuildToolsInstalled => "None installed",
-                AndroidBuildToolsDetectionStatus.PartialInstallationsOnly => "Partial/broken only",
-                AndroidBuildToolsDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
-                AndroidBuildToolsDetectionStatus.InspectionFailed => "Inspection failed",
-                _ => result.Status.ToString()
-            };
+            AndroidBuildToolsSummary = result.Status switch { AndroidBuildToolsDetectionStatus.BuildToolsDirectoryMissing => "build-tools missing", AndroidBuildToolsDetectionStatus.NoBuildToolsInstalled => "None installed", AndroidBuildToolsDetectionStatus.PartialInstallationsOnly => "Partial/broken only", AndroidBuildToolsDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable", AndroidBuildToolsDetectionStatus.InspectionFailed => "Inspection failed", _ => result.Status.ToString() };
         }
         var evidence = result.Packages.Count == 0 ? null : string.Join(" | ", result.Packages.Select(package =>
         {
@@ -320,14 +325,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     {
         AndroidEmulatorSummary = result.IsSuccess ? (string.IsNullOrWhiteSpace(result.Version) ? "Ready" : result.Version) : result.Status switch
         {
-            AndroidEmulatorDetectionStatus.EmulatorDirectoryMissing => "Package missing",
-            AndroidEmulatorDetectionStatus.EmulatorMissing => "Binary missing",
-            AndroidEmulatorDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
-            AndroidEmulatorDetectionStatus.TimedOut => "Probe timed out",
-            AndroidEmulatorDetectionStatus.ProbeFailed => "Probe failed",
-            AndroidEmulatorDetectionStatus.VersionUnavailable => "Version unavailable",
-            AndroidEmulatorDetectionStatus.Cancelled => "Cancelled",
-            _ => result.Status.ToString()
+            AndroidEmulatorDetectionStatus.EmulatorDirectoryMissing => "Package missing", AndroidEmulatorDetectionStatus.EmulatorMissing => "Binary missing", AndroidEmulatorDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable", AndroidEmulatorDetectionStatus.TimedOut => "Probe timed out", AndroidEmulatorDetectionStatus.ProbeFailed => "Probe failed", AndroidEmulatorDetectionStatus.VersionUnavailable => "Version unavailable", AndroidEmulatorDetectionStatus.Cancelled => "Cancelled", _ => result.Status.ToString()
         };
         AndroidEmulatorDetails = JoinDetails(result.EmulatorPath ?? result.EmulatorDirectory, result.Message);
     }
@@ -336,14 +334,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     {
         AdbSummary = result.IsSuccess ? JoinSummary(result.AdbProtocolVersion is null ? null : $"ADB {result.AdbProtocolVersion}", result.PlatformToolsVersion is null ? null : $"platform-tools {result.PlatformToolsVersion}") : result.Status switch
         {
-            AndroidAdbDetectionStatus.PlatformToolsMissing => "platform-tools missing",
-            AndroidAdbDetectionStatus.AdbMissing => "ADB missing",
-            AndroidAdbDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
-            AndroidAdbDetectionStatus.TimedOut => "Probe timed out",
-            AndroidAdbDetectionStatus.ProbeFailed => "Probe failed",
-            AndroidAdbDetectionStatus.ParseFailed => "Version parse failed",
-            AndroidAdbDetectionStatus.Cancelled => "Cancelled",
-            _ => result.Status.ToString()
+            AndroidAdbDetectionStatus.PlatformToolsMissing => "platform-tools missing", AndroidAdbDetectionStatus.AdbMissing => "ADB missing", AndroidAdbDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable", AndroidAdbDetectionStatus.TimedOut => "Probe timed out", AndroidAdbDetectionStatus.ProbeFailed => "Probe failed", AndroidAdbDetectionStatus.ParseFailed => "Version parse failed", AndroidAdbDetectionStatus.Cancelled => "Cancelled", _ => result.Status.ToString()
         };
         AdbDetails = JoinDetails(result.AdbPath ?? result.PlatformToolsPath, result.Message);
     }

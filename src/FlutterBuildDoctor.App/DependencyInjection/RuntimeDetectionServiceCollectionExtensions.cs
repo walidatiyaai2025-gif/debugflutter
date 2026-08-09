@@ -24,6 +24,9 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>();
         services.TryAddSingleton<IWindowsRuntimeInfoSource, SystemWindowsRuntimeInfoSource>();
         services.TryAddSingleton<IWindowsEnvironmentDetector, WindowsEnvironmentDetector>();
+        services.TryAddSingleton<IAndroidStudioSearchRootProvider, SystemAndroidStudioSearchRootProvider>();
+        services.TryAddSingleton<IAndroidStudioInstallationSource, WindowsAndroidStudioInstallationSource>();
+        services.TryAddSingleton<IAndroidStudioDetector, AndroidStudioDetector>();
         services.TryAddSingleton<IFlutterSdkDetector, FlutterSdkDetector>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
