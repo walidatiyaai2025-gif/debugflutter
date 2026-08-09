@@ -8,6 +8,25 @@ public sealed class PubspecParser : IPubspecParser
 {
     private const long MaxPubspecBytes = 2 * 1024 * 1024;
 
+    private static readonly string[] ScalarRootKeys =
+    {
+        "name",
+        "description",
+        "version",
+        "publish_to",
+        "homepage",
+        "repository",
+        "issue_tracker",
+        "documentation"
+    };
+
+    private static readonly (string Key, PubspecDependencySection Section)[] DependencySections =
+    {
+        ("dependencies", PubspecDependencySection.Dependencies),
+        ("dev_dependencies", PubspecDependencySection.DevDependencies),
+        ("dependency_overrides", PubspecDependencySection.DependencyOverrides)
+    };
+
     public PubspecParseResult Parse(FlutterProjectRootResult projectRoot)
     {
         ArgumentNullException.ThrowIfNull(projectRoot);
@@ -65,6 +84,17 @@ public sealed class PubspecParser : IPubspecParser
         string rawText;
         try
         {
+            var attributes = File.GetAttributes(pubspecPath);
+            if ((attributes & FileAttributes.ReparsePoint) != 0)
+            {
+                return Result(
+                    PubspecParseStatus.InvalidRequest,
+                    projectRoot,
+                    pubspecPath,
+                    null,
+                    "The resolved pubspec.yaml is a reparse point or symbolic link and will not be followed outside the imported project evidence boundary.");
+            }
+
             var fileInfo = new FileInfo(pubspecPath);
             if (fileInfo.Length > MaxPubspecBytes)
             {
@@ -123,6 +153,16 @@ public sealed class PubspecParser : IPubspecParser
                 "pubspec.yaml must contain exactly one YAML mapping document.");
         }
 
+        if (ValidateKnownDocumentShapes(root) is { } shapeError)
+        {
+            return Result(
+                PubspecParseStatus.InvalidDocument,
+                projectRoot,
+                pubspecPath,
+                rawText,
+                shapeError);
+        }
+
         var name = Scalar(root, "name")?.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -158,12 +198,106 @@ public sealed class PubspecParser : IPubspecParser
             $"Parsed pubspec.yaml for '{metadata.Name}' without modifying the project.");
     }
 
+    private static string? ValidateKnownDocumentShapes(YamlMappingNode root)
+    {
+        foreach (var key in ScalarRootKeys)
+        {
+            if (Node(root, key) is { } node && node is not YamlScalarNode)
+                return $"pubspec.yaml field '{key}' must be a scalar value.";
+        }
+
+        if (Node(root, "environment") is { } environmentNode)
+        {
+            if (environmentNode is not YamlMappingNode environment)
+                return "pubspec.yaml section 'environment' must be a mapping.";
+
+            foreach (var key in new[] { "sdk", "flutter" })
+            {
+                if (Node(environment, key) is { } value && value is not YamlScalarNode)
+                    return $"pubspec.yaml field 'environment.{key}' must be a scalar value.";
+            }
+        }
+
+        if (Node(root, "topics") is { } topicsNode)
+        {
+            if (topicsNode is not YamlSequenceNode topics)
+                return "pubspec.yaml section 'topics' must be a sequence.";
+
+            if (topics.Children.Any(child => child is not YamlScalarNode))
+                return "pubspec.yaml section 'topics' may contain scalar values only.";
+        }
+
+        foreach (var (key, _) in DependencySections)
+        {
+            if (Node(root, key) is not { } sectionNode)
+                continue;
+
+            if (sectionNode is not YamlMappingNode section)
+                return $"pubspec.yaml section '{key}' must be a mapping.";
+
+            foreach (var pair in section.Children)
+            {
+                if (pair.Key is not YamlScalarNode nameNode || string.IsNullOrWhiteSpace(nameNode.Value))
+                    return $"pubspec.yaml section '{key}' contains a dependency with an invalid name.";
+
+                if (pair.Value is not YamlScalarNode && pair.Value is not YamlMappingNode)
+                    return $"pubspec.yaml dependency '{nameNode.Value}' in '{key}' must use a scalar or mapping specification.";
+
+                if (pair.Value is YamlMappingNode dependency &&
+                    ValidateDependencyShape(key, nameNode.Value, dependency) is { } dependencyError)
+                    return dependencyError;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? ValidateDependencyShape(string section, string dependencyName, YamlMappingNode dependency)
+    {
+        foreach (var key in new[] { "version", "sdk", "path" })
+        {
+            if (Node(dependency, key) is { } node && node is not YamlScalarNode)
+                return $"pubspec.yaml dependency '{dependencyName}' field '{key}' in '{section}' must be a scalar value.";
+        }
+
+        if (Node(dependency, "git") is { } gitNode)
+        {
+            if (gitNode is not YamlScalarNode && gitNode is not YamlMappingNode)
+                return $"pubspec.yaml dependency '{dependencyName}' field 'git' in '{section}' must be a scalar or mapping.";
+
+            if (gitNode is YamlMappingNode git)
+            {
+                foreach (var key in new[] { "url", "ref", "path" })
+                {
+                    if (Node(git, key) is { } value && value is not YamlScalarNode)
+                        return $"pubspec.yaml dependency '{dependencyName}' field 'git.{key}' in '{section}' must be a scalar value.";
+                }
+            }
+        }
+
+        if (Node(dependency, "hosted") is { } hostedNode)
+        {
+            if (hostedNode is not YamlScalarNode && hostedNode is not YamlMappingNode)
+                return $"pubspec.yaml dependency '{dependencyName}' field 'hosted' in '{section}' must be a scalar or mapping.";
+
+            if (hostedNode is YamlMappingNode hosted)
+            {
+                foreach (var key in new[] { "url", "name" })
+                {
+                    if (Node(hosted, key) is { } value && value is not YamlScalarNode)
+                        return $"pubspec.yaml dependency '{dependencyName}' field 'hosted.{key}' in '{section}' must be a scalar value.";
+                }
+            }
+        }
+
+        return null;
+    }
+
     private static IReadOnlyList<PubspecDependency> ParseDependencies(YamlMappingNode root)
     {
         var dependencies = new List<PubspecDependency>();
-        AddDependencies(root, "dependencies", PubspecDependencySection.Dependencies, dependencies);
-        AddDependencies(root, "dev_dependencies", PubspecDependencySection.DevDependencies, dependencies);
-        AddDependencies(root, "dependency_overrides", PubspecDependencySection.DependencyOverrides, dependencies);
+        foreach (var (key, section) in DependencySections)
+            AddDependencies(root, key, section, dependencies);
         return dependencies.ToArray();
     }
 
