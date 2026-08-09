@@ -2,7 +2,7 @@ namespace FlutterBuildDoctor.Application.Logging;
 
 public interface IAppLogStore
 {
-    event EventHandler<AppLogEntry>? EntryAdded;
+    event Action<AppLogEntry>? EntryAdded;
 
     IReadOnlyList<AppLogEntry> Snapshot();
 }
