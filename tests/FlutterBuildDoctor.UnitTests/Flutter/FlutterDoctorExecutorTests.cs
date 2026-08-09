@@ -28,7 +28,7 @@ public sealed class FlutterDoctorExecutorTests
         Assert.Same(processResult, result.ProcessResult);
         var request = Assert.Single(runner.Requests);
         Assert.Equal("cmd.exe", request.FileName);
-        Assert.Equal(new[] { "/d", "/v:off", "/s", "/c", "call \"C:\\Program Files\\flutter\\bin\\flutter.bat\" doctor -v" }, request.Arguments);
+        Assert.Equal(new[] { "/d", "/v:off", "/c", "call \"C:\\Program Files\\flutter\\bin\\flutter.bat\" doctor -v" }, request.Arguments);
         Assert.Equal(TimeSpan.FromMinutes(5), request.Timeout);
         Assert.Equal("Flutter doctor -v", request.DisplayName);
         Assert.Equal(output, result.ProcessResult!.Output);
