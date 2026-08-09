@@ -146,7 +146,7 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{Binding IsEnvironmentDoctorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel Margin="28">
                     <TextBlock Text="Environment Doctor" Foreground="#F8FAFC" FontSize="30" FontWeight="SemiBold" />
-                    <TextBlock Text="Runs the real Git, Flutter, Java, Android SDK and sdkmanager detectors already implemented by the runtime layer." Foreground="#94A3B8" FontSize="14" Margin="0,6,0,20" />
+                    <TextBlock Text="Runs the real Git, Flutter, Java, Android SDK, sdkmanager and ADB detectors already implemented by the runtime layer." Foreground="#94A3B8" FontSize="14" Margin="0,6,0,20" />
                     <Grid Margin="0,0,0,18">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                         <Button Grid.Column="0" Content="Run / Refresh Scan" Command="{Binding EnvironmentDoctor.ScanCommand}" Padding="18,9" Margin="0,0,10,0" />
@@ -170,6 +170,9 @@
                         </Border>
                         <Border Margin="0,0,10,0" Padding="20" Background="#111C2F" CornerRadius="12" BorderBrush="#334155" BorderThickness="1">
                             <StackPanel><TextBlock Text="Android cmdline-tools / sdkmanager" Foreground="#94A3B8" FontSize="12"/><TextBlock Text="{Binding EnvironmentDoctor.CommandLineToolsSummary}" Foreground="#F8FAFC" FontSize="20" FontWeight="SemiBold" Margin="0,7,0,6" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding EnvironmentDoctor.CommandLineToolsDetails}" Foreground="#94A3B8" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/></StackPanel>
+                        </Border>
+                        <Border Padding="20" Background="#111C2F" CornerRadius="12" BorderBrush="#334155" BorderThickness="1">
+                            <StackPanel><TextBlock Text="Android platform-tools / ADB" Foreground="#94A3B8" FontSize="12"/><TextBlock Text="{Binding EnvironmentDoctor.AdbSummary}" Foreground="#F8FAFC" FontSize="20" FontWeight="SemiBold" Margin="0,7,0,6" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding EnvironmentDoctor.AdbDetails}" Foreground="#94A3B8" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"/></StackPanel>
                         </Border>
                     </UniformGrid>
                 </StackPanel>
