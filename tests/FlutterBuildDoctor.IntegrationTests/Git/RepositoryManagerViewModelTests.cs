@@ -13,15 +13,12 @@ public sealed class RepositoryManagerViewModelTests
         var repositoryPath = Path.Combine(Path.GetTempPath(), "FlutterBuildDoctorTests", "repo-ui-success");
         var backupPath = repositoryPath + ".backup";
         var resolver = new StubGitResolver(new GitExecutableResolution(true, "git.exe", "2.55.0", "Git ready"));
-        var coordinator = new StubImportCoordinator((request, progress) =>
-        {
-            progress?.Report(new ProcessOutputLine(DateTimeOffset.UtcNow, ProcessStream.StdErr, "Cloning into repository..."));
-            return new RepositoryImportResult(
+        var coordinator = new StubImportCoordinator((_, _) =>
+            new RepositoryImportResult(
                 RepositoryImportStatus.Succeeded,
                 repositoryPath,
                 backupPath,
-                "Repository imported successfully.");
-        });
+                "Repository imported successfully."));
         var identityService = new StubIdentityService(request =>
             new GitRepositoryIdentityResult(
                 GitRepositoryIdentityStatus.Succeeded,
