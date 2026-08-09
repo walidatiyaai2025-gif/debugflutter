@@ -9,9 +9,9 @@ Integration branch: `agent/fbd-foundation`
 
 Status: `DONE` pending final-head CI and merge
 PR: `#79` — `[FBD-502] Parse Flutter Doctor sections`
-Validated code head: `fadae29cfa5322aa7abc6a3f4633783bd7c0fe04`
-Validation workflow: `31319489987`
-Validation job: `93260053656`
+Validated code head: `23e613d3fe9205c0c7ca03b82dbe62d3be96b68c`
+Validation workflow: `31319664192`
+Validation job: `93260480832`
 
 ## Verified completed sequence
 
@@ -26,9 +26,11 @@ Do not reimplement these tasks. Continue from the active integration branch.
 ## FBD-502 behavior checkpoint
 
 - consumes `FlutterDoctorExecutionResult.ProcessResult`; it does not rerun Flutter
-- parses recognized doctor section headers into typed kind/status/title/source-line records
-- preserves the complete raw `ProcessResult.Output` collection
-- unknown headers act as section boundaries so their detail lines do not contaminate recognized sections
+- parses recognized stdout doctor section headers into typed kind/status/title/source-line records
+- preserves the complete original `ProcessResult`, including raw stdout/stderr, exit status/code, command, failure reason, and execution receipt
+- supports `✓`/`√` ready markers and `✗`/`X`/`x` error markers
+- stderr cannot become or contaminate a typed doctor section
+- unknown stdout headers act as section boundaries so their detail lines do not contaminate recognized sections
 - no repair or environment mutation is performed
 - FBD-503 remains responsible for explicit unknown-output modeling
 
@@ -36,20 +38,21 @@ Do not reimplement these tasks. Continue from the active integration branch.
 
 `FBD-601` — Locate Flutter project root
 
-Reason: FBD-502 completes the P0 Flutter Doctor execution/parsing gate required on the M1 path. The implementation plan then moves into Project Analyzer work so imported repositories can be located and validated as Flutter projects before reading project requirements.
+Reason: FBD-502 completes the P0 Flutter Doctor execution/parsing gate on the M1 path. The implementation plan then moves into Project Analyzer work so imported repositories can be located and validated as Flutter projects before project requirements are parsed.
 
 Acceptance: find `pubspec.yaml`, identify the effective Flutter project root, and reject non-Flutter/malformed project locations with clear evidence without modifying project files.
 
 ## Parallel doctor follow-ups
 
-- `FBD-503` — Preserve unknown doctor output — now dependency-ready
+- `FBD-503` — Preserve unknown doctor output — dependency-ready after FBD-502
 - `FBD-504` — Run `flutter --version` structured probe — independently dependency-ready
+- `FBD-506` — Flutter doctor parser fixture tests — dependency-ready after FBD-502
 
-These should not be folded into FBD-502 or FBD-601.
+These must not be folded into FBD-502 or FBD-601.
 
 ## Resume instruction
 
-After FBD-502 is merged, start FBD-601 from the newest `agent/fbd-foundation` head. Reuse the imported repository path from the Repository Manager, perform read-only project-root discovery, and do not parse pubspec contents yet (FBD-602 owns that).
+After FBD-502 is merged, start FBD-601 from the newest `agent/fbd-foundation` head. Reuse the imported repository path from Repository Manager, perform read-only project-root discovery, and do not parse pubspec contents yet (FBD-602 owns that).
 
 ## Bookkeeping note
 
