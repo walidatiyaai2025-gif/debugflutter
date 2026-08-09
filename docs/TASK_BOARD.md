@@ -197,6 +197,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 ---
 
 ## EPIC FBD-1000 — Device & Emulator Manager
+
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
 | FBD-1001 | Parse `adb devices -l` | Android Engineer | P0 | FBD-409,FBD-202 | TODO | Physical/emulated device records generated |
