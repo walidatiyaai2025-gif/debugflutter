@@ -7,9 +7,12 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-601` — Locate Flutter project root
 
-Status: `DONE` pending exact PR CI and merge
-Branch: `agent/fbd-601-project-root`
-Branch validation workflow: `31321852865`
+Status: `DONE`
+PR: `#92` — `[FBD-601] Locate Flutter project root`
+Final validated feature head: `1ba7a7c0fda936fe85bf90fc56afcfa1e4534790`
+Final validation workflow: `31322040008`
+Final validation job: `93266424883`
+Integration merge commit: `41525dc0aa08b05696e9b3a6c423b2efaa03a0d3`
 
 ## Verified completed sequence
 
@@ -19,7 +22,7 @@ Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD
 
 Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504`.
 
-Project Analyzer: `FBD-601` is branch-validated and awaiting exact PR merge validation.
+Project Analyzer: `FBD-601` is merged and fully validated.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
@@ -31,7 +34,7 @@ Do not reimplement these tasks. Continue from the active integration branch.
 - validates root candidates using filesystem evidence: `.metadata`, or `lib` plus a Flutter platform directory
 - skips reparse-point directories instead of following them
 - prefers a valid repository-root Flutter project while retaining nested candidates as evidence
-- selects one nested root only when it is unambiguous
+- selects one nested root only when it is unambiguous and repository inspection completed successfully
 - returns explicit states for missing repository, missing pubspec, no Flutter filesystem evidence, ambiguity, traversal limits, and inspection failure
 - does not modify repository files or run Flutter, Dart, Gradle, or package commands
 
@@ -52,7 +55,7 @@ These remain separate tasks and must not be folded into FBD-602.
 
 ## Resume instruction
 
-After FBD-601 is merged, start FBD-602 from the newest `agent/fbd-foundation` head. Consume the effective pubspec path returned by `IFlutterProjectRootLocator`; keep parsing read-only and keep later `pubspec.lock` work in FBD-603.
+Start FBD-602 from merge commit `41525dc0aa08b05696e9b3a6c423b2efaa03a0d3` or a newer `agent/fbd-foundation` head. Consume the effective pubspec path returned by `IFlutterProjectRootLocator`; keep parsing read-only and keep later `pubspec.lock` work in FBD-603.
 
 ## Bookkeeping note
 
