@@ -133,10 +133,8 @@ public sealed class GitRepositoryIdentityService : IGitRepositoryIdentityService
 
         ProcessResult? upstreamResult = null;
         ProcessResult? remoteResult = null;
-        ProcessResult? remoteUrlResult = null;
         string? upstream = null;
         string? remoteName = null;
-        string? remoteUrl = null;
 
         if (!isDetached && branchName is not null)
         {
@@ -190,36 +188,6 @@ public sealed class GitRepositoryIdentityService : IGitRepositoryIdentityService
             {
                 remoteName = FirstStdOutLine(remoteResult);
             }
-
-            if (!string.IsNullOrWhiteSpace(remoteName) && remoteName != ".")
-            {
-                remoteUrlResult = await RunGitAsync(
-                    request.GitExecutablePath,
-                    repositoryPath,
-                    new[] { "remote", "get-url", remoteName },
-                    environment,
-                    timeout,
-                    "Read Git remote URL",
-                    progress,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (remoteUrlResult.Status is ProcessExecutionStatus.Cancelled or ProcessExecutionStatus.TimedOut)
-                {
-                    return new GitRepositoryIdentityResult(
-                        MapProcessStatus(remoteUrlResult.Status),
-                        Message: DescribeFailure(remoteUrlResult, "Could not read the current branch remote URL."),
-                        BranchResult: branchResult,
-                        CommitResult: commitResult,
-                        UpstreamResult: upstreamResult,
-                        RemoteResult: remoteResult,
-                        RemoteUrlResult: remoteUrlResult);
-                }
-
-                if (remoteUrlResult.IsSuccess)
-                {
-                    remoteUrl = FirstStdOutLine(remoteUrlResult);
-                }
-            }
         }
 
         var identity = new GitRepositoryIdentity(
@@ -228,7 +196,6 @@ public sealed class GitRepositoryIdentityService : IGitRepositoryIdentityService
             branchName,
             upstream,
             remoteName,
-            remoteUrl,
             isDetached);
 
         return new GitRepositoryIdentityResult(
@@ -240,8 +207,7 @@ public sealed class GitRepositoryIdentityService : IGitRepositoryIdentityService
             branchResult,
             commitResult,
             upstreamResult,
-            remoteResult,
-            remoteUrlResult);
+            remoteResult);
     }
 
     private async Task<ProcessResult> RunGitAsync(
