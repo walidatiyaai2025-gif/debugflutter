@@ -245,14 +245,14 @@ public sealed class GitBranchService : IGitBranchService
 
         if (fullName.StartsWith("refs/heads/", StringComparison.Ordinal))
         {
-            var name = fullName["refs/heads/".Length..];
-            if (string.IsNullOrWhiteSpace(name))
+            var localBranchName = fullName["refs/heads/".Length..];
+            if (string.IsNullOrWhiteSpace(localBranchName))
             {
                 return false;
             }
 
             branch = new GitBranchInfo(
-                name,
+                localBranchName,
                 fullName,
                 GitBranchKind.Local,
                 commitSha,
@@ -274,10 +274,10 @@ public sealed class GitBranchService : IGitBranchService
         }
 
         var remoteName = remoteRef[..separatorIndex];
-        var name = remoteRef[(separatorIndex + 1)..];
+        var remoteBranchName = remoteRef[(separatorIndex + 1)..];
 
         branch = new GitBranchInfo(
-            name,
+            remoteBranchName,
             fullName,
             GitBranchKind.Remote,
             commitSha,
