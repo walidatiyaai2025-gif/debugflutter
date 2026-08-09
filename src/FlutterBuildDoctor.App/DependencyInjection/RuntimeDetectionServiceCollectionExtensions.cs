@@ -31,6 +31,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IAndroidBuildToolsDetector, AndroidBuildToolsDetector>();
         services.TryAddSingleton<IAndroidEmulatorDetector, AndroidEmulatorDetector>();
         services.TryAddSingleton<IAndroidAvdManagerDetector, AndroidAvdManagerDetector>();
+        services.TryAddSingleton<IAndroidLicenseDetector, AndroidLicenseDetector>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
