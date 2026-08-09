@@ -10,7 +10,7 @@ namespace FlutterBuildDoctor.IntegrationTests.Composition;
 public sealed class PresentationCompositionTests
 {
     [Fact]
-    public void PresentationComposition_ResolvesShellRepositoryManagerAndWindowRegistration()
+    public void PresentationComposition_ResolvesShellRepositoryManagerEnvironmentDoctorAndWindowRegistration()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -24,10 +24,15 @@ public sealed class PresentationCompositionTests
         Assert.Equal("Flutter Build Doctor", viewModel.ApplicationName);
         Assert.Equal("Ready", viewModel.StartupStatus);
         Assert.Equal("Ready", viewModel.StatusMessage);
+        Assert.True(viewModel.IsDashboardVisible);
+        Assert.False(viewModel.IsProjectsVisible);
+        Assert.False(viewModel.IsEnvironmentDoctorVisible);
         Assert.NotNull(viewModel.ProjectHeader);
         Assert.Equal("No project selected", viewModel.ProjectHeader.ProjectName);
         Assert.NotNull(viewModel.RepositoryManager);
         Assert.Same(viewModel.RepositoryManager, provider.GetRequiredService<RepositoryManagerViewModel>());
+        Assert.NotNull(viewModel.EnvironmentDoctor);
+        Assert.Same(viewModel.EnvironmentDoctor, provider.GetRequiredService<EnvironmentDoctorViewModel>());
         Assert.NotNull(provider.GetRequiredService<IGitExecutableResolver>());
         Assert.NotNull(provider.GetRequiredService<IRepositoryImportCoordinator>());
         Assert.NotNull(provider.GetRequiredService<IGitBranchService>());
@@ -39,6 +44,10 @@ public sealed class PresentationCompositionTests
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(RepositoryManagerViewModel)
+                && descriptor.Lifetime == ServiceLifetime.Singleton);
+        Assert.Contains(
+            services,
+            descriptor => descriptor.ServiceType == typeof(EnvironmentDoctorViewModel)
                 && descriptor.Lifetime == ServiceLifetime.Singleton);
         Assert.Contains(
             services,
