@@ -1,5 +1,4 @@
 using FlutterBuildDoctor.Android.Detection;
-using FlutterBuildDoctor.Android.ProjectAnalysis;
 using FlutterBuildDoctor.App.EnvironmentSnapshots;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
