@@ -6,7 +6,7 @@ Integration branch: `agent/fbd-foundation`
 
 ## Live application status
 
-The production-facing WPF shell on `main` now contains the Git Repository Manager and Environment Doctor integrations that have passed live-main CI. Do not reimplement those capabilities on parallel feature branches; promote validated backend work into the existing UI incrementally.
+The production-facing WPF shell on `main` contains the Git Repository Manager and Environment Doctor integrations that have passed live-main CI. Do not reimplement these capabilities on parallel feature branches; promote validated backend work into the existing UI incrementally.
 
 ### Git Repository Manager — live
 
@@ -17,42 +17,40 @@ The production-facing WPF shell on `main` now contains the Git Repository Manage
 - repository identity header (remote / branch / commit)
 - Windows workspace lock recovery
 
-### Environment Doctor — live through FBD-412
+### Environment Doctor — live through FBD-413
 
 - Git executable/version
 - Flutter SDK/version/channel
 - Java/JDK detection
 - environment variables and Android SDK root validation
 - command-line tools / `sdkmanager`
+- `avdmanager` availability/effective path
 - platform-tools / ADB
 - installed Android platforms
 - installed Android build-tools
 - Android emulator binary/version
 
-`FBD-413` avdmanager detection is currently being promoted to the live UI on branch `agent/fbd-413-main-ui`. The branch also corrects the Environment Doctor XAML so the already-integrated emulator result is visibly rendered as a readiness card.
+FBD-413 live UI promotion was merged to `main` after exact PR CI passed. The Environment Doctor XAML now visibly renders both emulator and avdmanager readiness.
 
 ## Current task
 
-`FBD-413` — Detect avdmanager — LIVE UI PROMOTION IN PROGRESS
+`FBD-415` — Detect Android license status — LIVE UI PROMOTION IN PROGRESS
 
-Branch: `agent/fbd-413-main-ui`
+Branch: `agent/fbd-415-main-ui`
 
 Scope:
-- port the already validated FBD-413 backend implementation onto current `main`
-- register `IAndroidAvdManagerDetector`
-- execute the read-only file-presence detector from Environment Doctor after command-line-tools discovery
-- show effective path/revision and alternate-installation evidence
-- keep `Devices & Emulators` disabled because AVD inventory, creation/deletion and launch/lifecycle management are not implemented yet
+- port the already validated FBD-415 backend implementation onto current `main`
+- register `IAndroidLicenseDetector`
+- run a bounded status-only `sdkmanager --licenses` probe with stdin forced closed using `< NUL`
+- classify Accepted, Pending, sdkmanager unavailable, timeout, failure, cancellation and indeterminate states
+- show sdkmanager path/revision and local license-file evidence in Environment Doctor
+- never send acceptance input and never modify license files
 
-Safety boundary: FBD-413 does not execute avdmanager and does not create, delete, list, modify or launch AVDs.
+Safety boundary: this promotion is diagnostic only. It does not accept licenses. Any future acceptance operation must remain an explicit user-driven repair action with appropriate confirmation.
 
 ## Next promotion
 
-`FBD-415` — Android license readiness.
-
-The backend is already validated on the integration line. Promote it to Environment Doctor only after FBD-413 live-main CI/merge is complete. The license detector is status-only: it runs a bounded `sdkmanager --licenses` probe with stdin closed and must never send acceptance input or modify license files.
-
-`FBD-414` Android Studio detection currently remains on its team feature/draft path and should be promoted only after that backend PR is finalized and validated.
+`FBD-414` Android Studio detection remains on the team feature/draft path and should be promoted only after that backend PR is finalized and validated. Otherwise continue with the next already validated backend capability whose dependencies are satisfied.
 
 ## Team coordination rule
 
