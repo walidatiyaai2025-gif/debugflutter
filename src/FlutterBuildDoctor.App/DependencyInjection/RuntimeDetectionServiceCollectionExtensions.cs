@@ -30,6 +30,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
         services.TryAddSingleton<IGitBranchService, GitBranchService>();
         services.TryAddSingleton<IGitBranchSwitcher, GitBranchSwitcher>();
+        services.TryAddSingleton<IGitPullService, GitPullService>();
         services.TryAddSingleton<IGitWorkingTreeScanner, GitWorkingTreeScanner>();
         services.TryAddSingleton<IGitRepositoryIdentityService, GitRepositoryIdentityService>();
         services.TryAddSingleton<IGitWorkspaceLockResolver, WindowsRestartManagerWorkspaceLockResolver>();
