@@ -143,6 +143,11 @@ public sealed class AndroidIdentifierParser : IAndroidIdentifierParser
                 $"Conflicting static Android identifier declarations were found for {string.Join(", ", fields)}; no value was selected implicitly.");
         }
 
+        if (unresolved.Contains(AndroidIdentifierField.Namespace))
+            namespaceValue = null;
+        if (unresolved.Contains(AndroidIdentifierField.ApplicationId))
+            applicationIdValue = null;
+
         var resolvedCount = new[] { namespaceValue, applicationIdValue }.Count(value => value is not null);
         if (resolvedCount == 0)
         {
@@ -154,7 +159,7 @@ public sealed class AndroidIdentifierParser : IAndroidIdentifierParser
                 evidence.ToArray(),
                 unresolved.OrderBy(field => field).ToArray(),
                 unresolved.Count > 0
-                    ? "Android identifier declarations were present in the expected DSL scopes, but only unsupported dynamic or non-literal expressions were found. Values were not guessed."
+                    ? "Android identifier declarations included unresolved dynamic or non-literal expressions, so no effective values were selected implicitly."
                     : "No supported static namespace or defaultConfig applicationId declarations were found in the Android app build script.");
         }
 
@@ -439,8 +444,11 @@ public sealed class AndroidIdentifierParser : IAndroidIdentifierParser
                 while (index < block.End && IsIdentifierPart(mask[index]))
                     index++;
 
-                if (mask.AsSpan(tokenStart, index - tokenStart).Equals(keyword.AsSpan(), StringComparison.Ordinal))
+                if (mask.AsSpan(tokenStart, index - tokenStart).Equals(keyword.AsSpan(), StringComparison.Ordinal) &&
+                    IsStatementLeadingToken(mask, block.Start, tokenStart))
+                {
                     tokens.Add(new TokenRange(tokenStart, index));
+                }
                 continue;
             }
 
@@ -448,6 +456,20 @@ public sealed class AndroidIdentifierParser : IAndroidIdentifierParser
         }
 
         return tokens;
+    }
+
+    private static bool IsStatementLeadingToken(string mask, int blockStart, int tokenStart)
+    {
+        for (var index = tokenStart - 1; index >= blockStart; index--)
+        {
+            var current = mask[index];
+            if (current is ' ' or '\t' or '\f')
+                continue;
+
+            return current is '\r' or '\n' or ';';
+        }
+
+        return true;
     }
 
     private static int FindMatchingBrace(string mask, int openBrace, int end)
