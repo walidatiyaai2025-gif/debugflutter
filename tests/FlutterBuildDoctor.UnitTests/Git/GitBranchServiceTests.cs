@@ -17,11 +17,9 @@ public sealed class GitBranchServiceTests
             (_, progress) =>
             {
                 progress?.Report(progressLine);
-                return Result(ProcessExecutionStatus.Succeeded, 0);
+                return Success();
             },
-            (_, _) => Result(
-                ProcessExecutionStatus.Succeeded,
-                0,
+            (_, _) => Success(
                 "refs/heads/feature/ui\t2222222\t\t \t",
                 "refs/heads/main\t1111111\torigin/main\t*\t",
                 "refs/remotes/origin/HEAD\t1111111\t\t \trefs/remotes/origin/main",
@@ -39,20 +37,20 @@ public sealed class GitBranchServiceTests
         Assert.Equal(4, result.Branches.Count);
         Assert.Equal(progressLine, Assert.Single(progress.Lines));
 
-        var current = Assert.Single(result.Branches.Where(branch => branch.IsCurrent));
+        var current = Assert.Single(result.Branches, branch => branch.IsCurrent);
         Assert.Equal("main", current.Name);
         Assert.Equal(GitBranchKind.Local, current.Kind);
         Assert.Equal("origin/main", current.Upstream);
 
-        var originMain = Assert.Single(result.Branches.Where(branch =>
+        var originMain = Assert.Single(result.Branches, branch =>
             branch.Kind == GitBranchKind.Remote &&
             branch.RemoteName == "origin" &&
-            branch.Name == "main"));
+            branch.Name == "main");
         Assert.Equal("refs/remotes/origin/main", originMain.FullName);
 
-        var upstreamFeature = Assert.Single(result.Branches.Where(branch =>
+        var upstreamFeature = Assert.Single(result.Branches, branch =>
             branch.Kind == GitBranchKind.Remote &&
-            branch.RemoteName == "upstream"));
+            branch.RemoteName == "upstream");
         Assert.Equal("feature/ui", upstreamFeature.Name);
 
         Assert.DoesNotContain(result.Branches, branch => branch.FullName.EndsWith("/HEAD", StringComparison.Ordinal));
@@ -62,8 +60,9 @@ public sealed class GitBranchServiceTests
             runner.Requests[0].Arguments);
         Assert.Equal("for-each-ref", runner.Requests[1].Arguments[0]);
         Assert.Equal(repository.Path, runner.Requests[0].WorkingDirectory);
-        Assert.Equal("0", runner.Requests[0].Environment!["GIT_TERMINAL_PROMPT"]);
-        Assert.Equal("Never", runner.Requests[0].Environment["GCM_INTERACTIVE"]);
+        var environment = Assert.IsAssignableFrom<IReadOnlyDictionary<string, string?>>(runner.Requests[0].Environment);
+        Assert.Equal("0", environment["GIT_TERMINAL_PROMPT"]);
+        Assert.Equal("Never", environment["GCM_INTERACTIVE"]);
     }
 
     [Fact]
@@ -71,11 +70,8 @@ public sealed class GitBranchServiceTests
     {
         using var repository = new TempRepository();
         var runner = new QueueProcessRunner(
-            (_, _) => Result(ProcessExecutionStatus.Failed, 1, failureReason: "network unavailable"),
-            (_, _) => Result(
-                ProcessExecutionStatus.Succeeded,
-                0,
-                "refs/heads/main\t1111111\t\t*\t"));
+            (_, _) => Failure(ProcessExecutionStatus.Failed, 1, "network unavailable"),
+            (_, _) => Success("refs/heads/main\t1111111\t\t*\t"));
         var service = new GitBranchService(runner);
 
         var result = await service.GetBranchesAsync(
@@ -84,6 +80,7 @@ public sealed class GitBranchServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal(GitBranchDiscoveryStatus.SucceededWithWarning, result.Status);
         Assert.Single(result.Branches);
+        Assert.NotNull(result.Message);
         Assert.Contains("network unavailable", result.Message, StringComparison.OrdinalIgnoreCase);
         Assert.NotNull(result.RefreshResult);
         Assert.NotNull(result.ListResult);
@@ -95,7 +92,7 @@ public sealed class GitBranchServiceTests
     {
         using var repository = new TempRepository();
         var runner = new QueueProcessRunner(
-            (_, _) => Result(ProcessExecutionStatus.TimedOut, null, failureReason: "Process timed out."));
+            (_, _) => Failure(ProcessExecutionStatus.TimedOut, null, "Process timed out."));
         var service = new GitBranchService(runner);
 
         var result = await service.GetBranchesAsync(
@@ -115,9 +112,7 @@ public sealed class GitBranchServiceTests
     {
         using var repository = new TempRepository();
         var runner = new QueueProcessRunner(
-            (_, _) => Result(
-                ProcessExecutionStatus.Succeeded,
-                0,
+            (_, _) => Success(
                 "refs/heads/main\t1111111\t\t*\t",
                 "refs/remotes/origin/dev\t2222222\t\t \t"));
         var service = new GitBranchService(runner);
@@ -156,8 +151,8 @@ public sealed class GitBranchServiceTests
     {
         using var repository = new TempRepository();
         var runner = new QueueProcessRunner(
-            (_, _) => Result(ProcessExecutionStatus.Succeeded, 0),
-            (_, _) => Result(ProcessExecutionStatus.Failed, 128, failureReason: "bad ref database"));
+            (_, _) => Success(),
+            (_, _) => Failure(ProcessExecutionStatus.Failed, 128, "bad ref database"));
         var service = new GitBranchService(runner);
 
         var result = await service.GetBranchesAsync(
@@ -165,21 +160,25 @@ public sealed class GitBranchServiceTests
 
         Assert.Equal(GitBranchDiscoveryStatus.Failed, result.Status);
         Assert.Empty(result.Branches);
+        Assert.NotNull(result.Message);
         Assert.Contains("bad ref database", result.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(2, runner.Requests.Count);
     }
 
-    private static ProcessResult Result(
+    private static ProcessResult Success(params string[] lines)
+        => CreateResult(ProcessExecutionStatus.Succeeded, 0, null, lines);
+
+    private static ProcessResult Failure(
         ProcessExecutionStatus status,
         int? exitCode,
-        params string[] lines)
-        => Result(status, exitCode, null, lines);
+        string failureReason)
+        => CreateResult(status, exitCode, failureReason, Array.Empty<string>());
 
-    private static ProcessResult Result(
+    private static ProcessResult CreateResult(
         ProcessExecutionStatus status,
         int? exitCode,
         string? failureReason,
-        params string[] lines)
+        IReadOnlyCollection<string> lines)
     {
         var timestamp = DateTimeOffset.UtcNow;
         var output = lines
