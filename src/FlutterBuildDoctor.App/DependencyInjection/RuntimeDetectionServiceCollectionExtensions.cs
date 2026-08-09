@@ -1,6 +1,7 @@
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
+using FlutterBuildDoctor.Flutter.Detection;
 using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Cloning;
 using FlutterBuildDoctor.Git.Repository;
@@ -18,6 +19,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IProcessSecretRedactor, DefaultProcessSecretRedactor>();
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
+        services.TryAddSingleton<IFlutterSdkDetector, FlutterSdkDetector>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
