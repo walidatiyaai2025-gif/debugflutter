@@ -67,6 +67,51 @@ public sealed class GitBranchSwitcherIntegrationTests
         Assert.Equal("main", await CurrentBranchAsync(repository));
     }
 
+    [Fact]
+    public async Task SwitchAsync_creates_a_real_tracking_branch_from_a_remote_ref()
+    {
+        Assert.True(OperatingSystem.IsWindows());
+        using var repository = await CreateRepositoryAsync();
+        using var remote = new TempDirectory();
+
+        await RunGitAsync(repository, "init", "--bare", "--", remote.Path);
+        await RunGitAsync(repository, "remote", "add", "origin", remote.Path);
+        await RunGitAsync(
+            repository,
+            "push",
+            "origin",
+            "feature/integration:refs/heads/feature/remote");
+        await RunGitAsync(repository, "fetch", "origin");
+
+        var remoteCommit = await RevParseAsync(repository, "origin/feature/remote");
+        var switcher = new GitBranchSwitcher(repository.Runner);
+        var branch = new GitBranchInfo(
+            "feature/remote",
+            "refs/remotes/origin/feature/remote",
+            GitBranchKind.Remote,
+            remoteCommit,
+            RemoteName: "origin");
+
+        var result = await switcher.SwitchAsync(
+            new GitBranchSwitchRequest(
+                repository.GitPath,
+                repository.Path,
+                branch,
+                TimeSpan.FromSeconds(30)));
+
+        Assert.True(result.IsSuccess, result.Message);
+        Assert.Equal("feature/remote", result.CurrentBranch);
+        Assert.Equal(remoteCommit, result.CommitSha);
+
+        var upstream = await RunGitAsync(
+            repository,
+            "rev-parse",
+            "--abbrev-ref",
+            "--symbolic-full-name",
+            "@{upstream}");
+        Assert.Equal("origin/feature/remote", FirstStdOut(upstream));
+    }
+
     private static async Task<GitRepositoryFixture> CreateRepositoryAsync()
     {
         var runner = new ProcessRunner();
@@ -142,10 +187,7 @@ public sealed class GitBranchSwitcherIntegrationTests
         {
             GitPath = gitPath;
             Runner = runner;
-            Path = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                "FlutterBuildDoctor.IntegrationTests",
-                Guid.NewGuid().ToString("N"));
+            Path = CreateTempPath();
             Directory.CreateDirectory(Path);
         }
 
@@ -155,19 +197,40 @@ public sealed class GitBranchSwitcherIntegrationTests
 
         public string Path { get; }
 
-        public void Dispose()
+        public void Dispose() => DeleteDirectory(Path);
+    }
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public TempDirectory()
         {
-            try
+            Path = CreateTempPath();
+            Directory.CreateDirectory(Path);
+        }
+
+        public string Path { get; }
+
+        public void Dispose() => DeleteDirectory(Path);
+    }
+
+    private static string CreateTempPath()
+        => System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "FlutterBuildDoctor.IntegrationTests",
+            Guid.NewGuid().ToString("N"));
+
+    private static void DeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
             {
-                if (Directory.Exists(Path))
-                {
-                    Directory.Delete(Path, recursive: true);
-                }
+                Directory.Delete(path, recursive: true);
             }
-            catch
-            {
-                // Best-effort cleanup for test temp data.
-            }
+        }
+        catch
+        {
+            // Best-effort cleanup for test temp data.
         }
     }
 }
