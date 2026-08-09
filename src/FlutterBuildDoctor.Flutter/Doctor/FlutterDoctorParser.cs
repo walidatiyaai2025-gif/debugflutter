@@ -15,29 +15,29 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
                 execution,
                 Array.Empty<FlutterDoctorSection>(),
                 Array.Empty<ProcessOutputLine>(),
+                Array.Empty<FlutterDoctorUnknownEvidence>(),
                 "Flutter doctor process evidence is unavailable.");
         }
 
         var sections = new List<FlutterDoctorSection>();
         var unsectioned = new List<ProcessOutputLine>();
+        var unknownEvidence = new List<FlutterDoctorUnknownEvidence>();
         SectionBuilder? current = null;
 
-        foreach (var line in processResult.Output)
+        for (var index = 0; index < processResult.Output.Count; index++)
         {
+            var line = processResult.Output[index];
             if (line.Stream == ProcessStream.StdOut && TryParseHeader(line, out var header))
             {
-                if (current is not null)
-                {
-                    sections.Add(current.Build());
-                }
-
-                current = new SectionBuilder(header.Kind, header.Status, header.Title, line);
+                FinalizeCurrentSection(sections, unknownEvidence, current);
+                current = new SectionBuilder(header.Kind, header.Status, header.Title, line, index);
                 continue;
             }
 
             if (current is null)
             {
                 unsectioned.Add(line);
+                unknownEvidence.Add(BuildUnsectionedEvidence(line, index));
             }
             else
             {
@@ -45,10 +45,8 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
             }
         }
 
-        if (current is not null)
-        {
-            sections.Add(current.Build());
-        }
+        FinalizeCurrentSection(sections, unknownEvidence, current);
+        unknownEvidence.Sort(static (left, right) => left.StartIndex.CompareTo(right.StartIndex));
 
         if (sections.Count == 0)
         {
@@ -57,7 +55,8 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
                 execution,
                 Array.Empty<FlutterDoctorSection>(),
                 unsectioned.ToArray(),
-                "No Flutter doctor section headers were found. Raw process evidence was preserved.");
+                unknownEvidence.ToArray(),
+                "No Flutter doctor section headers were found. Raw and unknown process evidence was preserved.");
         }
 
         return new FlutterDoctorParseResult(
@@ -65,8 +64,48 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
             execution,
             sections.ToArray(),
             unsectioned.ToArray(),
-            $"Parsed {sections.Count} Flutter doctor section(s). Raw process evidence was preserved.");
+            unknownEvidence.ToArray(),
+            $"Parsed {sections.Count} Flutter doctor section(s). Raw and unknown process evidence was preserved.");
     }
+
+    private static void FinalizeCurrentSection(
+        ICollection<FlutterDoctorSection> sections,
+        ICollection<FlutterDoctorUnknownEvidence> unknownEvidence,
+        SectionBuilder? current)
+    {
+        if (current is null)
+        {
+            return;
+        }
+
+        var section = current.Build();
+        sections.Add(section);
+        if (!section.IsRecognized)
+        {
+            unknownEvidence.Add(new FlutterDoctorUnknownEvidence(
+                FlutterDoctorUnknownEvidenceKind.UnknownSection,
+                current.StartIndex,
+                section.Lines,
+                $"Unrecognized Flutter doctor section: {section.Title}"));
+        }
+    }
+
+    private static FlutterDoctorUnknownEvidence BuildUnsectionedEvidence(ProcessOutputLine line, int index)
+    {
+        var looksLikeMalformedHeader = line.Stream == ProcessStream.StdOut && LooksLikeSectionHeader(line.Text);
+        return new FlutterDoctorUnknownEvidence(
+            looksLikeMalformedHeader
+                ? FlutterDoctorUnknownEvidenceKind.MalformedSectionHeader
+                : FlutterDoctorUnknownEvidenceKind.UnclassifiedLine,
+            index,
+            new[] { line },
+            looksLikeMalformedHeader
+                ? "Line resembles a Flutter doctor section header but could not be parsed."
+                : "Line was not classified into a Flutter doctor section.");
+    }
+
+    private static bool LooksLikeSectionHeader(string text)
+        => text.TrimStart().StartsWith("[", StringComparison.Ordinal);
 
     private static bool TryParseHeader(ProcessOutputLine line, out ParsedHeader header)
     {
@@ -144,12 +183,14 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
             FlutterDoctorSectionKind kind,
             FlutterDoctorSectionStatus status,
             string title,
-            ProcessOutputLine header)
+            ProcessOutputLine header,
+            int startIndex)
         {
             Kind = kind;
             Status = status;
             Title = title;
             Header = header;
+            StartIndex = startIndex;
             Lines = new List<ProcessOutputLine> { header };
         }
 
@@ -157,6 +198,7 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
         public FlutterDoctorSectionStatus Status { get; }
         public string Title { get; }
         public ProcessOutputLine Header { get; }
+        public int StartIndex { get; }
         public List<ProcessOutputLine> Lines { get; }
 
         public FlutterDoctorSection Build()
