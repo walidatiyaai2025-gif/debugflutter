@@ -140,10 +140,10 @@ public sealed class PubspecParser : IPubspecParser
             Scalar(root, "description"),
             Scalar(root, "version"),
             Scalar(root, "publish_to"),
-            Scalar(root, "homepage"),
-            Scalar(root, "repository"),
-            Scalar(root, "issue_tracker"),
-            Scalar(root, "documentation"),
+            SanitizeUrlEvidence(Scalar(root, "homepage")),
+            SanitizeUrlEvidence(Scalar(root, "repository")),
+            SanitizeUrlEvidence(Scalar(root, "issue_tracker")),
+            SanitizeUrlEvidence(Scalar(root, "documentation")),
             environment is null ? null : Scalar(environment, "sdk"),
             environment is null ? null : Scalar(environment, "flutter"),
             ScalarSequence(root, "topics"),
@@ -268,7 +268,7 @@ public sealed class PubspecParser : IPubspecParser
                 constraint,
                 null,
                 null,
-                gitUrl,
+                SanitizeUrlEvidence(gitUrl),
                 gitRef,
                 gitPath,
                 null,
@@ -300,7 +300,7 @@ public sealed class PubspecParser : IPubspecParser
                 null,
                 null,
                 null,
-                hostedUrl,
+                SanitizeUrlEvidence(hostedUrl),
                 hostedName);
         }
 
@@ -361,6 +361,45 @@ public sealed class PubspecParser : IPubspecParser
         }
 
         return null;
+    }
+
+    private static string? SanitizeUrlEvidence(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        var trimmed = value.Trim();
+        if (Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) && !string.IsNullOrWhiteSpace(uri.Host))
+        {
+            if (string.IsNullOrEmpty(uri.UserInfo) && string.IsNullOrEmpty(uri.Query) && string.IsNullOrEmpty(uri.Fragment))
+                return trimmed;
+
+            try
+            {
+                var builder = new UriBuilder(uri)
+                {
+                    UserName = string.Empty,
+                    Password = string.Empty,
+                    Query = string.Empty,
+                    Fragment = string.Empty
+                };
+                return builder.Uri.AbsoluteUri;
+            }
+            catch (UriFormatException)
+            {
+                return "[redacted-url]";
+            }
+        }
+
+        var atIndex = trimmed.IndexOf('@');
+        if (atIndex > 0)
+        {
+            var prefix = trimmed[..atIndex];
+            if (prefix.Contains(':', StringComparison.Ordinal))
+                return "[redacted]" + trimmed[atIndex..];
+        }
+
+        return trimmed;
     }
 
     private static bool PathsEqual(string left, string right)
