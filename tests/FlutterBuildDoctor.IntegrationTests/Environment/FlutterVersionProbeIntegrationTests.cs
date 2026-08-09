@@ -21,7 +21,8 @@ public sealed class FlutterVersionProbeIntegrationTests
                 flutterPath,
                 "@echo off\r\n" +
                 "if not \"%1\"==\"--version\" exit /b 9\r\n" +
-                "powershell.exe -NoProfile -NonInteractive -Command \"$b=[char]0x2022; Write-Output ('Flutter 3.44.8 ' + $b + ' channel stable ' + $b + ' https://github.com/flutter/flutter.git'); Write-Output ('Framework ' + $b + ' revision abc123def (today) ' + $b + ' 2026-08-09'); Write-Output ('Engine ' + $b + ' revision engine987'); Write-Output ('Tools ' + $b + ' Dart 3.12.2 ' + $b + ' DevTools 2.57.0')\"\r\n" +
+                "chcp 65001 >nul\r\n" +
+                "powershell.exe -NoProfile -NonInteractive -Command \"[Console]::OutputEncoding=[Text.UTF8Encoding]::new(); $b=[char]0x2022; Write-Output ('Flutter 3.44.8 ' + $b + ' channel stable ' + $b + ' https://github.com/flutter/flutter.git'); Write-Output ('Framework ' + $b + ' revision abc123def (today) ' + $b + ' 2026-08-09'); Write-Output ('Engine ' + $b + ' revision engine987'); Write-Output ('Tools ' + $b + ' Dart 3.12.2 ' + $b + ' DevTools 2.57.0')\"\r\n" +
                 "exit /b %errorlevel%\r\n");
 
             var probe = new FlutterVersionProbe(new ProcessRunner());
