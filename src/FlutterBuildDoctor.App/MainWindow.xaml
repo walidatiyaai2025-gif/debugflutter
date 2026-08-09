@@ -11,7 +11,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="64" />
+            <RowDefinition Height="88" />
             <RowDefinition Height="*" />
             <RowDefinition Height="34" />
         </Grid.RowDefinitions>
@@ -37,14 +37,19 @@
         </Border>
 
         <Border Grid.Column="1" Grid.Row="0" Background="#0B1220" BorderBrush="#1E293B" BorderThickness="0,0,0,1" Padding="24,0">
-            <Grid>
+            <Grid ToolTip="{Binding ProjectHeader.RepositoryPath}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="No project selected" Foreground="#F8FAFC" FontSize="15" FontWeight="SemiBold" />
-                    <TextBlock Text="Import a Flutter repository to begin diagnostics" Foreground="#94A3B8" FontSize="12" Margin="0,3,0,0" />
+                <StackPanel VerticalAlignment="Center" Margin="0,4,18,4">
+                    <TextBlock Text="{Binding ProjectHeader.ProjectName}" Foreground="#F8FAFC" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding ProjectHeader.BranchText}" Foreground="#CBD5E1" FontSize="11" />
+                        <TextBlock Text="  •  " Foreground="#475569" FontSize="11" />
+                        <TextBlock Text="{Binding ProjectHeader.CommitText}" Foreground="#94A3B8" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ProjectHeader.RemoteText}" Foreground="#64748B" FontSize="11" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
                 <Button Grid.Column="1" Content="Import Project" Padding="18,9" VerticalAlignment="Center" />
             </Grid>
