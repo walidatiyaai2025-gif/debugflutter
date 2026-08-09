@@ -81,7 +81,7 @@
 
         <Border Grid.Column="1" Grid.Row="2" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="16,0">
             <Grid>
-                <TextBlock Text="Ready" Foreground="#94A3B8" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 <TextBlock Text="Flutter Build Doctor • Foundation" Foreground="#64748B" VerticalAlignment="Center" HorizontalAlignment="Right" />
             </Grid>
         </Border>
