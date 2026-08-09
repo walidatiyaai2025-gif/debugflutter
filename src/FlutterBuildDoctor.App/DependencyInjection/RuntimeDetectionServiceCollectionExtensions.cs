@@ -4,6 +4,7 @@ using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
 using FlutterBuildDoctor.Flutter.Detection;
+using FlutterBuildDoctor.Flutter.Doctor;
 using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Cloning;
 using FlutterBuildDoctor.Git.Repository;
@@ -30,6 +31,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IAndroidStudioDetector, AndroidStudioDetector>();
         services.TryAddSingleton<IFlutterSdkDetector, FlutterSdkDetector>();
         services.TryAddSingleton<IDartSdkDetector, DartSdkDetector>();
+        services.TryAddSingleton<IFlutterDoctorExecutor, FlutterDoctorExecutor>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
         services.TryAddSingleton<IAndroidCommandLineToolsDetector, AndroidCommandLineToolsDetector>();
