@@ -7,10 +7,11 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-405` — Detect Dart SDK + version
 
-Status: `DONE` pending final-head CI and merge
+Status: `DONE`
 PR: `#62` — `[FBD-405] Detect Dart SDK and version`
-Validated feature head before stop-point update: `093677c2771fc7b0bc44e4f138873401d4334014`
-Validation workflow: `31313837157`
+Final validated feature head: `162c302050c1145714be3b966ebfbcaf3df077ef`
+Final validation workflow: `31314119670`
+Integration merge commit: `1c9e0899d67aa47c58615dbaefd317d1f742d380`
 
 ## Recently completed environment work
 
@@ -18,7 +19,8 @@ Validation workflow: `31313837157`
 - `FBD-402` — PATH executable discovery — DONE
 - `FBD-403` — environment-variable snapshot — DONE — PR `#38`
 - `FBD-404` — Flutter SDK + version detection — DONE — PR `#35`
-- `FBD-405` — Dart SDK + version detection — DONE pending final-head CI/merge — PR `#62`
+- `FBD-405` — Dart SDK + version detection — DONE — PR `#62`
+  - integration merge commit `1c9e0899d67aa47c58615dbaefd317d1f742d380`
 - `FBD-406` — Java installations detection — DONE — PR `#36`
 - `FBD-407` — Android SDK root detection — DONE — PR `#41`
 - `FBD-408` — sdkmanager/cmdline-tools detection — DONE — PR `#44`
@@ -28,7 +30,6 @@ Validation workflow: `31313837157`
 - `FBD-412` — emulator binary/version detection — DONE — PR `#54`
 - `FBD-413` — avdmanager availability detection — DONE — PR `#56`
 - `FBD-414` — Android Studio installations — DONE — PR `#61`
-  - integration merge commit `d223e26c81f5f2f972ff3204c908fe22a6e800bf`
 - `FBD-415` — Android license status — DONE — PR `#58`
 
 ## Verified completed sequence
@@ -43,13 +44,13 @@ Do not reimplement these tasks. Continue from the task board on the active integ
 
 `FBD-416` — Build immutable EnvironmentSnapshot
 
-Reason: all detector prerequisites required by FBD-416 are now implemented and independently validated. The next step is to compose their typed evidence into one immutable snapshot without adding new discovery or repair behavior.
+Reason: all detector prerequisites required by FBD-416 are implemented, validated, and merged. The next step is to compose their typed evidence into one immutable snapshot without adding new discovery or repair behavior.
 
 Acceptance: a single immutable environment snapshot represents the validated detector outputs consistently and can be consumed by later readiness/repair/UI workflows without mutating the machine.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-405 is merged. Reuse the existing detector contracts and production DI registrations; do not rediscover tools inside FBD-416 and do not modify PATH, JAVA_HOME, Android SDK contents, licenses, Flutter, Dart, Java, Android Studio, or Git state.
+Start from integration commit `1c9e0899d67aa47c58615dbaefd317d1f742d380` or a newer `agent/fbd-foundation` head. Reuse the existing detector contracts and production DI registrations; do not rediscover tools inside FBD-416 and do not modify PATH, JAVA_HOME, Android SDK contents, licenses, Flutter, Dart, Java, Android Studio, or Git state.
 
 ## Bookkeeping note
 
