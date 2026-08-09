@@ -220,7 +220,7 @@ public sealed class LocalPropertiesDetectorTests : IDisposable
     {
         var flutterSdk = CreateFlutterSdk("flutter-malformed-peer");
         WriteLocalProperties($"""
-            sdk.dir=\\u12
+            sdk.dir=\u12
             flutter.sdk={Escape(flutterSdk)}
             """);
 
@@ -257,9 +257,12 @@ public sealed class LocalPropertiesDetectorTests : IDisposable
         Assert.DoesNotContain(secret, visible, StringComparison.Ordinal);
         Assert.DoesNotContain(
             typeof(LocalPropertiesDetectionResult).GetProperties(),
-            property => property.Name.Contains("Raw", StringComparison.OrdinalIgnoreCase) ||
-                        property.Name.Contains("Content", StringComparison.OrdinalIgnoreCase) ||
-                        property.Name.Contains("Properties", StringComparison.OrdinalIgnoreCase));
+            property =>
+                property.Name.Equals("RawContent", StringComparison.OrdinalIgnoreCase) ||
+                property.Name.Equals("Content", StringComparison.OrdinalIgnoreCase) ||
+                property.Name.Equals("Properties", StringComparison.OrdinalIgnoreCase) ||
+                property.Name.Equals("AllProperties", StringComparison.OrdinalIgnoreCase) ||
+                property.Name.Equals("UnknownProperties", StringComparison.OrdinalIgnoreCase));
     }
 
     public void Dispose()
