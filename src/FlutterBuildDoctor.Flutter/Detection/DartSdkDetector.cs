@@ -131,7 +131,7 @@ public sealed class DartSdkDetector : IDartSdkDetector
 
     private static string? FindFlutterBundledDart(FlutterDetectionResult flutterResult)
     {
-        if (!flutterResult.IsSuccess || string.IsNullOrWhiteSpace(flutterResult.FlutterSdkPath))
+        if (!flutterResult.Installed || string.IsNullOrWhiteSpace(flutterResult.FlutterSdkPath))
             return null;
 
         var bin = Path.Combine(flutterResult.FlutterSdkPath, "bin", "cache", "dart-sdk", "bin");
