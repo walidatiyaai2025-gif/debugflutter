@@ -5,27 +5,34 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-310` — Repository Manager UI
+`FBD-402` — Implement PATH executable discovery utility
 
 Status: `DONE`
-PR: `#31` — `[FBD-310] Repository Manager UI`
-Final validated PR head: `a6f225b2140802c78aedd799264eb731a038e31d`
-Final PR CI run: `31305801928` — SUCCESS
-Integration merge commit: `3b9d0295e85e336876f68871ac6b2fcbbcabe389`
+PR: `#33` — `[FBD-402] Implement PATH executable discovery utility`
+Final validated PR head: `1a4a78d57198e718811a2c5a75426a9680c13e51`
+Final PR CI run: `31306722756` — SUCCESS
+Integration merge commit: `0b445d3fbc44481b5b48739ad65f63f837b7bd89`
 
 ## Verified completed sequence
 
-`FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
+Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
+
+Environment foundation: `FBD-402`
 
 Do not reimplement these tasks. Continue from the task board on the active integration branch.
 
+## Newly unlocked tasks
+
+- `FBD-403` — Read relevant environment variables — `READY`
+- `FBD-404` — Detect Flutter SDK + version — `READY`
+- `FBD-406` — Detect Java installations — `READY`
+
 ## Next task
 
-`FBD-402` — Implement PATH executable discovery utility
+`FBD-404` — Detect Flutter SDK + version
 
-Current board status: `READY`
-Acceptance: the utility finds all executable matches in Windows PATH order and identifies shadowing/conflicts for later Flutter, Java and Android tool detection.
+Acceptance: Flutter executable path, SDK path, version and channel are detected, while multiple PATH installations/conflicts remain visible through the FBD-402 discovery evidence.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after this stop-point reconciliation is merged. Re-read `docs/TASK_BOARD.md`, this file, and only the environment-discovery files required for FBD-402. Keep the Git Repository Manager implementation from FBD-301 through FBD-310 intact. FBD-404 remains blocked on FBD-402 and should not be started before PATH discovery is merged.
+Start from the latest `agent/fbd-foundation` head after this stop-point reconciliation is merged. Re-read `docs/TASK_BOARD.md`, this file, and only the Flutter/environment files required for FBD-404. Consume `IPathExecutableDiscovery` from FBD-402 and the canonical `IProcessRunner`; do not add a new PATH search implementation or mutate global environment variables. Keep the Git Repository Manager implementation from FBD-301 through FBD-310 intact.
