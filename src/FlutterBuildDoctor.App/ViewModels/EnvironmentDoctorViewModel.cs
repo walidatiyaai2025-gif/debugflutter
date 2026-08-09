@@ -21,79 +21,35 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IAndroidBuildToolsDetector _androidBuildToolsDetector;
     private readonly IAndroidEmulatorDetector _androidEmulatorDetector;
     private readonly IAndroidAvdManagerDetector _androidAvdManagerDetector;
+    private readonly IAndroidLicenseDetector? _androidLicenseDetector;
     private CancellationTokenSource? _scanCancellation;
 
-    [ObservableProperty]
-    private bool _isBusy;
-
-    [ObservableProperty]
-    private bool _hasScanned;
-
-    [ObservableProperty]
-    private string _statusMessage = "Environment has not been scanned yet.";
-
-    [ObservableProperty]
-    private string _gitSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _gitDetails = "Run Environment Doctor to detect Git.";
-
-    [ObservableProperty]
-    private string _flutterSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _flutterDetails = "Run Environment Doctor to detect the effective Flutter SDK.";
-
-    [ObservableProperty]
-    private string _javaSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _javaDetails = "Run Environment Doctor to detect Java/JDK installations.";
-
-    [ObservableProperty]
-    private string _androidSdkSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _androidSdkDetails = "Run Environment Doctor to validate ANDROID_HOME / ANDROID_SDK_ROOT.";
-
-    [ObservableProperty]
-    private string _commandLineToolsSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _commandLineToolsDetails = "Run Environment Doctor to detect sdkmanager and Android command-line tools.";
-
-    [ObservableProperty]
-    private string _avdManagerSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _avdManagerDetails = "Run Environment Doctor to detect avdmanager availability.";
-
-    [ObservableProperty]
-    private string _adbSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _adbDetails = "Run Environment Doctor to detect Android platform-tools / ADB.";
-
-    [ObservableProperty]
-    private string _androidPlatformsSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _androidPlatformsDetails = "Run Environment Doctor to inventory installed Android platforms.";
-
-    [ObservableProperty]
-    private string _androidBuildToolsSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _androidBuildToolsDetails = "Run Environment Doctor to inventory installed Android build-tools.";
-
-    [ObservableProperty]
-    private string _androidEmulatorSummary = "Not scanned";
-
-    [ObservableProperty]
-    private string _androidEmulatorDetails = "Run Environment Doctor to detect the Android emulator binary and version.";
-
-    [ObservableProperty]
-    private DateTimeOffset? _lastScannedAt;
+    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private bool _hasScanned;
+    [ObservableProperty] private string _statusMessage = "Environment has not been scanned yet.";
+    [ObservableProperty] private string _gitSummary = "Not scanned";
+    [ObservableProperty] private string _gitDetails = "Run Environment Doctor to detect Git.";
+    [ObservableProperty] private string _flutterSummary = "Not scanned";
+    [ObservableProperty] private string _flutterDetails = "Run Environment Doctor to detect the effective Flutter SDK.";
+    [ObservableProperty] private string _javaSummary = "Not scanned";
+    [ObservableProperty] private string _javaDetails = "Run Environment Doctor to detect Java/JDK installations.";
+    [ObservableProperty] private string _androidSdkSummary = "Not scanned";
+    [ObservableProperty] private string _androidSdkDetails = "Run Environment Doctor to validate ANDROID_HOME / ANDROID_SDK_ROOT.";
+    [ObservableProperty] private string _commandLineToolsSummary = "Not scanned";
+    [ObservableProperty] private string _commandLineToolsDetails = "Run Environment Doctor to detect sdkmanager and Android command-line tools.";
+    [ObservableProperty] private string _avdManagerSummary = "Not scanned";
+    [ObservableProperty] private string _avdManagerDetails = "Run Environment Doctor to detect avdmanager availability.";
+    [ObservableProperty] private string _androidLicenseSummary = "Not scanned";
+    [ObservableProperty] private string _androidLicenseDetails = "Run Environment Doctor to check Android SDK license readiness safely.";
+    [ObservableProperty] private string _adbSummary = "Not scanned";
+    [ObservableProperty] private string _adbDetails = "Run Environment Doctor to detect Android platform-tools / ADB.";
+    [ObservableProperty] private string _androidPlatformsSummary = "Not scanned";
+    [ObservableProperty] private string _androidPlatformsDetails = "Run Environment Doctor to inventory installed Android platforms.";
+    [ObservableProperty] private string _androidBuildToolsSummary = "Not scanned";
+    [ObservableProperty] private string _androidBuildToolsDetails = "Run Environment Doctor to inventory installed Android build-tools.";
+    [ObservableProperty] private string _androidEmulatorSummary = "Not scanned";
+    [ObservableProperty] private string _androidEmulatorDetails = "Run Environment Doctor to detect the Android emulator binary and version.";
+    [ObservableProperty] private DateTimeOffset? _lastScannedAt;
 
     public EnvironmentDoctorViewModel(
         IEnvironmentScanner environmentScanner,
@@ -106,7 +62,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IAndroidPlatformDetector androidPlatformDetector,
         IAndroidBuildToolsDetector androidBuildToolsDetector,
         IAndroidEmulatorDetector androidEmulatorDetector,
-        IAndroidAvdManagerDetector androidAvdManagerDetector)
+        IAndroidAvdManagerDetector androidAvdManagerDetector,
+        IAndroidLicenseDetector? androidLicenseDetector = null)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
@@ -119,10 +76,10 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         _androidBuildToolsDetector = androidBuildToolsDetector ?? throw new ArgumentNullException(nameof(androidBuildToolsDetector));
         _androidEmulatorDetector = androidEmulatorDetector ?? throw new ArgumentNullException(nameof(androidEmulatorDetector));
         _androidAvdManagerDetector = androidAvdManagerDetector ?? throw new ArgumentNullException(nameof(androidAvdManagerDetector));
+        _androidLicenseDetector = androidLicenseDetector;
     }
 
     public bool CanScan => !IsBusy;
-
     public bool CanCancel => IsBusy;
 
     partial void OnIsBusyChanged(bool value)
@@ -136,28 +93,20 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     [RelayCommand(CanExecute = nameof(CanRunScan))]
     private async Task ScanAsync()
     {
-        if (IsBusy)
-        {
-            return;
-        }
+        if (IsBusy) return;
 
         IsBusy = true;
-        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, avdmanager, ADB, installed platforms, build-tools and emulator...";
+        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, avdmanager, licenses, ADB, installed platforms, build-tools and emulator...";
         _scanCancellation = new CancellationTokenSource();
 
         try
         {
             var token = _scanCancellation.Token;
-
             var toolStatuses = await _environmentScanner.ScanAsync(token);
-            ApplyGit(toolStatuses.FirstOrDefault(tool =>
-                string.Equals(tool.Name, "Git", StringComparison.OrdinalIgnoreCase)));
+            ApplyGit(toolStatuses.FirstOrDefault(tool => string.Equals(tool.Name, "Git", StringComparison.OrdinalIgnoreCase)));
 
-            var flutter = await _flutterSdkDetector.DetectAsync(cancellationToken: token);
-            ApplyFlutter(flutter);
-
-            var java = await _javaInstallationDetector.DetectAsync(cancellationToken: token);
-            ApplyJava(java);
+            ApplyFlutter(await _flutterSdkDetector.DetectAsync(cancellationToken: token));
+            ApplyJava(await _javaInstallationDetector.DetectAsync(cancellationToken: token));
 
             token.ThrowIfCancellationRequested();
             var environment = _environmentVariableReader.Read();
@@ -169,24 +118,25 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             ApplyCommandLineTools(commandLineTools);
 
             token.ThrowIfCancellationRequested();
-            var avdManager = _androidAvdManagerDetector.Detect(commandLineTools);
-            ApplyAvdManager(avdManager);
+            ApplyAvdManager(_androidAvdManagerDetector.Detect(commandLineTools));
+
+            if (_androidLicenseDetector is not null)
+            {
+                token.ThrowIfCancellationRequested();
+                ApplyAndroidLicenses(await _androidLicenseDetector.DetectAsync(commandLineTools, token));
+            }
 
             token.ThrowIfCancellationRequested();
-            var platforms = _androidPlatformDetector.Detect(androidSdk);
-            ApplyAndroidPlatforms(platforms);
+            ApplyAndroidPlatforms(_androidPlatformDetector.Detect(androidSdk));
 
             token.ThrowIfCancellationRequested();
-            var buildTools = _androidBuildToolsDetector.Detect(androidSdk);
-            ApplyAndroidBuildTools(buildTools);
+            ApplyAndroidBuildTools(_androidBuildToolsDetector.Detect(androidSdk));
 
             token.ThrowIfCancellationRequested();
-            var emulator = await _androidEmulatorDetector.DetectAsync(androidSdk, token);
-            ApplyAndroidEmulator(emulator);
+            ApplyAndroidEmulator(await _androidEmulatorDetector.DetectAsync(androidSdk, token));
 
             token.ThrowIfCancellationRequested();
-            var adb = await _androidAdbDetector.DetectAsync(androidSdk, token);
-            ApplyAdb(adb);
+            ApplyAdb(await _androidAdbDetector.DetectAsync(androidSdk, token));
 
             HasScanned = true;
             LastScannedAt = DateTimeOffset.Now;
@@ -213,11 +163,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     [RelayCommand(CanExecute = nameof(CanCancelScan))]
     private void Cancel()
     {
-        if (_scanCancellation is null || _scanCancellation.IsCancellationRequested)
-        {
-            return;
-        }
-
+        if (_scanCancellation is null || _scanCancellation.IsCancellationRequested) return;
         StatusMessage = "Cancelling environment scan...";
         _scanCancellation.Cancel();
     }
@@ -232,18 +178,13 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             GitDetails = "No Git detector result was returned.";
             return;
         }
-
-        GitSummary = git.Installed
-            ? git.Version ?? "Installed"
-            : "Missing";
+        GitSummary = git.Installed ? git.Version ?? "Installed" : "Missing";
         GitDetails = JoinDetails(git.Path, git.Message);
     }
 
     private void ApplyFlutter(FlutterDetectionResult flutter)
     {
-        FlutterSummary = flutter.IsSuccess
-            ? JoinSummary(flutter.FlutterVersion, flutter.Channel)
-            : flutter.Status.ToString();
+        FlutterSummary = flutter.IsSuccess ? JoinSummary(flutter.FlutterVersion, flutter.Channel) : flutter.Status.ToString();
         FlutterDetails = JoinDetails(flutter.FlutterSdkPath ?? flutter.FlutterPath, flutter.Message);
     }
 
@@ -252,91 +193,80 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         var preferred = java.PreferredInstallation;
         if (preferred is null)
         {
-            JavaSummary = java.Status == JavaDetectionStatus.Missing
-                ? "Missing"
-                : java.Status.ToString();
+            JavaSummary = java.Status == JavaDetectionStatus.Missing ? "Missing" : java.Status.ToString();
             JavaDetails = java.Message ?? "No effective Java installation was selected.";
             return;
         }
-
-        var kind = preferred.IsJdk ? "JDK" : "JRE";
-        JavaSummary = JoinSummary(preferred.Version, kind);
-        JavaDetails = JoinDetails(
-            preferred.JavaHome ?? preferred.ExecutablePath,
-            JoinSummary(preferred.Vendor, java.Message));
+        JavaSummary = JoinSummary(preferred.Version, preferred.IsJdk ? "JDK" : "JRE");
+        JavaDetails = JoinDetails(preferred.JavaHome ?? preferred.ExecutablePath, JoinSummary(preferred.Vendor, java.Message));
     }
 
-    private void ApplyAndroidSdk(
-        AndroidSdkRootDetectionResult result,
-        EnvironmentVariableSnapshot environment)
+    private void ApplyAndroidSdk(AndroidSdkRootDetectionResult result, EnvironmentVariableSnapshot environment)
     {
         var candidate = result.EffectiveCandidate;
-        AndroidSdkSummary = result.IsSuccess
-            ? "Ready"
-            : result.Status switch
-            {
-                AndroidSdkRootDetectionStatus.MissingEffectiveRoot => "Missing",
-                AndroidSdkRootDetectionStatus.EffectiveRootInvalid => "Invalid",
-                _ => result.Status.ToString()
-            };
-
+        AndroidSdkSummary = result.IsSuccess ? "Ready" : result.Status switch
+        {
+            AndroidSdkRootDetectionStatus.MissingEffectiveRoot => "Missing",
+            AndroidSdkRootDetectionStatus.EffectiveRootInvalid => "Invalid",
+            _ => result.Status.ToString()
+        };
         var effectiveVariable = environment.AndroidSdkRoot.EffectiveValue ?? environment.AndroidHome.EffectiveValue;
-        AndroidSdkDetails = JoinDetails(
-            candidate?.NormalizedPath ?? effectiveVariable,
-            result.Message);
+        AndroidSdkDetails = JoinDetails(candidate?.NormalizedPath ?? effectiveVariable, result.Message);
     }
 
     private void ApplyCommandLineTools(AndroidCommandLineToolsDetectionResult result)
     {
         var candidate = result.EffectiveCandidate;
-        CommandLineToolsSummary = result.IsSuccess
-            ? JoinSummary(candidate?.Revision, "sdkmanager")
-            : result.Status switch
-            {
-                AndroidCommandLineToolsDetectionStatus.CommandLineToolsMissing => "Missing",
-                AndroidCommandLineToolsDetectionStatus.EffectiveSdkManagerMissing => "sdkmanager missing",
-                AndroidCommandLineToolsDetectionStatus.MetadataInvalid => "Metadata invalid",
-                AndroidCommandLineToolsDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
-                _ => result.Status.ToString()
-            };
+        CommandLineToolsSummary = result.IsSuccess ? JoinSummary(candidate?.Revision, "sdkmanager") : result.Status switch
+        {
+            AndroidCommandLineToolsDetectionStatus.CommandLineToolsMissing => "Missing",
+            AndroidCommandLineToolsDetectionStatus.EffectiveSdkManagerMissing => "sdkmanager missing",
+            AndroidCommandLineToolsDetectionStatus.MetadataInvalid => "Metadata invalid",
+            AndroidCommandLineToolsDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
+            _ => result.Status.ToString()
+        };
         CommandLineToolsDetails = JoinDetails(candidate?.SdkManagerPath ?? candidate?.InstallationPath, result.Message);
     }
 
     private void ApplyAvdManager(AndroidAvdManagerDetectionResult result)
     {
         var effective = result.EffectiveCandidate;
-        AvdManagerSummary = result.IsSuccess
-            ? JoinSummary(effective?.CommandLineToolsRevision, "avdmanager")
-            : result.Status switch
-            {
-                AndroidAvdManagerDetectionStatus.CommandLineToolsUnavailable => "cmdline-tools unavailable",
-                AndroidAvdManagerDetectionStatus.AvdManagerMissing => "avdmanager missing",
-                _ => result.Status.ToString()
-            };
+        AvdManagerSummary = result.IsSuccess ? JoinSummary(effective?.CommandLineToolsRevision, "avdmanager") : result.Status switch
+        {
+            AndroidAvdManagerDetectionStatus.CommandLineToolsUnavailable => "cmdline-tools unavailable",
+            AndroidAvdManagerDetectionStatus.AvdManagerMissing => "avdmanager missing",
+            _ => result.Status.ToString()
+        };
+        var evidence = result.Candidates.Count == 0 ? null : string.Join(" | ", result.Candidates.Select(candidate =>
+        {
+            var revision = candidate.CommandLineToolsRevision ?? candidate.Layout.ToString();
+            return $"{revision}: {(candidate.Exists ? "ready" : "missing")}{(candidate.IsEffective ? " effective" : string.Empty)}";
+        }));
+        AvdManagerDetails = JoinDetails(effective?.AvdManagerPath ?? effective?.InstallationPath, JoinSummary(evidence, result.Message));
+    }
 
-        var evidence = result.Candidates.Count == 0
-            ? null
-            : string.Join(
-                " | ",
-                result.Candidates.Select(candidate =>
-                {
-                    var revision = candidate.CommandLineToolsRevision ?? candidate.Layout.ToString();
-                    var state = candidate.Exists ? "ready" : "missing";
-                    var effectiveTag = candidate.IsEffective ? " effective" : string.Empty;
-                    return $"{revision}: {state}{effectiveTag}";
-                }));
-
-        AvdManagerDetails = JoinDetails(
-            effective?.AvdManagerPath ?? effective?.InstallationPath,
-            JoinSummary(evidence, result.Message));
+    private void ApplyAndroidLicenses(AndroidLicenseDetectionResult result)
+    {
+        AndroidLicenseSummary = result.Status switch
+        {
+            AndroidLicenseDetectionStatus.Accepted => "Accepted / Ready",
+            AndroidLicenseDetectionStatus.Pending => "Action required",
+            AndroidLicenseDetectionStatus.SdkManagerUnavailable => "sdkmanager unavailable",
+            AndroidLicenseDetectionStatus.ProbeFailed => "Probe failed",
+            AndroidLicenseDetectionStatus.TimedOut => "Probe timed out",
+            AndroidLicenseDetectionStatus.Cancelled => "Cancelled",
+            AndroidLicenseDetectionStatus.Indeterminate => "Indeterminate",
+            _ => result.Status.ToString()
+        };
+        var files = result.LicenseFiles.Count == 0 ? "license files: none detected" : $"license files: {string.Join(", ", result.LicenseFiles)}";
+        var revision = string.IsNullOrWhiteSpace(result.CommandLineToolsRevision) ? null : $"cmdline-tools {result.CommandLineToolsRevision}";
+        AndroidLicenseDetails = JoinDetails(result.SdkManagerPath, JoinSummary(revision, $"{files} • {result.Message}"));
     }
 
     private void ApplyAndroidPlatforms(AndroidPlatformDetectionResult result)
     {
         AndroidPlatformsSummary = result.IsSuccess
-            ? result.InstalledApiLevels.Count == 0
-                ? "No usable platforms"
-                : string.Join(" • ", result.InstalledApiLevels.Select(api => $"API {api}"))
+            ? result.InstalledApiLevels.Count == 0 ? "No usable platforms" : string.Join(" • ", result.InstalledApiLevels.Select(api => $"API {api}"))
             : result.Status switch
             {
                 AndroidPlatformDetectionStatus.PlatformsDirectoryMissing => "platforms missing",
@@ -346,22 +276,13 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
                 AndroidPlatformDetectionStatus.InspectionFailed => "Inspection failed",
                 _ => result.Status.ToString()
             };
-
-        var packageEvidence = result.Platforms.Count == 0
-            ? null
-            : string.Join(
-                " | ",
-                result.Platforms.Select(platform =>
-                {
-                    var readiness = platform.IsUsable ? "ready" : "partial";
-                    var revision = string.IsNullOrWhiteSpace(platform.Revision) ? string.Empty : $" rev {platform.Revision}";
-                    var preview = platform.IsPreview && !string.IsNullOrWhiteSpace(platform.CodeName)
-                        ? $" {platform.CodeName}"
-                        : string.Empty;
-                    return $"{platform.PackageId}: {readiness}{revision}{preview}";
-                }));
-
-        AndroidPlatformsDetails = JoinDetails(packageEvidence, result.Message);
+        var evidence = result.Platforms.Count == 0 ? null : string.Join(" | ", result.Platforms.Select(platform =>
+        {
+            var revision = string.IsNullOrWhiteSpace(platform.Revision) ? string.Empty : $" rev {platform.Revision}";
+            var preview = platform.IsPreview && !string.IsNullOrWhiteSpace(platform.CodeName) ? $" {platform.CodeName}" : string.Empty;
+            return $"{platform.PackageId}: {(platform.IsUsable ? "ready" : "partial")}{revision}{preview}";
+        }));
+        AndroidPlatformsDetails = JoinDetails(evidence, result.Message);
     }
 
     private void ApplyAndroidBuildTools(AndroidBuildToolsDetectionResult result)
@@ -370,9 +291,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         {
             var latest = result.InstalledVersions.FirstOrDefault();
             var usableCount = result.Packages.Count(package => package.IsUsable);
-            AndroidBuildToolsSummary = string.IsNullOrWhiteSpace(latest)
-                ? $"{usableCount} usable"
-                : $"{latest} • {usableCount} usable";
+            AndroidBuildToolsSummary = string.IsNullOrWhiteSpace(latest) ? $"{usableCount} usable" : $"{latest} • {usableCount} usable";
         }
         else
         {
@@ -386,51 +305,39 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
                 _ => result.Status.ToString()
             };
         }
-
-        var packageEvidence = result.Packages.Count == 0
-            ? null
-            : string.Join(
-                " | ",
-                result.Packages.Select(package =>
-                {
-                    var readiness = package.IsUsable ? "ready" : "partial";
-                    var revision = string.IsNullOrWhiteSpace(package.Revision) ? package.DirectoryName : package.Revision;
-                    var missing = new List<string>();
-                    if (!package.Aapt2Exists) missing.Add("aapt2");
-                    if (!package.ZipAlignExists) missing.Add("zipalign");
-                    if (!package.D8Exists) missing.Add("d8");
-                    if (!package.ApkSignerExists) missing.Add("apksigner");
-                    var missingText = missing.Count == 0 ? string.Empty : $" missing {string.Join(",", missing)}";
-                    return $"{revision}: {readiness}{missingText}";
-                }));
-
-        AndroidBuildToolsDetails = JoinDetails(packageEvidence, result.Message);
+        var evidence = result.Packages.Count == 0 ? null : string.Join(" | ", result.Packages.Select(package =>
+        {
+            var revision = string.IsNullOrWhiteSpace(package.Revision) ? package.DirectoryName : package.Revision;
+            var missing = new List<string>();
+            if (!package.Aapt2Exists) missing.Add("aapt2");
+            if (!package.ZipAlignExists) missing.Add("zipalign");
+            if (!package.D8Exists) missing.Add("d8");
+            if (!package.ApkSignerExists) missing.Add("apksigner");
+            return $"{revision}: {(package.IsUsable ? "ready" : "partial")}{(missing.Count == 0 ? string.Empty : $" missing {string.Join(",", missing)}")}";
+        }));
+        AndroidBuildToolsDetails = JoinDetails(evidence, result.Message);
     }
 
     private void ApplyAndroidEmulator(AndroidEmulatorDetectionResult result)
     {
-        AndroidEmulatorSummary = result.IsSuccess
-            ? string.IsNullOrWhiteSpace(result.Version) ? "Ready" : result.Version
-            : result.Status switch
-            {
-                AndroidEmulatorDetectionStatus.EmulatorDirectoryMissing => "Package missing",
-                AndroidEmulatorDetectionStatus.EmulatorMissing => "Binary missing",
-                AndroidEmulatorDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
-                AndroidEmulatorDetectionStatus.TimedOut => "Probe timed out",
-                AndroidEmulatorDetectionStatus.ProbeFailed => "Probe failed",
-                AndroidEmulatorDetectionStatus.VersionUnavailable => "Version unavailable",
-                AndroidEmulatorDetectionStatus.Cancelled => "Cancelled",
-                _ => result.Status.ToString()
-            };
+        AndroidEmulatorSummary = result.IsSuccess ? (string.IsNullOrWhiteSpace(result.Version) ? "Ready" : result.Version) : result.Status switch
+        {
+            AndroidEmulatorDetectionStatus.EmulatorDirectoryMissing => "Package missing",
+            AndroidEmulatorDetectionStatus.EmulatorMissing => "Binary missing",
+            AndroidEmulatorDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
+            AndroidEmulatorDetectionStatus.TimedOut => "Probe timed out",
+            AndroidEmulatorDetectionStatus.ProbeFailed => "Probe failed",
+            AndroidEmulatorDetectionStatus.VersionUnavailable => "Version unavailable",
+            AndroidEmulatorDetectionStatus.Cancelled => "Cancelled",
+            _ => result.Status.ToString()
+        };
         AndroidEmulatorDetails = JoinDetails(result.EmulatorPath ?? result.EmulatorDirectory, result.Message);
     }
 
     private void ApplyAdb(AndroidAdbDetectionResult result)
     {
         AdbSummary = result.IsSuccess
-            ? JoinSummary(
-                result.AdbProtocolVersion is null ? null : $"ADB {result.AdbProtocolVersion}",
-                result.PlatformToolsVersion is null ? null : $"platform-tools {result.PlatformToolsVersion}")
+            ? JoinSummary(result.AdbProtocolVersion is null ? null : $"ADB {result.AdbProtocolVersion}", result.PlatformToolsVersion is null ? null : $"platform-tools {result.PlatformToolsVersion}")
             : result.Status switch
             {
                 AndroidAdbDetectionStatus.PlatformToolsMissing => "platform-tools missing",
@@ -447,26 +354,14 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
 
     private static string JoinSummary(string? primary, string? secondary)
     {
-        if (string.IsNullOrWhiteSpace(primary))
-        {
-            return string.IsNullOrWhiteSpace(secondary) ? "Unknown" : secondary;
-        }
-
-        return string.IsNullOrWhiteSpace(secondary)
-            ? primary
-            : $"{primary} • {secondary}";
+        if (string.IsNullOrWhiteSpace(primary)) return string.IsNullOrWhiteSpace(secondary) ? "Unknown" : secondary;
+        return string.IsNullOrWhiteSpace(secondary) ? primary : $"{primary} • {secondary}";
     }
 
     private static string JoinDetails(string? path, string? message)
     {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return string.IsNullOrWhiteSpace(message) ? "No details available." : message;
-        }
-
-        return string.IsNullOrWhiteSpace(message)
-            ? path
-            : $"{path} • {message}";
+        if (string.IsNullOrWhiteSpace(path)) return string.IsNullOrWhiteSpace(message) ? "No details available." : message;
+        return string.IsNullOrWhiteSpace(message) ? path : $"{path} • {message}";
     }
 
     public void Dispose()
