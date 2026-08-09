@@ -46,10 +46,13 @@ public sealed record FlutterDoctorSection(
 public sealed record FlutterDoctorParseResult(
     FlutterDoctorParseStatus Status,
     IReadOnlyList<FlutterDoctorSection> Sections,
-    IReadOnlyList<ProcessOutputLine> SourceOutput,
+    ProcessResult? SourceProcessResult,
     string Message)
 {
     public bool IsSuccess => Status == FlutterDoctorParseStatus.Succeeded;
+
+    public IReadOnlyList<ProcessOutputLine> SourceOutput
+        => SourceProcessResult?.Output ?? Array.Empty<ProcessOutputLine>();
 }
 
 public interface IFlutterDoctorParser
