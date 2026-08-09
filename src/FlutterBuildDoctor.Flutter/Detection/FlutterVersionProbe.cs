@@ -153,6 +153,9 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
 
         foreach (var outputLine in output)
         {
+            if (outputLine.Stream != ProcessStream.StdOut)
+                continue;
+
             var line = outputLine.Text.Trim();
             if (line.Length == 0)
                 continue;
