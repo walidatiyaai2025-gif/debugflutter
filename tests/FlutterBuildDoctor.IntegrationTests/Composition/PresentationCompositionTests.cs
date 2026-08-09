@@ -1,6 +1,8 @@
 using FlutterBuildDoctor.App;
 using FlutterBuildDoctor.App.DependencyInjection;
+using FlutterBuildDoctor.App.Services;
 using FlutterBuildDoctor.App.ViewModels;
+using FlutterBuildDoctor.Git.Branches;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlutterBuildDoctor.IntegrationTests.Composition;
@@ -8,7 +10,7 @@ namespace FlutterBuildDoctor.IntegrationTests.Composition;
 public sealed class PresentationCompositionTests
 {
     [Fact]
-    public void PresentationComposition_ResolvesShellViewModelAndWindowRegistration()
+    public void PresentationComposition_ResolvesShellRepositoryManagerAndWindowRegistration()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -24,9 +26,19 @@ public sealed class PresentationCompositionTests
         Assert.Equal("Ready", viewModel.StatusMessage);
         Assert.NotNull(viewModel.ProjectHeader);
         Assert.Equal("No project selected", viewModel.ProjectHeader.ProjectName);
+        Assert.NotNull(viewModel.RepositoryManager);
+        Assert.Same(viewModel.RepositoryManager, provider.GetRequiredService<RepositoryManagerViewModel>());
+        Assert.NotNull(provider.GetRequiredService<IGitExecutableResolver>());
+        Assert.NotNull(provider.GetRequiredService<IRepositoryImportCoordinator>());
+        Assert.NotNull(provider.GetRequiredService<IGitBranchService>());
+        Assert.NotNull(provider.GetRequiredService<IGitBranchSwitcher>());
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(ProjectHeaderViewModel)
+                && descriptor.Lifetime == ServiceLifetime.Singleton);
+        Assert.Contains(
+            services,
+            descriptor => descriptor.ServiceType == typeof(RepositoryManagerViewModel)
                 && descriptor.Lifetime == ServiceLifetime.Singleton);
         Assert.Contains(
             services,
