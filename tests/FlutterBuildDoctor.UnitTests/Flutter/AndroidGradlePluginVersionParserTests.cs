@@ -51,6 +51,19 @@ public sealed class AndroidGradlePluginVersionParserTests : IDisposable
     }
 
     [Fact]
+    public void Parse_BareAgpCoordinateOutsideClasspath_IsNotAcceptedAsLegacyDeclaration()
+    {
+        var dsl = GradleDsl((GradleScriptRole.ProjectBuild, GradleDslKind.Groovy, "build.gradle",
+            "def diagnosticLabel = 'com.android.tools.build:gradle:9.9.9'"));
+
+        var result = _parser.Parse(dsl);
+
+        Assert.Equal(AndroidGradlePluginVersionStatus.VersionNotFound, result.Status);
+        Assert.Null(result.Version);
+        Assert.Empty(result.Evidence);
+    }
+
+    [Fact]
     public void Parse_CommentedOutVersions_AreIgnored()
     {
         var dsl = GradleDsl((GradleScriptRole.Settings, GradleDslKind.Kotlin, "settings.gradle.kts",
