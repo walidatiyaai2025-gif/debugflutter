@@ -39,6 +39,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IPubspecParser, PubspecParser>();
         services.TryAddSingleton<IPubspecLockParser, PubspecLockParser>();
         services.TryAddSingleton<IGradleDslDetector, GradleDslDetector>();
+        services.TryAddSingleton<IGradleWrapperParser, GradleWrapperParser>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
         services.TryAddSingleton<IAndroidCommandLineToolsDetector, AndroidCommandLineToolsDetector>();
