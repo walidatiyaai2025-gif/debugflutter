@@ -2,7 +2,7 @@ using FlutterBuildDoctor.Android.Detection;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Flutter.Detection;
 
-namespace FlutterBuildDoctor.App.Environment;
+namespace FlutterBuildDoctor.App.EnvironmentSnapshots;
 
 public sealed class EnvironmentSnapshotService : IEnvironmentSnapshotService
 {
