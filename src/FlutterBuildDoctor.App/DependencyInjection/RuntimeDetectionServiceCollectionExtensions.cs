@@ -47,6 +47,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IReleaseVersionParser, ReleaseVersionParser>();
         services.TryAddSingleton<IProductFlavorDetector, ProductFlavorDetector>();
         services.TryAddSingleton<IDartEntryTargetDetector, DartEntryTargetDetector>();
+        services.TryAddSingleton<ILocalPropertiesDetector, LocalPropertiesDetector>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
         services.TryAddSingleton<IAndroidCommandLineToolsDetector, AndroidCommandLineToolsDetector>();
