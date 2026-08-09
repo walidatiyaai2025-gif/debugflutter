@@ -1,25 +1,9 @@
-using FlutterBuildDoctor.Android.ProjectAnalysis;
-using FlutterBuildDoctor.App.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
+using FlutterBuildDoctor.Flutter.ProjectAnalysis;
 
 namespace FlutterBuildDoctor.IntegrationTests.Environment;
 
 public sealed class GradleDslDetectorIntegrationTests
 {
-    [Fact]
-    public void RuntimeDetection_ResolvesSingletonGradleDslDetector()
-    {
-        var services = new ServiceCollection();
-        services.AddFlutterBuildDoctorRuntimeDetection();
-        using var provider = services.BuildServiceProvider();
-
-        var first = provider.GetRequiredService<IGradleDslDetector>();
-        var second = provider.GetRequiredService<IGradleDslDetector>();
-
-        Assert.IsType<GradleDslDetector>(first);
-        Assert.Same(first, second);
-    }
-
     [Fact]
     public void Detect_ReadsLayoutWithoutChangingGradleFiles()
     {
@@ -28,6 +12,8 @@ public sealed class GradleDslDetectorIntegrationTests
         var app = Path.Combine(android, "app");
         Directory.CreateDirectory(app);
 
+        var pubspec = Path.Combine(root, "pubspec.yaml");
+        File.WriteAllText(pubspec, "name: fixture\n");
         var settings = Path.Combine(android, "settings.gradle.kts");
         var projectBuild = Path.Combine(android, "build.gradle.kts");
         var appBuild = Path.Combine(app, "build.gradle.kts");
@@ -44,7 +30,16 @@ public sealed class GradleDslDetectorIntegrationTests
 
         try
         {
-            var result = new GradleDslDetector().Detect(root);
+            var projectRoot = new FlutterProjectRootResult(
+                FlutterProjectRootStatus.Succeeded,
+                root,
+                root,
+                pubspec,
+                Array.Empty<FlutterProjectCandidate>(),
+                new[] { pubspec },
+                "Integration fixture root.");
+
+            var result = new GradleDslDetector().Detect(projectRoot);
 
             Assert.True(result.IsSuccess, result.Message);
             Assert.Equal(GradleDslKind.Kotlin, result.EffectiveDsl);
