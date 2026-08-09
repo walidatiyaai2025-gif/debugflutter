@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FlutterBuildDoctor.Android\FlutterBuildDoctor.Android.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Flutter\FlutterBuildDoctor.Flutter.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Git\FlutterBuildDoctor.Git.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+</Project>

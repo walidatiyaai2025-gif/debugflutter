@@ -10,14 +10,14 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | READY | Solution builds with all planned projects and tests |
-| FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | TODO | App starts through DI and ViewModels resolve from container |
-| FBD-003 | Implement Serilog logging baseline | Systems Engineer | P0 | FBD-001 | TODO | File + in-app structured logs with timestamps and levels |
-| FBD-004 | Add global exception handling | Tech Lead | P0 | FBD-002,FBD-003 | TODO | UI/thread/task exceptions captured and surfaced safely |
-| FBD-005 | Define Domain enums/status contracts | Tech Lead | P0 | FBD-001 | TODO | Shared Ready/Missing/Broken/Incompatible/etc. contracts compile |
-| FBD-006 | Add unit + integration test projects | QA | P0 | FBD-001 | TODO | Tests execute from CLI and CI |
+| FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | DONE | Solution builds with all planned projects and tests |
+| FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | DONE | App starts through DI and ViewModels resolve from container |
+| FBD-003 | Implement Serilog logging baseline | Systems Engineer | P0 | FBD-001 | DONE | File + in-app structured logs with timestamps and levels |
+| FBD-004 | Add global exception handling | Tech Lead | P0 | FBD-002,FBD-003 | DONE | UI/thread/task exceptions captured and surfaced safely |
+| FBD-005 | Define Domain enums/status contracts | Tech Lead | P0 | FBD-001 | DONE | Shared Ready/Missing/Broken/Incompatible/etc. contracts compile |
+| FBD-006 | Add unit + integration test projects | QA | P0 | FBD-001 | DONE | Tests execute from CLI and CI |
 | FBD-007 | Add editorconfig/analyzers/code conventions | Tech Lead | P1 | FBD-001 | TODO | Build uses agreed style/analyzer configuration |
-| FBD-008 | Add GitHub Actions CI for restore/build/test | DevOps | P0 | FBD-006 | TODO | PR CI builds solution and runs tests |
+| FBD-008 | Add GitHub Actions CI for restore/build/test | DevOps | P0 | FBD-006 | DONE | PR CI builds solution and runs tests |
 | FBD-009 | Write contributor/branch/PR guide | Tech Lead | P1 | FBD-001 | TODO | CONTRIBUTING.md exists and defines workflow |
 | FBD-010 | Add application version/build identity service | DevOps | P1 | FBD-001 | TODO | UI/logs can display product version + commit/build identity |
 
@@ -27,7 +27,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-101 | Create MainWindow shell and navigation | WPF Developer | P0 | FBD-002 | TODO | Navigation works without recreating state incorrectly |
+| FBD-101 | Create MainWindow shell and navigation | WPF Developer | P0 | FBD-002 | READY | Navigation works without recreating state incorrectly |
 | FBD-102 | Implement Home dashboard | WPF Developer | P1 | FBD-101 | TODO | Shows project/environment/build summary |
 | FBD-103 | Create reusable status badge component | WPF Developer | P1 | FBD-005,FBD-101 | TODO | Supports Ready/Warning/Error/Running/etc. states |
 | FBD-104 | Create operation progress/timeline component | WPF Developer | P1 | FBD-101 | TODO | Long tasks show stages, duration and current status |
@@ -44,16 +44,16 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-201 | Define process request/result contracts | Systems Engineer | P0 | FBD-005 | TODO | Contracts support executable,args,cwd,env,timeout |
-| FBD-202 | Implement async process runner | Systems Engineer | P0 | FBD-201 | TODO | Runs command without blocking UI |
-| FBD-203 | Stream stdout/stderr events | Systems Engineer | P0 | FBD-202 | TODO | Output visible while command executes |
-| FBD-204 | Implement cancellation/kill process tree | Systems Engineer | P0 | FBD-202 | TODO | Cancellation terminates child process tree safely |
-| FBD-205 | Add timeout support | Systems Engineer | P1 | FBD-202 | TODO | Timed out operation returns explicit status |
-| FBD-206 | Add environment overrides | Systems Engineer | P1 | FBD-202 | TODO | Per-command PATH/JAVA_HOME/etc. supported |
-| FBD-207 | Implement secret/redaction filter | Systems Engineer | P0 | FBD-203 | TODO | Password/token/keystore secrets never logged |
-| FBD-208 | Create execution receipt model | Systems Engineer | P1 | FBD-202 | TODO | Records command identity, exit code, duration, result |
-| FBD-209 | Persist command history | Persistence Developer | P2 | FBD-208 | TODO | Previous executions are queryable |
-| FBD-210 | Add process runner tests with fake commands | QA | P0 | FBD-202 | TODO | Success/failure/cancel/timeout covered |
+| FBD-201 | Define process request/result contracts | Systems Engineer | P0 | FBD-005 | DONE | Contracts support executable,args,cwd,env,timeout |
+| FBD-202 | Implement async process runner | Systems Engineer | P0 | FBD-201 | DONE | Runs command without blocking UI |
+| FBD-203 | Stream stdout/stderr events | Systems Engineer | P0 | FBD-202 | DONE | Output visible while command executes |
+| FBD-204 | Implement cancellation/kill process tree | Systems Engineer | P0 | FBD-202 | DONE | Cancellation terminates child process tree safely |
+| FBD-205 | Add timeout support | Systems Engineer | P1 | FBD-202 | DONE | Timed out operation returns explicit status |
+| FBD-206 | Add environment overrides | Systems Engineer | P1 | FBD-202 | DONE | Per-command PATH/JAVA_HOME/etc. supported |
+| FBD-207 | Implement secret/redaction filter | Systems Engineer | P0 | FBD-203 | DONE | Password/token/keystore secrets never logged |
+| FBD-208 | Create execution receipt model | Systems Engineer | P1 | FBD-202 | DONE | Records command identity, exit code, duration, result |
+| FBD-209 | Persist command history | Persistence Developer | P2 | FBD-208 | READY | Previous executions are queryable |
+| FBD-210 | Add process runner tests with fake commands | QA | P0 | FBD-202 | DONE | Success/failure/cancel/timeout covered |
 
 ---
 
@@ -61,16 +61,16 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | TODO | Git status shown with path/version |
-| FBD-302 | Validate repository URL | Systems Engineer | P0 | FBD-301 | TODO | Invalid URL blocked with clear reason |
-| FBD-303 | Clone repository | Systems Engineer | P0 | FBD-301 | TODO | Clone supports target workspace and progress logs |
-| FBD-304 | Fetch branches | Systems Engineer | P0 | FBD-303 | TODO | Remote/local branch list available |
-| FBD-305 | Checkout/switch branch | Systems Engineer | P0 | FBD-304 | TODO | Selected branch checked out safely |
-| FBD-306 | Pull current branch | Systems Engineer | P1 | FBD-305 | TODO | Fast-forward/update result clearly reported |
-| FBD-307 | Detect dirty working tree | Systems Engineer | P0 | FBD-303 | TODO | App never overwrites dirty repo silently |
-| FBD-308 | Display current commit/branch/remote | WPF Developer | P1 | FBD-305 | TODO | Project header shows exact Git identity |
-| FBD-309 | Implement safe refresh/reclone workflow | Systems Engineer | P1 | FBD-307 | TODO | Existing folder can be backed up/recreated safely |
-| FBD-310 | Repository Manager UI | WPF Developer | P0 | FBD-303,FBD-305 | TODO | User enters Git URL, branch, workspace and imports project |
+| FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | DONE | Git status shown with path/version |
+| FBD-302 | Validate repository URL | Systems Engineer | P0 | FBD-301 | DONE | Invalid URL blocked with clear reason |
+| FBD-303 | Clone repository | Systems Engineer | P0 | FBD-301 | DONE | Clone supports target workspace and progress logs |
+| FBD-304 | Fetch branches | Systems Engineer | P0 | FBD-303 | DONE | Remote/local branch list available |
+| FBD-305 | Checkout/switch branch | Systems Engineer | P0 | FBD-304 | DONE | Selected branch checked out safely |
+| FBD-306 | Pull current branch | Systems Engineer | P1 | FBD-305 | DONE | Fast-forward/update result clearly reported |
+| FBD-307 | Detect dirty working tree | Systems Engineer | P0 | FBD-303 | DONE | App never overwrites dirty repo silently |
+| FBD-308 | Display current commit/branch/remote | WPF Developer | P1 | FBD-305 | DONE | Project header shows exact Git identity |
+| FBD-309 | Implement safe refresh/reclone workflow | Systems Engineer | P1 | FBD-307 | DONE | Existing folder can be backed up/recreated safely |
+| FBD-310 | Repository Manager UI | WPF Developer | P0 | FBD-303,FBD-305 | DONE | User enters Git URL, branch, workspace and imports project |
 
 ---
 
@@ -79,11 +79,11 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
 | FBD-401 | Detect Windows version/architecture | Systems Engineer | P1 | FBD-005 | TODO | OS info represented in environment snapshot |
-| FBD-402 | Implement PATH executable discovery utility | Systems Engineer | P0 | FBD-201 | TODO | Finds all matches and identifies conflicts |
-| FBD-403 | Read relevant environment variables | Systems Engineer | P0 | FBD-402 | TODO | PATH,JAVA_HOME,ANDROID_HOME,ANDROID_SDK_ROOT captured |
-| FBD-404 | Detect Flutter SDK + version | Flutter Engineer | P0 | FBD-402 | TODO | Flutter path/version/channel detected |
+| FBD-402 | Implement PATH executable discovery utility | Systems Engineer | P0 | FBD-201 | DONE | Finds all matches and identifies conflicts |
+| FBD-403 | Read relevant environment variables | Systems Engineer | P0 | FBD-402 | READY | PATH,JAVA_HOME,ANDROID_HOME,ANDROID_SDK_ROOT captured |
+| FBD-404 | Detect Flutter SDK + version | Flutter Engineer | P0 | FBD-402 | READY | Flutter path/version/channel detected |
 | FBD-405 | Detect Dart SDK + version | Flutter Engineer | P0 | FBD-404 | TODO | Dart version/path detected and linked to Flutter where applicable |
-| FBD-406 | Detect Java installations | Android Engineer | P0 | FBD-402 | TODO | All likely JDKs discovered with version/vendor/path |
+| FBD-406 | Detect Java installations | Android Engineer | P0 | FBD-402 | READY | All likely JDKs discovered with version/vendor/path |
 | FBD-407 | Detect Android SDK roots | Android Engineer | P0 | FBD-403 | TODO | SDK root candidates validated |
 | FBD-408 | Detect sdkmanager/cmdline-tools | Android Engineer | P0 | FBD-407 | TODO | Installed cmdline-tools versions reported |
 | FBD-409 | Detect platform-tools/ADB | Android Engineer | P0 | FBD-407 | TODO | ADB path/version/status reported |
@@ -125,7 +125,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | FBD-607 | Parse Kotlin plugin version | Android Engineer | P0 | FBD-604 | TODO | Kotlin version detected when explicit |
 | FBD-608 | Parse compileSdk/minSdk/targetSdk | Android Engineer | P0 | FBD-604 | TODO | Static values and common Flutter references handled |
 | FBD-609 | Parse applicationId/namespace | Android Engineer | P0 | FBD-604 | TODO | Android identifiers exposed |
-| FBD-610 | Parse versionName/versionCode | Android Engineer | P1 | FBD-602,FBD-604 | TODO | Effective release version represented |
+| FBD-610 | Parse versionName/versionCode | Flutter Engineer | P1 | FBD-602,FBD-604 | TODO | Effective release version represented |
 | FBD-611 | Detect flavors | Flutter Engineer | P1 | FBD-604 | TODO | Product flavors enumerated where configured |
 | FBD-612 | Detect common Dart entry targets | Flutter Engineer | P1 | FBD-601 | TODO | main.dart and likely flavor entrypoints shown |
 | FBD-613 | Parse local.properties SDK/Flutter paths | Android Engineer | P0 | FBD-601 | TODO | Missing/invalid local paths detected |

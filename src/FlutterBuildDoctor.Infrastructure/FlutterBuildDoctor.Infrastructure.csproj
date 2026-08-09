@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Domain\FlutterBuildDoctor.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.4.0" />
+  </ItemGroup>
+</Project>
