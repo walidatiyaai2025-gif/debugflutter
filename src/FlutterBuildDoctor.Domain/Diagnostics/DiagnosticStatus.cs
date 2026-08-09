@@ -16,14 +16,6 @@ public enum DiagnosticStatus
     Fixed
 }
 
-public enum DiagnosticSeverity
-{
-    Info = 0,
-    Warning,
-    Error,
-    Critical
-}
-
 public sealed record DiagnosticItem(
     string Id,
     string Name,
