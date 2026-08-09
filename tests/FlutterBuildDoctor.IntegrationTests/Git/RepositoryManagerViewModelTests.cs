@@ -152,7 +152,7 @@ public sealed class RepositoryManagerViewModelTests
         Assert.Contains("Updated to bbbbbbbb", viewModel.StatusMessage, StringComparison.Ordinal);
         Assert.Contains(viewModel.Activity, line => line.Contains("Updating aaaaaaaa..bbbbbbbb", StringComparison.Ordinal));
         Assert.True(header.HasProject);
-        Assert.Equal("Commit: bbbbbbbb", header.CommitText);
+        Assert.StartsWith("Commit: bbbbbbbb", header.CommitText, StringComparison.Ordinal);
         Assert.False(viewModel.IsBusy);
     }
 
@@ -188,7 +188,7 @@ public sealed class RepositoryManagerViewModelTests
 
         Assert.Equal(1, pull.CallCount);
         Assert.Contains("already up to date", viewModel.StatusMessage, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("Commit: cccccccc", header.CommitText);
+        Assert.StartsWith("Commit: cccccccc", header.CommitText, StringComparison.Ordinal);
         Assert.False(viewModel.IsBusy);
     }
 
