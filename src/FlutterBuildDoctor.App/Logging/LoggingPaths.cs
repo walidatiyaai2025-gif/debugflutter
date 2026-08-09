@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace FlutterBuildDoctor.App.Logging;
 
 public static class LoggingPaths
