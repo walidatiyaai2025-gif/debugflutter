@@ -215,12 +215,12 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
         => new(status, gradleDsl, version, evidence, message);
 
     [GeneratedRegex(
-        @"(?ix)\bid\s*(?:\(\s*)?[\"'](?<plugin>com\.android\.(?:application|library|test|dynamic-feature|asset-pack|asset-pack-bundle|lint))[\"']\s*\)?\s*version\s*(?:\(\s*)?[\"'](?<version>[0-9][0-9A-Za-z.+-]*)[\"']\s*\)?",
+        "(?ix)\\bid\\s*(?:\\(\\s*)?[\"'](?<plugin>com\\.android\\.(?:application|library|test|dynamic-feature|asset-pack|asset-pack-bundle|lint))[\"']\\s*\\)?\\s*version\\s*(?:\\(\\s*)?[\"'](?<version>[0-9][0-9A-Za-z.+-]*)[\"']\\s*\\)?",
         RegexOptions.CultureInvariant)]
     private static partial Regex ModernPluginRegex();
 
     [GeneratedRegex(
-        @"(?ix)com\.android\.tools\.build\s*:\s*gradle\s*:\s*(?<version>[0-9][0-9A-Za-z.+-]*)",
+        "(?ix)com\\.android\\.tools\\.build\\s*:\\s*gradle\\s*:\\s*(?<version>[0-9][0-9A-Za-z.+-]*)",
         RegexOptions.CultureInvariant)]
     private static partial Regex LegacyClasspathRegex();
 }
