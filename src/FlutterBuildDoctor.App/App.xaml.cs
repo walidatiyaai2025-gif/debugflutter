@@ -1,4 +1,5 @@
 using System.Windows;
+using FlutterBuildDoctor.App.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -15,7 +16,7 @@ public partial class App : System.Windows.Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
-                services.AddSingleton<MainWindow>();
+                services.AddFlutterBuildDoctorPresentation();
             })
             .Build();
 
