@@ -2,7 +2,7 @@ using System.Security;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Infrastructure.Environment;
 
-namespace FlutterBuildDoctor.UnitTests.Environment;
+namespace FlutterBuildDoctor.UnitTests.EnvironmentDiscovery;
 
 public sealed class EnvironmentVariableReaderTests
 {
