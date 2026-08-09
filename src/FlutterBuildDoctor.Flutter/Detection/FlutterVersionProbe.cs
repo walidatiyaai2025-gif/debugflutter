@@ -146,9 +146,13 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
     {
         string? flutterVersion = null;
         string? channel = null;
+        string? repositoryUrl = null;
         string? frameworkRevision = null;
-        string? dartVersion = null;
+        string? frameworkDate = null;
+        string? engineHash = null;
         string? engineRevision = null;
+        string? engineDate = null;
+        string? dartVersion = null;
         string? devToolsVersion = null;
 
         foreach (var outputLine in output)
@@ -168,19 +172,23 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
             {
                 flutterVersion ??= ValueAfterPrefix(segments[0], "Flutter ");
                 channel ??= FindPrefixedValue(segments, "channel ");
+                repositoryUrl ??= segments.FirstOrDefault(IsRepositoryUrl);
                 continue;
             }
 
             if (segments[0].Equals("Framework", StringComparison.OrdinalIgnoreCase))
             {
                 frameworkRevision ??= FindPrefixedValue(segments, "revision ");
+                frameworkDate ??= LastMetadataSegment(segments, "revision ");
                 continue;
             }
 
             if (segments[0].Equals("Engine", StringComparison.OrdinalIgnoreCase))
             {
+                engineHash ??= FindPrefixedValue(segments, "hash ");
                 engineRevision ??= FindPrefixedValue(segments, "revision ") ??
-                                   FindPrefixedValue(segments, "hash ");
+                                   FindParenthesizedPrefixedValue(segments, "revision ");
+                engineDate ??= LastMetadataSegment(segments, "hash ", "revision ");
                 continue;
             }
 
@@ -194,10 +202,31 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
         return new ParsedVersion(
             flutterVersion,
             channel,
+            repositoryUrl,
             frameworkRevision,
-            dartVersion,
+            frameworkDate,
+            engineHash,
             engineRevision,
+            engineDate,
+            dartVersion,
             devToolsVersion);
+    }
+
+    private static bool IsRepositoryUrl(string segment)
+        => Uri.TryCreate(segment, UriKind.Absolute, out var uri) &&
+           (uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase));
+
+    private static string? LastMetadataSegment(string[] segments, params string[] descriptorPrefixes)
+    {
+        if (segments.Length < 3)
+            return null;
+
+        var candidate = segments[^1].Trim();
+        if (candidate.Length == 0 || descriptorPrefixes.Any(prefix => candidate.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+            return null;
+
+        return candidate;
     }
 
     private static string? FindPrefixedValue(IEnumerable<string> segments, string prefix)
@@ -207,6 +236,33 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
             var value = ValueAfterPrefix(segment, prefix);
             if (!string.IsNullOrWhiteSpace(value))
                 return value;
+        }
+
+        return null;
+    }
+
+    private static string? FindParenthesizedPrefixedValue(IEnumerable<string> segments, string prefix)
+    {
+        foreach (var segment in segments)
+        {
+            var searchFrom = 0;
+            while (searchFrom < segment.Length)
+            {
+                var open = segment.IndexOf('(', searchFrom);
+                if (open < 0)
+                    break;
+
+                var close = segment.IndexOf(')', open + 1);
+                if (close < 0)
+                    break;
+
+                var inner = segment[(open + 1)..close].Trim();
+                var value = ValueAfterPrefix(inner, prefix);
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+
+                searchFrom = close + 1;
+            }
         }
 
         return null;
@@ -236,9 +292,13 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
             flutterPath,
             parsed?.FlutterVersion,
             parsed?.Channel,
+            parsed?.RepositoryUrl,
             parsed?.FrameworkRevision,
-            parsed?.DartVersion,
+            parsed?.FrameworkDate,
+            parsed?.EngineHash,
             parsed?.EngineRevision,
+            parsed?.EngineDate,
+            parsed?.DartVersion,
             parsed?.DevToolsVersion,
             message,
             processResult);
@@ -246,8 +306,12 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
     private sealed record ParsedVersion(
         string? FlutterVersion,
         string? Channel,
+        string? RepositoryUrl,
         string? FrameworkRevision,
-        string? DartVersion,
+        string? FrameworkDate,
+        string? EngineHash,
         string? EngineRevision,
+        string? EngineDate,
+        string? DartVersion,
         string? DevToolsVersion);
 }
