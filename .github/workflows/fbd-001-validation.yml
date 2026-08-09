@@ -1,0 +1,33 @@
+name: FBD-001 Validation
+
+on:
+  push:
+    branches:
+      - agent/fbd-001-foundation
+
+jobs:
+  validate-foundation:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Verify solution project count
+        shell: pwsh
+        run: |
+          $projects = dotnet sln FlutterBuildDoctor.sln list | Select-String '\.csproj$'
+          if ($projects.Count -ne 10) {
+            throw "Expected 10 projects in solution, found $($projects.Count)."
+          }
+
+      - name: Restore
+        run: dotnet restore FlutterBuildDoctor.sln
+
+      - name: Build Release
+        run: dotnet build FlutterBuildDoctor.sln --configuration Release --no-restore
