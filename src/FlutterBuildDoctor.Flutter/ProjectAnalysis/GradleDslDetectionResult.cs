@@ -40,13 +40,13 @@ public sealed record GradleDslDetectionResult(
     public bool IsSuccess => Status == GradleDslDetectionStatus.Succeeded;
 
     public GradleScriptEvidence? ProjectBuildScript
-        => Scripts.SingleOrDefault(script => script.Role == GradleScriptRole.ProjectBuild);
+        => Scripts.FirstOrDefault(script => script.Role == GradleScriptRole.ProjectBuild);
 
     public GradleScriptEvidence? AppBuildScript
-        => Scripts.SingleOrDefault(script => script.Role == GradleScriptRole.AppBuild);
+        => Scripts.FirstOrDefault(script => script.Role == GradleScriptRole.AppBuild);
 
     public GradleScriptEvidence? SettingsScript
-        => Scripts.SingleOrDefault(script => script.Role == GradleScriptRole.Settings);
+        => Scripts.FirstOrDefault(script => script.Role == GradleScriptRole.Settings);
 }
 
 public interface IGradleDslDetector
