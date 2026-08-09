@@ -23,7 +23,7 @@ public sealed class FlutterDoctorExecutorIntegrationTests
                 "@echo off\r\n" +
                 "if \"%1\"==\"doctor\" if \"%2\"==\"-v\" (\r\n" +
                 "  echo doctor-stdout\r\n" +
-                "  echo doctor-stderr 1>&2\r\n" +
+                "  echo doctor-stderr>&2\r\n" +
                 "  exit /b 0\r\n" +
                 ")\r\n" +
                 "exit /b 9\r\n");
