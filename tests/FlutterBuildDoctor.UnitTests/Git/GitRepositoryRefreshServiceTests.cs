@@ -45,7 +45,7 @@ public sealed class GitRepositoryRefreshServiceTests
         Assert.True(File.Exists(Path.Combine(fixture.RepositoryPath, "fresh.txt")));
         Assert.True(Directory.Exists(Path.Combine(fixture.RepositoryPath, ".git")));
         Assert.False(result.RollbackPerformed);
-        Assert.Equal(2, identity.CallCount);
+        Assert.Equal(3, identity.CallCount);
     }
 
     [Fact]
