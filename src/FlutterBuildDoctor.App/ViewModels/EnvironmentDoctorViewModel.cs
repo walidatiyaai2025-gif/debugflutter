@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FlutterBuildDoctor.App.EnvironmentSnapshots;
 using FlutterBuildDoctor.Application.Environment;
 
@@ -44,28 +45,70 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject
             return;
         }
 
+        await CaptureAndApplyAsync(isRefresh: false, cancellationToken).ConfigureAwait(true);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRefresh))]
+    private async Task RefreshAsync()
+    {
+        if (IsLoading)
+        {
+            return;
+        }
+
+        await CaptureAndApplyAsync(isRefresh: true, CancellationToken.None).ConfigureAwait(true);
+    }
+
+    private bool CanRefresh() => !IsLoading;
+
+    partial void OnIsLoadingChanged(bool value)
+        => RefreshCommand.NotifyCanExecuteChanged();
+
+    private async Task CaptureAndApplyAsync(bool isRefresh, CancellationToken cancellationToken)
+    {
+        if (IsLoading)
+        {
+            return;
+        }
+
+        var hadLoadedSnapshot = _initialized;
         IsLoading = true;
-        StatusMessage = "Scanning Windows, Flutter, Java, and Android toolchains...";
+        StatusMessage = isRefresh
+            ? "Refreshing Windows, Flutter, Java, and Android toolchains..."
+            : "Scanning Windows, Flutter, Java, and Android toolchains...";
 
         try
         {
             var snapshot = await _snapshotService.CaptureAsync(cancellationToken).ConfigureAwait(true);
             ApplySnapshot(snapshot);
-            _initialized = true;
-            OnPropertyChanged(nameof(IsLoaded));
+
+            if (!_initialized)
+            {
+                _initialized = true;
+                OnPropertyChanged(nameof(IsLoaded));
+            }
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Environment scan cancelled.";
+            StatusMessage = hadLoadedSnapshot
+                ? "Environment refresh cancelled. The last successful scan remains displayed."
+                : "Environment scan cancelled.";
         }
         catch (Exception exception)
         {
-            Components.Clear();
-            ReadyCount = 0;
-            AttentionCount = 0;
-            CapturedAtText = "Scan failed";
-            CaptureDurationText = "—";
-            StatusMessage = $"Environment scan failed: {exception.Message}";
+            if (hadLoadedSnapshot)
+            {
+                StatusMessage = $"Environment refresh failed: {exception.Message} The last successful scan remains displayed.";
+            }
+            else
+            {
+                Components.Clear();
+                ReadyCount = 0;
+                AttentionCount = 0;
+                CapturedAtText = "Scan failed";
+                CaptureDurationText = "—";
+                StatusMessage = $"Environment scan failed: {exception.Message}";
+            }
         }
         finally
         {
