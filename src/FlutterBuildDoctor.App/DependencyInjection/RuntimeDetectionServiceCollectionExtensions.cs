@@ -5,7 +5,6 @@ using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
 using FlutterBuildDoctor.Flutter.Detection;
 using FlutterBuildDoctor.Flutter.Doctor;
-using FlutterBuildDoctor.Flutter.Versioning;
 using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Cloning;
 using FlutterBuildDoctor.Git.Repository;
