@@ -28,9 +28,13 @@ public sealed class WorkspaceLockResolverIntegrationTests
 
         try
         {
+            // Hosted Windows runners can spend well over 15 seconds starting a fresh
+            // Windows PowerShell process while the full integration suite is active.
+            // The fixture is not testing PowerShell startup latency, so give setup a
+            // realistic CI budget while keeping the lock-hold operation itself bounded.
             var ready = await process.StandardOutput
                 .ReadLineAsync()
-                .WaitAsync(TimeSpan.FromSeconds(15));
+                .WaitAsync(TimeSpan.FromSeconds(45));
 
             Assert.Equal("LOCKED", ready);
             Assert.False(process.HasExited);

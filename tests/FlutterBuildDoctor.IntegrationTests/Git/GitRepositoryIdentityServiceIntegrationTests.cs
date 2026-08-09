@@ -1,6 +1,5 @@
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Git.Repository;
-using FlutterBuildDoctor.Infrastructure.Environment;
 using FlutterBuildDoctor.Infrastructure.Processes;
 
 namespace FlutterBuildDoctor.IntegrationTests.Git;
@@ -82,11 +81,6 @@ public sealed class GitRepositoryIdentityServiceIntegrationTests
         public static async Task<GitIdentityFixture> CreateAsync()
         {
             var runner = new ProcessRunner();
-            var detector = new GitToolDetector(runner);
-            var git = await detector.DetectAsync();
-            Assert.True(git.Installed, git.Message);
-            Assert.False(string.IsNullOrWhiteSpace(git.Path));
-
             var root = System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
                 "FlutterBuildDoctor.IdentityIntegrationTests",
@@ -96,9 +90,13 @@ public sealed class GitRepositoryIdentityServiceIntegrationTests
             Directory.CreateDirectory(root);
             Directory.CreateDirectory(repository);
 
-            var fixture = new GitIdentityFixture(git.Path!, runner, root, repository, remote);
+            // GitToolDetector is covered independently. Identity fixtures use real Git
+            // with their own 30-second process budget so a busy hosted runner cannot
+            // fail the fixture on the detector's intentionally short 5-second probe.
+            var fixture = new GitIdentityFixture("git.exe", runner, root, repository, remote);
             try
             {
+                await fixture.RunGitAtAsync(root, "--version");
                 await fixture.RunGitAtAsync(root, "init", "--bare", "--initial-branch=main", "--", remote);
                 await fixture.RunGitAsync("init");
                 await fixture.RunGitAsync("config", "user.name", "Flutter Build Doctor Tests");
