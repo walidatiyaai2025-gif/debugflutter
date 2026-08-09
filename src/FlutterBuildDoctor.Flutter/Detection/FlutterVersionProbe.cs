@@ -6,6 +6,7 @@ namespace FlutterBuildDoctor.Flutter.Detection;
 public sealed class FlutterVersionProbe : IFlutterVersionProbe
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(1);
+    private static readonly char[] MetadataSeparators = ['•', '\a'];
     private readonly IProcessRunner _processRunner;
 
     public FlutterVersionProbe(IProcessRunner processRunner)
@@ -164,7 +165,12 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
             if (line.Length == 0)
                 continue;
 
-            var segments = line.Split('•', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            // Windows PowerShell / OEM code pages can round-trip U+2022 BULLET as ASCII BEL
+            // when output is redirected through cmd.exe. Treat both as parse separators only;
+            // ProcessResult retains the exact raw text for diagnostics.
+            var segments = line.Split(
+                MetadataSeparators,
+                StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             if (segments.Length == 0)
                 continue;
 
