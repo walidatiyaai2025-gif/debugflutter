@@ -46,7 +46,7 @@ public sealed partial class ProjectHeaderViewModel : ObservableObject
         {
             var result = await _identityService.ReadAsync(
                 new GitRepositoryIdentityRequest(gitExecutablePath, repositoryPath),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken);
 
             if (result.IsSuccess && result.Identity is { } identity)
             {
