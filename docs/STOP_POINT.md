@@ -5,14 +5,14 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-602` — Parse `pubspec.yaml`
+`FBD-603` — Parse `pubspec.lock`
 
 Status: `DONE`
-PR: `#94` — `[FBD-602] Parse pubspec.yaml`
-Final validated feature head: `450b2c0460672ac1a3a94fa00723a687b07d75ac`
-Final validation workflow: `31322547719`
-Final validation job: `93267660636`
-Integration merge commit: `461031b92490a9e3703593da505d1268e7cd220d`
+PR: `#96` — `[FBD-603] Parse pubspec.lock`
+Final validated feature head: `e02326fe12a1bf398aa20a1967559757d0920089`
+Final validation workflow: `31322827081`
+Final validation job: `93268345901`
+Integration merge commit: `fb7f85355c9f5fc4d5ea384cbfaaff5e35bf350d`
 
 ## Verified completed sequence
 
@@ -22,41 +22,39 @@ Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD
 
 Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504`.
 
-Project Analyzer: `FBD-601 → FBD-602` is merged and validated.
+Project Analyzer: `FBD-601 → FBD-602 → FBD-603` is merged and validated.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
-## FBD-602 behavior checkpoint
+## FBD-603 behavior checkpoint
 
-- consumes only a successful FBD-601 effective root/pubspec path
-- parses one bounded `pubspec.yaml` read-only using YamlDotNet representation nodes
-- validates known YAML field/section shapes explicitly
-- rejects reparse/symlink pubspec files before reading
-- extracts package identity, project URLs, SDK constraints, topics, dependencies, dev_dependencies, and dependency_overrides
-- distinguishes hosted, Flutter/Dart SDK, path, git, and unknown dependency specs
-- sanitizes structured URL evidence by removing credentials/query/fragment data
-- preserves bounded raw YAML only as parser evidence and does not log/display it in this task
-- does not read or modify `pubspec.lock`
+- consumes only a successful FBD-601 effective project root
+- reads an existing `<effective-root>/pubspec.lock` only; a missing lock file never triggers dependency resolution
+- enforces an 8 MiB lock-file safety limit and rejects reparse/symlink lock files before reading
+- parses locked package name/version, dependency relationship, and hosted/git/path/sdk/unknown source evidence
+- exposes Dart and Flutter SDK constraints from the lockfile
+- sanitizes structured hosted/Git URLs by removing credentials/query/fragment data
+- preserves bounded raw lock YAML only as parser source evidence and does not log/display it in this task
 - does not run Flutter/Dart/pub/Gradle/network commands and does not mutate repository files
 
 ## Next critical-path task
 
-`FBD-603` — Parse `pubspec.lock`
+`FBD-604` — Detect Groovy vs Kotlin Gradle DSL
 
-Reason: declared dependency metadata is now available from `pubspec.yaml`; the next analyzer layer must capture the resolved package graph/evidence without mixing lockfile semantics into FBD-602.
+Reason: Flutter package metadata and resolved package versions are now represented. Android project analysis can next identify the Gradle DSL/file layout before wrapper, AGP, Kotlin, SDK, and identifier parsers consume those files.
 
-Acceptance: parse the effective project's `pubspec.lock` read-only, preserve missing/malformed evidence clearly, extract resolved package identity/version/source/dependency relationship data needed by later checks, and never mutate the lockfile.
+Acceptance: detect supported `.gradle` and `.gradle.kts` project/app build-script layouts with clear path/evidence and without modifying or executing Gradle.
 
 ## Parallel follow-ups
 
 - `FBD-505` — Doctor UI detail panel
 - `FBD-506` — Flutter doctor parser fixture tests
 
-These remain separate tasks and must not be folded into FBD-603.
+These remain separate tasks and must not be folded into FBD-604.
 
 ## Resume instruction
 
-Start FBD-603 from integration commit `461031b92490a9e3703593da505d1268e7cd220d` or a newer `agent/fbd-foundation` head after this reconciliation is merged. Consume the effective FBD-601 project root; keep lockfile parsing read-only and do not resolve or modify package dependencies.
+Start FBD-604 from merge commit `fb7f85355c9f5fc4d5ea384cbfaaff5e35bf350d` or a newer `agent/fbd-foundation` head. Reuse the FBD-601 effective project root; keep Gradle-file detection read-only and leave wrapper/AGP/Kotlin/SDK parsing to FBD-605 through FBD-609.
 
 ## Bookkeeping note
 
