@@ -19,7 +19,9 @@ public sealed class GitRefreshCompositionTests
         Assert.NotNull(provider.GetRequiredService<IGitCloneService>());
         Assert.NotNull(provider.GetRequiredService<IGitWorkingTreeScanner>());
         Assert.NotNull(provider.GetRequiredService<IGitRepositoryIdentityService>());
-        Assert.NotNull(provider.GetRequiredService<IGitRefreshFileSystem>());
+        Assert.NotNull(provider.GetRequiredService<IGitWorkspaceLockResolver>());
+        Assert.IsType<LockRecoveringGitRefreshFileSystem>(
+            provider.GetRequiredService<IGitRefreshFileSystem>());
         Assert.NotNull(provider.GetRequiredService<IGitRepositoryRefreshService>());
     }
 }
