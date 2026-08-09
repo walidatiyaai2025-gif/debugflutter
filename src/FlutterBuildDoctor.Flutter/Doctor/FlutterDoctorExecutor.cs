@@ -101,10 +101,9 @@ public sealed class FlutterDoctorExecutor : IFlutterDoctorExecutor
         if (extension.Equals(".bat", StringComparison.OrdinalIgnoreCase) ||
             extension.Equals(".cmd", StringComparison.OrdinalIgnoreCase))
         {
-            var command = $"call \"{flutterPath}\" doctor -v";
             return new ProcessRequest(
                 "cmd.exe",
-                new[] { "/d", "/v:off", "/c", command },
+                new[] { "/d", "/v:off", "/c", flutterPath, "doctor", "-v" },
                 Timeout: timeout,
                 DisplayName: "Flutter doctor -v");
         }
