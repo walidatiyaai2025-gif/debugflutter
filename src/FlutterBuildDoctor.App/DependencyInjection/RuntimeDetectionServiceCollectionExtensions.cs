@@ -1,6 +1,7 @@
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
+using FlutterBuildDoctor.Git.Repository;
 using FlutterBuildDoctor.Infrastructure.Environment;
 using FlutterBuildDoctor.Infrastructure.Processes;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
+        services.TryAddSingleton<IGitRepositoryIdentityService, GitRepositoryIdentityService>();
 
         return services;
     }

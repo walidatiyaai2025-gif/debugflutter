@@ -12,9 +12,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _statusMessage = "Ready";
 
-    public MainWindowViewModel(IAppExceptionReporter exceptionReporter)
+    public MainWindowViewModel(
+        IAppExceptionReporter exceptionReporter,
+        ProjectHeaderViewModel projectHeader)
     {
         _exceptionReporter = exceptionReporter ?? throw new ArgumentNullException(nameof(exceptionReporter));
+        ProjectHeader = projectHeader ?? throw new ArgumentNullException(nameof(projectHeader));
         _uiContext = SynchronizationContext.Current;
         _exceptionReporter.ExceptionReported += OnExceptionReported;
 
@@ -23,6 +26,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _statusMessage = latest.UserMessage;
         }
     }
+
+    public ProjectHeaderViewModel ProjectHeader { get; }
 
     public string ApplicationName => "Flutter Build Doctor";
 

@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Git\FlutterBuildDoctor.Git.csproj" />
     <ProjectReference Include="..\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
