@@ -81,6 +81,32 @@ public sealed class FlutterDoctorUnknownEvidenceTests
     }
 
     [Fact]
+    public void Parse_StderrInsideKnownSectionIsExplicitlyUnclassifiedWithoutChangingSectionLines()
+    {
+        var flutterHeader = Out("[✓] Flutter (Channel stable)");
+        var stdoutDetail = Out("    • Flutter detail");
+        var stderr = Err("diagnostic stderr remains verbatim  ");
+        var androidHeader = Out("[✓] Android toolchain - develop for Android devices");
+        var process = Process(flutterHeader, stdoutDetail, stderr, androidHeader);
+
+        var result = _parser.Parse(Execution(process));
+
+        var evidence = Assert.Single(result.UnknownEvidence);
+        Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, evidence.Kind);
+        Assert.Equal(2, evidence.StartIndex);
+        Assert.Same(stderr, Assert.Single(evidence.Lines));
+        Assert.Equal("diagnostic stderr remains verbatim  ", evidence.Lines[0].Text);
+
+        var flutter = Assert.Single(result.Sections.Where(section => section.Kind == FlutterDoctorSectionKind.Flutter));
+        Assert.Collection(
+            flutter.Lines,
+            line => Assert.Same(flutterHeader, line),
+            line => Assert.Same(stdoutDetail, line),
+            line => Assert.Same(stderr, line));
+        Assert.Same(process, result.ProcessResult);
+    }
+
+    [Fact]
     public void Parse_NoSectionsClassifiesEveryUnsectionedLineWithoutChangingIt()
     {
         var plain = Out("future preamble");
