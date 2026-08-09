@@ -17,12 +17,13 @@ The production-facing WPF shell on `main` contains the Git Repository Manager an
 - repository identity header
 - Windows workspace lock recovery
 
-### Environment Doctor — live through FBD-414 / FBD-415
+### Environment Doctor — live through FBD-405 / FBD-415
 
 - Windows version/build, OS architecture, process architecture and bitness
 - Android Studio installation discovery/version/build/path evidence
 - Git executable/version
 - Flutter SDK/version/channel
+- Dart SDK version/source/PATH conflict evidence
 - Java/JDK detection
 - environment variables and Android SDK root validation
 - command-line tools / `sdkmanager`
@@ -32,26 +33,28 @@ The production-facing WPF shell on `main` contains the Git Repository Manager an
 - installed Android platforms and build-tools
 - Android emulator binary/version
 
-FBD-414 was merged to `main` after branch and exact PR CI passed. Android Studio detection is bounded file-system inspection only and does not launch Studio. Android license detection remains diagnostic only and never sends acceptance input.
+FBD-405, FBD-414 and FBD-415 are live on `main` after branch and exact PR CI passed. Dart detection is read-only and does not change PATH. Android Studio detection does not launch Studio. Android license detection never sends acceptance input.
 
 ## Current task
 
-`FBD-405` — Detect Dart SDK + version — LIVE UI PROMOTION IN PROGRESS
+`FBD-416` — Build immutable EnvironmentSnapshot — LIVE UI PROMOTION IN PROGRESS
 
-Branch: `agent/fbd-405-main-ui`
+Branch: `agent/fbd-416-main-ui`
 
 Scope:
-- port the validated FBD-405 Dart SDK detector onto current `main`
-- consume the already-live Flutter SDK result
-- discover Flutter-bundled Dart plus PATH/standalone candidates
-- read SDK version metadata without executing Dart
-- preserve PATH preferred/shadowed candidates and Flutter/PATH mismatch evidence
-- show Dart version/source/path/conflict evidence in Environment Doctor
-- never change PATH or mutate Flutter/Dart installations
+- port the validated FBD-416 immutable snapshot service onto current `main`
+- capture environment variables once and reuse one effective PATH for Flutter, Dart and Java
+- reuse the exact Android SDK root and command-line-tools results for all dependent Android detectors
+- collect Windows, Android Studio, Flutter, Dart, Java and Android toolchain evidence into one immutable result
+- make Environment Doctor `Run / Refresh Scan` project all non-Git cards from that one snapshot in production
+- keep Git detection separate because Git is outside the FBD-416 snapshot contract
+- preserve the direct-detector fallback for existing isolated ViewModel tests/construction
+
+Safety boundary: FBD-416 only orchestrates already validated read-only/status detectors. It adds no repair, installation, license acceptance, PATH mutation, Android Studio launch or emulator/AVD lifecycle action.
 
 ## Next promotion
 
-After FBD-405 passes branch CI, exact PR merged-tree CI and live merge, select the next already validated backend capability whose dependencies are satisfied. Keep Compatibility, Build Center, Devices & Emulators, Problems, Auto Repair and Release Center disabled until their complete backend workflows are genuinely available.
+After FBD-416 passes branch CI, exact PR merged-tree CI and live merge, evaluate FBD-417 Environment Doctor dashboard work against the now-unified snapshot. Keep Compatibility, Build Center, Devices & Emulators, Problems, Auto Repair and Release Center disabled until their complete backend workflows are genuinely available.
 
 ## Team coordination rule
 
