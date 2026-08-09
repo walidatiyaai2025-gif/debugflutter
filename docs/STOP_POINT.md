@@ -7,11 +7,12 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-504` — Run `flutter --version` structured probe
 
-Status: `DONE` pending final-head CI and merge
+Status: `DONE`
 PR: `#88` — `[FBD-504] Run flutter --version structured probe`
-Validated code head: `32b94f95a7897bf9c0275a67d9dcdf96b36723cf`
-Validation workflow: `31321364979`
-Validation job: `93264761673`
+Final validated feature head: `dd426af42397fd67a7cf652b5e4abc4d1dabe5ff`
+Final validation workflow: `31321481327`
+Final validation job: `93265053947`
+Integration merge commit: `cd22b5eb30fcc18698450001b32911326595ea69`
 
 ## Verified completed sequence
 
@@ -19,7 +20,7 @@ Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305
 
 Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417 → FBD-418`.
 
-Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504` validated through the current code head. FBD-501 through FBD-503 are merged; FBD-504 is pending final-head CI/merge after documentation updates.
+Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504` is implemented, validated, and merged.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
@@ -38,7 +39,7 @@ Do not reimplement these tasks. Continue from the active integration branch.
 
 `FBD-601` — Locate Flutter project root
 
-Reason: the P0 Flutter Doctor/version execution and parsing gates are now complete. The M1 path proceeds into Project Analyzer so an imported repository can be resolved to its effective Flutter project root before pubspec parsing and requirement checks.
+Reason: the P0 Flutter Doctor/version execution and parsing gates are complete. The M1 path proceeds into Project Analyzer so an imported repository can be resolved to its effective Flutter project root before pubspec parsing and requirement checks.
 
 Acceptance: locate `pubspec.yaml`, identify the effective Flutter project root, and return clear read-only evidence for valid, missing, ambiguous, or invalid project locations without modifying repository files.
 
@@ -51,7 +52,7 @@ These remain separate tasks and must not be folded into FBD-601.
 
 ## Resume instruction
 
-After FBD-504 is merged, start FBD-601 from the newest `agent/fbd-foundation` head. Reuse the Repository Manager's imported repository path; perform read-only root discovery and do not parse pubspec contents yet because FBD-602 owns pubspec parsing.
+Start FBD-601 from the newest `agent/fbd-foundation` head after this receipt reconciliation is merged. Reuse the Repository Manager's imported repository path; perform read-only root discovery and do not parse pubspec contents yet because FBD-602 owns pubspec parsing.
 
 ## Bookkeeping note
 
