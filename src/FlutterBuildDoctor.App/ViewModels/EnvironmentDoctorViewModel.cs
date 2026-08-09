@@ -19,6 +19,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IAndroidAdbDetector _androidAdbDetector;
     private readonly IAndroidPlatformDetector _androidPlatformDetector;
     private readonly IAndroidBuildToolsDetector _androidBuildToolsDetector;
+    private readonly IAndroidEmulatorDetector _androidEmulatorDetector;
     private CancellationTokenSource? _scanCancellation;
 
     [ObservableProperty]
@@ -79,6 +80,12 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private string _androidBuildToolsDetails = "Run Environment Doctor to inventory installed Android build-tools.";
 
     [ObservableProperty]
+    private string _androidEmulatorSummary = "Not scanned";
+
+    [ObservableProperty]
+    private string _androidEmulatorDetails = "Run Environment Doctor to detect the Android emulator binary and version.";
+
+    [ObservableProperty]
     private DateTimeOffset? _lastScannedAt;
 
     public EnvironmentDoctorViewModel(
@@ -90,7 +97,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IAndroidCommandLineToolsDetector androidCommandLineToolsDetector,
         IAndroidAdbDetector androidAdbDetector,
         IAndroidPlatformDetector androidPlatformDetector,
-        IAndroidBuildToolsDetector androidBuildToolsDetector)
+        IAndroidBuildToolsDetector androidBuildToolsDetector,
+        IAndroidEmulatorDetector androidEmulatorDetector)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
@@ -101,6 +109,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         _androidAdbDetector = androidAdbDetector ?? throw new ArgumentNullException(nameof(androidAdbDetector));
         _androidPlatformDetector = androidPlatformDetector ?? throw new ArgumentNullException(nameof(androidPlatformDetector));
         _androidBuildToolsDetector = androidBuildToolsDetector ?? throw new ArgumentNullException(nameof(androidBuildToolsDetector));
+        _androidEmulatorDetector = androidEmulatorDetector ?? throw new ArgumentNullException(nameof(androidEmulatorDetector));
     }
 
     public bool CanScan => !IsBusy;
@@ -124,7 +133,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         }
 
         IsBusy = true;
-        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, ADB, installed platforms and build-tools...";
+        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, ADB, installed platforms, build-tools and emulator...";
         _scanCancellation = new CancellationTokenSource();
 
         try
@@ -157,6 +166,10 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             token.ThrowIfCancellationRequested();
             var buildTools = _androidBuildToolsDetector.Detect(androidSdk);
             ApplyAndroidBuildTools(buildTools);
+
+            token.ThrowIfCancellationRequested();
+            var emulator = await _androidEmulatorDetector.DetectAsync(androidSdk, token);
+            ApplyAndroidEmulator(emulator);
 
             token.ThrowIfCancellationRequested();
             var adb = await _androidAdbDetector.DetectAsync(androidSdk, token);
@@ -350,6 +363,24 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
                 }));
 
         AndroidBuildToolsDetails = JoinDetails(packageEvidence, result.Message);
+    }
+
+    private void ApplyAndroidEmulator(AndroidEmulatorDetectionResult result)
+    {
+        AndroidEmulatorSummary = result.IsSuccess
+            ? string.IsNullOrWhiteSpace(result.Version) ? "Ready" : result.Version
+            : result.Status switch
+            {
+                AndroidEmulatorDetectionStatus.EmulatorDirectoryMissing => "Package missing",
+                AndroidEmulatorDetectionStatus.EmulatorMissing => "Binary missing",
+                AndroidEmulatorDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
+                AndroidEmulatorDetectionStatus.TimedOut => "Probe timed out",
+                AndroidEmulatorDetectionStatus.ProbeFailed => "Probe failed",
+                AndroidEmulatorDetectionStatus.VersionUnavailable => "Version unavailable",
+                AndroidEmulatorDetectionStatus.Cancelled => "Cancelled",
+                _ => result.Status.ToString()
+            };
+        AndroidEmulatorDetails = JoinDetails(result.EmulatorPath ?? result.EmulatorDirectory, result.Message);
     }
 
     private void ApplyAdb(AndroidAdbDetectionResult result)

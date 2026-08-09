@@ -90,6 +90,16 @@ public sealed class EnvironmentDoctorViewModelTests
             "C:\\Android\\Sdk",
             new[] { buildToolsPackage },
             "Detected 1 usable Android build-tools package(s).");
+        var emulatorResult = new AndroidEmulatorDetectionResult(
+            AndroidEmulatorDetectionStatus.Succeeded,
+            "C:\\Android\\Sdk",
+            "C:\\Android\\Sdk\\emulator",
+            "C:\\Android\\Sdk\\emulator\\emulator.exe",
+            "36.1.9.0",
+            AndroidEmulatorVersionSource.CommandOutput,
+            "Android emulator version 36.1.9.0",
+            "Pkg.Revision=36.1.9.0",
+            "Android emulator 36.1.9.0 detected.");
 
         using var viewModel = new EnvironmentDoctorViewModel(
             new StubEnvironmentScanner(new ToolStatus(
@@ -137,7 +147,8 @@ public sealed class EnvironmentDoctorViewModelTests
                 Message: "Android command-line tools 19.0 detected.")),
             new StubAndroidAdbDetector(adbResult),
             new StubAndroidPlatformDetector(platformResult),
-            new StubAndroidBuildToolsDetector(buildToolsResult));
+            new StubAndroidBuildToolsDetector(buildToolsResult),
+            new StubAndroidEmulatorDetector(emulatorResult));
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
@@ -158,6 +169,8 @@ public sealed class EnvironmentDoctorViewModelTests
         Assert.Contains("android-35: ready rev 2", viewModel.AndroidPlatformsDetails, StringComparison.Ordinal);
         Assert.Equal("36.0.0 • 1 usable", viewModel.AndroidBuildToolsSummary);
         Assert.Contains("36.0.0: ready", viewModel.AndroidBuildToolsDetails, StringComparison.Ordinal);
+        Assert.Equal("36.1.9.0", viewModel.AndroidEmulatorSummary);
+        Assert.Contains("emulator.exe", viewModel.AndroidEmulatorDetails, StringComparison.OrdinalIgnoreCase);
         Assert.NotNull(viewModel.LastScannedAt);
     }
 
@@ -188,9 +201,7 @@ public sealed class EnvironmentDoctorViewModelTests
     private sealed class StubEnvironmentScanner : IEnvironmentScanner
     {
         private readonly ToolStatus _status;
-
         public StubEnvironmentScanner(ToolStatus status) => _status = status;
-
         public Task<IReadOnlyList<ToolStatus>> ScanAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<ToolStatus>>(new[] { _status });
     }
@@ -198,81 +209,67 @@ public sealed class EnvironmentDoctorViewModelTests
     private sealed class StubFlutterDetector : IFlutterSdkDetector
     {
         private readonly FlutterDetectionResult _result;
-
         public StubFlutterDetector(FlutterDetectionResult result) => _result = result;
-
-        public Task<FlutterDetectionResult> DetectAsync(
-            FlutterSdkDetectionRequest? request = null,
-            CancellationToken cancellationToken = default)
+        public Task<FlutterDetectionResult> DetectAsync(FlutterSdkDetectionRequest? request = null, CancellationToken cancellationToken = default)
             => Task.FromResult(_result);
     }
 
     private sealed class StubJavaDetector : IJavaInstallationDetector
     {
         private readonly JavaDetectionResult _result;
-
         public StubJavaDetector(JavaDetectionResult result) => _result = result;
-
-        public Task<JavaDetectionResult> DetectAsync(
-            JavaDetectionRequest? request = null,
-            CancellationToken cancellationToken = default)
+        public Task<JavaDetectionResult> DetectAsync(JavaDetectionRequest? request = null, CancellationToken cancellationToken = default)
             => Task.FromResult(_result);
     }
 
     private sealed class StubEnvironmentVariableReader : IEnvironmentVariableReader
     {
         private readonly EnvironmentVariableSnapshot _snapshot;
-
         public StubEnvironmentVariableReader(EnvironmentVariableSnapshot snapshot) => _snapshot = snapshot;
-
         public EnvironmentVariableSnapshot Read() => _snapshot;
     }
 
     private sealed class StubAndroidSdkRootDetector : IAndroidSdkRootDetector
     {
         private readonly AndroidSdkRootDetectionResult _result;
-
         public StubAndroidSdkRootDetector(AndroidSdkRootDetectionResult result) => _result = result;
-
         public AndroidSdkRootDetectionResult Detect(EnvironmentVariableSnapshot snapshot) => _result;
     }
 
     private sealed class StubAndroidCommandLineToolsDetector : IAndroidCommandLineToolsDetector
     {
         private readonly AndroidCommandLineToolsDetectionResult _result;
-
         public StubAndroidCommandLineToolsDetector(AndroidCommandLineToolsDetectionResult result) => _result = result;
-
         public AndroidCommandLineToolsDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
     }
 
     private sealed class StubAndroidAdbDetector : IAndroidAdbDetector
     {
         private readonly AndroidAdbDetectionResult _result;
-
         public StubAndroidAdbDetector(AndroidAdbDetectionResult result) => _result = result;
-
-        public Task<AndroidAdbDetectionResult> DetectAsync(
-            AndroidSdkRootDetectionResult sdkRootResult,
-            CancellationToken cancellationToken = default)
+        public Task<AndroidAdbDetectionResult> DetectAsync(AndroidSdkRootDetectionResult sdkRootResult, CancellationToken cancellationToken = default)
             => Task.FromResult(_result);
     }
 
     private sealed class StubAndroidPlatformDetector : IAndroidPlatformDetector
     {
         private readonly AndroidPlatformDetectionResult _result;
-
         public StubAndroidPlatformDetector(AndroidPlatformDetectionResult result) => _result = result;
-
         public AndroidPlatformDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
     }
 
     private sealed class StubAndroidBuildToolsDetector : IAndroidBuildToolsDetector
     {
         private readonly AndroidBuildToolsDetectionResult _result;
-
         public StubAndroidBuildToolsDetector(AndroidBuildToolsDetectionResult result) => _result = result;
-
         public AndroidBuildToolsDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
+    }
+
+    private sealed class StubAndroidEmulatorDetector : IAndroidEmulatorDetector
+    {
+        private readonly AndroidEmulatorDetectionResult _result;
+        public StubAndroidEmulatorDetector(AndroidEmulatorDetectionResult result) => _result = result;
+        public Task<AndroidEmulatorDetectionResult> DetectAsync(AndroidSdkRootDetectionResult sdkRootResult, CancellationToken cancellationToken = default)
+            => Task.FromResult(_result);
     }
 }
