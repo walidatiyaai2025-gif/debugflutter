@@ -1,20 +1,9 @@
+using FlutterBuildDoctor.Application.Services;
+using FlutterBuildDoctor.Domain.Environment;
+
 namespace FlutterBuildDoctor.Application.Environment;
 
-public interface IToolDetector
-{
-    string Name { get; }
-    Task<ToolStatus> DetectAsync(CancellationToken cancellationToken = default);
-}
-
-public sealed record ToolStatus(
-    string Name,
-    bool IsInstalled,
-    string? Version,
-    string? Path,
-    string Status,
-    string? Message);
-
-public sealed class EnvironmentScanService
+public sealed class EnvironmentScanService : IEnvironmentScanner
 {
     private readonly IEnumerable<IToolDetector> _detectors;
 
@@ -29,7 +18,7 @@ public sealed class EnvironmentScanService
 
         foreach (var detector in _detectors)
         {
-            results.Add(await detector.DetectAsync(cancellationToken));
+            results.Add(await detector.DetectAsync(cancellationToken).ConfigureAwait(false));
         }
 
         return results;

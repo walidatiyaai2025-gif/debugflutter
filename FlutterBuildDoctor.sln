@@ -1,0 +1,81 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.App", "src\FlutterBuildDoctor.App\FlutterBuildDoctor.App.csproj", "{A1B2C3D4-0001-4A11-9001-111111111111}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Application", "src\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj", "{A1B2C3D4-0002-4A11-9002-222222222222}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Domain", "src\FlutterBuildDoctor.Domain\FlutterBuildDoctor.Domain.csproj", "{A1B2C3D4-0003-4A11-9003-333333333333}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Infrastructure", "src\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj", "{A1B2C3D4-0004-4A11-9004-444444444444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Flutter", "src\FlutterBuildDoctor.Flutter\FlutterBuildDoctor.Flutter.csproj", "{A1B2C3D4-0005-4A11-9005-555555555555}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Android", "src\FlutterBuildDoctor.Android\FlutterBuildDoctor.Android.csproj", "{A1B2C3D4-0006-4A11-9006-666666666666}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Repair", "src\FlutterBuildDoctor.Repair\FlutterBuildDoctor.Repair.csproj", "{A1B2C3D4-0007-4A11-9007-777777777777}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Persistence", "src\FlutterBuildDoctor.Persistence\FlutterBuildDoctor.Persistence.csproj", "{A1B2C3D4-0008-4A11-9008-888888888888}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Git", "src\FlutterBuildDoctor.Git\FlutterBuildDoctor.Git.csproj", "{A1B2C3D4-0009-4A11-9009-999999999999}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.UnitTests", "tests\FlutterBuildDoctor.UnitTests\FlutterBuildDoctor.UnitTests.csproj", "{A1B2C3D4-0010-4A11-9010-AAAAAAAAAAAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.IntegrationTests", "tests\FlutterBuildDoctor.IntegrationTests\FlutterBuildDoctor.IntegrationTests.csproj", "{A1B2C3D4-0011-4A11-9011-BBBBBBBBBBBB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1B2C3D4-0001-4A11-9001-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0001-4A11-9001-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0001-4A11-9001-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0001-4A11-9001-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0002-4A11-9002-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0002-4A11-9002-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0002-4A11-9002-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0002-4A11-9002-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0003-4A11-9003-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0003-4A11-9003-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0003-4A11-9003-333333333333}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0003-4A11-9003-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0004-4A11-9004-444444444444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0004-4A11-9004-444444444444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0004-4A11-9004-444444444444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0004-4A11-9004-444444444444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0005-4A11-9005-555555555555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0005-4A11-9005-555555555555}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0005-4A11-9005-555555555555}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0005-4A11-9005-555555555555}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0006-4A11-9006-666666666666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0006-4A11-9006-666666666666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0006-4A11-9006-666666666666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0006-4A11-9006-666666666666}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0007-4A11-9007-777777777777}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0007-4A11-9007-777777777777}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0007-4A11-9007-777777777777}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0007-4A11-9007-777777777777}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0008-4A11-9008-888888888888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0008-4A11-9008-888888888888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0008-4A11-9008-888888888888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0008-4A11-9008-888888888888}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0009-4A11-9009-999999999999}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0009-4A11-9009-999999999999}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0009-4A11-9009-999999999999}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0009-4A11-9009-999999999999}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0010-4A11-9010-AAAAAAAAAAAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0010-4A11-9010-AAAAAAAAAAAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0010-4A11-9010-AAAAAAAAAAAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0010-4A11-9010-AAAAAAAAAAAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-0011-4A11-9011-BBBBBBBBBBBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-0011-4A11-9011-BBBBBBBBBBBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-0011-4A11-9011-BBBBBBBBBBBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-0011-4A11-9011-BBBBBBBBBBBB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
