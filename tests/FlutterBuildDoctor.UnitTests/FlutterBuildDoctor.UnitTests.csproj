@@ -17,6 +17,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\FlutterBuildDoctor.Android\FlutterBuildDoctor.Android.csproj" />
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Domain\FlutterBuildDoctor.Domain.csproj" />
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Flutter\FlutterBuildDoctor.Flutter.csproj" />
