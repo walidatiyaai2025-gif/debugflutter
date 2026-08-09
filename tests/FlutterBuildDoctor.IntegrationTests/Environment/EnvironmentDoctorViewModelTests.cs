@@ -58,6 +58,22 @@ public sealed class EnvironmentDoctorViewModelTests
             "Android Debug Bridge version 1.0.41",
             "Pkg.Revision=36.0.0",
             "ADB 1.0.41 / platform-tools 36.0.0-13206524 detected.");
+        var platformPackage = new AndroidPlatformPackage(
+            "android-35",
+            "C:\\Android\\Sdk\\platforms\\android-35",
+            ApiLevel: 35,
+            CodeName: "REL",
+            Revision: "2",
+            AndroidJarExists: true,
+            FrameworkAidlExists: true,
+            SourcePropertiesPath: "C:\\Android\\Sdk\\platforms\\android-35\\source.properties",
+            RawSourceProperties: "Pkg.Revision=2\nAndroidVersion.ApiLevel=35\nAndroidVersion.CodeName=REL\n",
+            Message: null);
+        var platformResult = new AndroidPlatformDetectionResult(
+            AndroidPlatformDetectionStatus.Succeeded,
+            "C:\\Android\\Sdk",
+            new[] { platformPackage },
+            "Detected 1 usable Android platform package(s).");
 
         using var viewModel = new EnvironmentDoctorViewModel(
             new StubEnvironmentScanner(new ToolStatus(
@@ -103,7 +119,8 @@ public sealed class EnvironmentDoctorViewModelTests
                 new[] { commandLineCandidate },
                 HasMultipleInstallations: false,
                 Message: "Android command-line tools 19.0 detected.")),
-            new StubAndroidAdbDetector(adbResult));
+            new StubAndroidAdbDetector(adbResult),
+            new StubAndroidPlatformDetector(platformResult));
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
@@ -120,6 +137,8 @@ public sealed class EnvironmentDoctorViewModelTests
         Assert.Contains("ADB 1.0.41", viewModel.AdbSummary, StringComparison.Ordinal);
         Assert.Contains("platform-tools 36.0.0-13206524", viewModel.AdbSummary, StringComparison.Ordinal);
         Assert.Contains("adb.exe", viewModel.AdbDetails, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("API 35", viewModel.AndroidPlatformsSummary);
+        Assert.Contains("android-35: ready rev 2", viewModel.AndroidPlatformsDetails, StringComparison.Ordinal);
         Assert.NotNull(viewModel.LastScannedAt);
     }
 
@@ -218,5 +237,14 @@ public sealed class EnvironmentDoctorViewModelTests
             AndroidSdkRootDetectionResult sdkRootResult,
             CancellationToken cancellationToken = default)
             => Task.FromResult(_result);
+    }
+
+    private sealed class StubAndroidPlatformDetector : IAndroidPlatformDetector
+    {
+        private readonly AndroidPlatformDetectionResult _result;
+
+        public StubAndroidPlatformDetector(AndroidPlatformDetectionResult result) => _result = result;
+
+        public AndroidPlatformDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
     }
 }
