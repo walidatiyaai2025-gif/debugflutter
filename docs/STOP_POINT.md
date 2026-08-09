@@ -7,10 +7,12 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-416` — Build immutable EnvironmentSnapshot
 
-Status: `DONE` pending final-head CI and merge
+Status: `DONE`
 PR: `#68` — `[FBD-416] Build immutable EnvironmentSnapshot`
-Validated feature head before receipt: `7ab9ee9ae64118c5ce88a16e62dfa98948e69dc2`
-Validation workflow: `31315262038`
+Final validated feature head: `6846dc19b9e61227e26baafcd406071fd0aefe02`
+Final validation workflow: `31315412520`
+Final validation job: `93249726313`
+Integration merge commit: `9df79ae7d4bad4dff669d8ced2d71763af2a5a64`
 
 ## Recently completed environment work
 
@@ -29,7 +31,8 @@ Validation workflow: `31315262038`
 - `FBD-413` — avdmanager availability detection — DONE — PR `#56`
 - `FBD-414` — Android Studio installations — DONE — PR `#61`
 - `FBD-415` — Android license status — DONE — PR `#58`
-- `FBD-416` — immutable EnvironmentSnapshot composition — DONE pending final-head CI/merge — PR `#68`
+- `FBD-416` — immutable EnvironmentSnapshot composition — DONE — PR `#68`
+  - integration merge commit `9df79ae7d4bad4dff669d8ced2d71763af2a5a64`
 
 ## Verified completed sequence
 
@@ -43,13 +46,13 @@ Do not reimplement these tasks. Continue from the active integration branch.
 
 `FBD-417` — Environment Doctor dashboard UI
 
-Reason: FBD-416 now provides one immutable, internally consistent snapshot that the dashboard can consume without re-running discovery logic inside the UI.
+Reason: FBD-416 provides one immutable, internally consistent snapshot that the dashboard can consume without re-running discovery logic inside the UI.
 
 Acceptance: each environment component is displayed with state/path/version/action information sourced from the snapshot.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-416 is merged. Consume `IEnvironmentSnapshotService` / `EnvironmentSnapshot`; do not duplicate detector orchestration in the ViewModel and do not add repair behavior inside FBD-417.
+Start from integration commit `9df79ae7d4bad4dff669d8ced2d71763af2a5a64` or a newer `agent/fbd-foundation` head. Consume `IEnvironmentSnapshotService` / `EnvironmentSnapshot`; do not duplicate detector orchestration in the ViewModel and do not add repair behavior inside FBD-417.
 
 ## Bookkeeping note
 
