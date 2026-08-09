@@ -58,18 +58,64 @@ public sealed class GradleDslDetector : IGradleDslDetector
 
         try
         {
-            var scripts = KnownScripts
-                .Select(script => new
+            if (IsReparsePoint(androidDirectory))
+            {
+                return Result(
+                    GradleDslDetectionStatus.InspectionFailed,
+                    projectRoot,
+                    androidDirectory,
+                    null,
+                    Array.Empty<GradleScriptEvidence>(),
+                    "The Android project directory is a reparse point or symbolic link and will not be traversed outside the resolved Flutter project boundary.");
+            }
+
+            var appDirectory = Path.Combine(androidDirectory, "app");
+            if (Directory.Exists(appDirectory) && IsReparsePoint(appDirectory))
+            {
+                return Result(
+                    GradleDslDetectionStatus.InspectionFailed,
+                    projectRoot,
+                    androidDirectory,
+                    null,
+                    Array.Empty<GradleScriptEvidence>(),
+                    "The Android app directory is a reparse point or symbolic link and will not be traversed outside the resolved Flutter project boundary.");
+            }
+
+            var scripts = new List<GradleScriptEvidence>();
+            var unsafeScripts = new List<string>();
+            foreach (var known in KnownScripts)
+            {
+                var path = Path.GetFullPath(Path.Combine(androidDirectory, known.RelativePath));
+                if (!File.Exists(path))
+                    continue;
+
+                if (IsReparsePoint(path))
                 {
-                    script.Role,
-                    script.Dsl,
-                    Path = Path.GetFullPath(Path.Combine(androidDirectory, script.RelativePath))
-                })
-                .Where(script => File.Exists(script.Path))
-                .Select(script => new GradleScriptEvidence(script.Role, script.Dsl, script.Path))
-                .OrderBy(script => script.Role)
-                .ThenBy(script => script.Path, StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+                    unsafeScripts.Add(path);
+                    continue;
+                }
+
+                scripts.Add(new GradleScriptEvidence(known.Role, known.Dsl, path));
+            }
+
+            scripts.Sort((left, right) =>
+            {
+                var roleComparison = left.Role.CompareTo(right.Role);
+                return roleComparison != 0
+                    ? roleComparison
+                    : StringComparer.OrdinalIgnoreCase.Compare(left.Path, right.Path);
+            });
+
+            if (unsafeScripts.Count > 0)
+            {
+                return Result(
+                    GradleDslDetectionStatus.InspectionFailed,
+                    projectRoot,
+                    androidDirectory,
+                    null,
+                    scripts.ToArray(),
+                    $"Gradle script discovery found {unsafeScripts.Count} reparse-point/symbolic-link script(s). Unsafe script paths were not selected for downstream parsing.");
+            }
 
             var ambiguousRoles = scripts
                 .GroupBy(script => script.Role)
@@ -84,7 +130,7 @@ public sealed class GradleDslDetector : IGradleDslDetector
                     projectRoot,
                     androidDirectory,
                     GradleDslKind.Mixed,
-                    scripts,
+                    scripts.ToArray(),
                     $"Both Groovy and Kotlin Gradle scripts exist for: {string.Join(", ", ambiguousRoles)}. No script was selected implicitly.");
             }
 
@@ -98,7 +144,7 @@ public sealed class GradleDslDetector : IGradleDslDetector
                     projectRoot,
                     androidDirectory,
                     null,
-                    scripts,
+                    scripts.ToArray(),
                     "No supported Android project/app build.gradle or build.gradle.kts script was found.");
             }
 
@@ -127,8 +173,8 @@ public sealed class GradleDslDetector : IGradleDslDetector
                 projectRoot,
                 androidDirectory,
                 effectiveDsl,
-                scripts,
-                $"Detected {effectiveDsl} Gradle DSL from {scripts.Length} script(s). {completeness}");
+                scripts.ToArray(),
+                $"Detected {effectiveDsl} Gradle DSL from {scripts.Count} script(s). {completeness}");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
@@ -141,6 +187,9 @@ public sealed class GradleDslDetector : IGradleDslDetector
                 $"Gradle script inspection failed: {ex.Message}");
         }
     }
+
+    private static bool IsReparsePoint(string path)
+        => (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
 
     private static GradleDslDetectionResult Result(
         GradleDslDetectionStatus status,
