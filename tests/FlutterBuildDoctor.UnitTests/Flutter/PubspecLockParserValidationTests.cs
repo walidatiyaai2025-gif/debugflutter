@@ -84,23 +84,23 @@ public sealed class PubspecLockParserValidationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("dependency", "[direct, main]")]
-    [InlineData("source", "[hosted]")]
-    [InlineData("version", "[1.2.3]")]
-    public void Parse_KnownPackageFieldHasWrongShape_ReturnsInvalidDocument(string field, string value)
+    [InlineData("[direct, main]", "hosted", "1.2.3")]
+    [InlineData("direct main", "[hosted]", "1.2.3")]
+    [InlineData("direct main", "hosted", "[1.2.3]")]
+    public void Parse_KnownPackageFieldHasWrongShape_ReturnsInvalidDocument(
+        string dependencyValue,
+        string sourceValue,
+        string versionValue)
     {
         WriteLock(
-            $"""
-            packages:
-              http:
-                dependency: direct main
-                description:
-                  name: http
-                  url: https://pub.dev
-                source: hosted
-                version: 1.2.3
-                {field}: {value}
-            """);
+            $"packages:\n" +
+            $"  http:\n" +
+            $"    dependency: {dependencyValue}\n" +
+            $"    description:\n" +
+            $"      name: http\n" +
+            $"      url: https://pub.dev\n" +
+            $"    source: {sourceValue}\n" +
+            $"    version: {versionValue}\n");
 
         var result = new PubspecLockParser().Parse(SuccessfulRoot());
 
