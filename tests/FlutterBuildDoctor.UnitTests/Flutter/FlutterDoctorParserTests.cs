@@ -23,12 +23,14 @@ public sealed class FlutterDoctorParserTests
             "    • Windows (desktop) • windows • windows-x64",
             "",
             "[✓] Network resources");
+        var execution = Execution(output);
 
-        var result = new FlutterDoctorParser().Parse(Execution(output));
+        var result = new FlutterDoctorParser().Parse(execution);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(FlutterDoctorParseStatus.Succeeded, result.Status);
         Assert.Equal(5, result.Sections.Count);
+        Assert.Same(execution.ProcessResult, result.SourceProcessResult);
         Assert.Same(output, result.SourceOutput);
 
         var flutter = Assert.Single(result.Sections, section => section.Kind == FlutterDoctorSectionKind.Flutter);
@@ -78,6 +80,44 @@ public sealed class FlutterDoctorParserTests
     }
 
     [Fact]
+    public void Parse_WindowsMarkersLeadingWhitespaceAndStderrHeaders_AreHandledWithoutLosingRawEvidence()
+    {
+        var output = new[]
+        {
+            Line(ProcessStream.StdOut, "  [√] Flutter (Channel stable)"),
+            Line(ProcessStream.StdOut, "    • Flutter detail"),
+            Line(ProcessStream.StdErr, "[✗] Android Studio fake stderr header"),
+            Line(ProcessStream.StdErr, "stderr detail"),
+            Line(ProcessStream.StdOut, "[X] Android toolchain - develop for Android devices"),
+            Line(ProcessStream.StdOut, "    X Android SDK unavailable"),
+            Line(ProcessStream.StdOut, "[x] Connected device (probe failed)")
+        };
+        var execution = Execution(output);
+
+        var result = new FlutterDoctorParser().Parse(execution);
+
+        Assert.True(result.IsSuccess);
+        Assert.Same(execution.ProcessResult, result.SourceProcessResult);
+        Assert.Same(output, result.SourceOutput);
+        Assert.Equal(3, result.Sections.Count);
+
+        var flutter = result.Sections[0];
+        Assert.Equal(FlutterDoctorSectionKind.Flutter, flutter.Kind);
+        Assert.Equal(FlutterDoctorSectionStatus.Ready, flutter.Status);
+        Assert.Equal('√', flutter.Marker);
+        Assert.Equal(output[0], flutter.Header);
+        Assert.Equal(2, flutter.SourceLines.Count);
+        Assert.All(flutter.SourceLines, line => Assert.Equal(ProcessStream.StdOut, line.Stream));
+
+        Assert.Equal(FlutterDoctorSectionKind.AndroidToolchain, result.Sections[1].Kind);
+        Assert.Equal(FlutterDoctorSectionStatus.Error, result.Sections[1].Status);
+        Assert.Equal(FlutterDoctorSectionKind.ConnectedDevice, result.Sections[2].Kind);
+        Assert.Equal(FlutterDoctorSectionStatus.Error, result.Sections[2].Status);
+        Assert.DoesNotContain(result.Sections, section => section.Kind == FlutterDoctorSectionKind.AndroidStudio);
+        Assert.Contains(result.SourceOutput, line => line.Stream == ProcessStream.StdErr);
+    }
+
+    [Fact]
     public void Parse_ProcessFailureWithDoctorEvidence_StillParsesUsefulSections()
     {
         var output = Lines(
@@ -92,6 +132,7 @@ public sealed class FlutterDoctorParserTests
         var result = new FlutterDoctorParser().Parse(execution);
 
         Assert.True(result.IsSuccess);
+        Assert.Same(execution.ProcessResult, result.SourceProcessResult);
         var section = Assert.Single(result.Sections);
         Assert.Equal(FlutterDoctorSectionKind.Flutter, section.Kind);
         Assert.Equal(FlutterDoctorSectionStatus.Warning, section.Status);
@@ -126,6 +167,7 @@ public sealed class FlutterDoctorParserTests
         Assert.False(result.IsSuccess);
         Assert.Equal(FlutterDoctorParseStatus.NoProcessEvidence, result.Status);
         Assert.Empty(result.Sections);
+        Assert.Null(result.SourceProcessResult);
         Assert.Empty(result.SourceOutput);
     }
 
@@ -136,12 +178,14 @@ public sealed class FlutterDoctorParserTests
             "Doctor summary",
             "[✓] Future Toolchain",
             "    • future detail");
+        var execution = Execution(output);
 
-        var result = new FlutterDoctorParser().Parse(Execution(output));
+        var result = new FlutterDoctorParser().Parse(execution);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(FlutterDoctorParseStatus.NoRecognizedSections, result.Status);
         Assert.Empty(result.Sections);
+        Assert.Same(execution.ProcessResult, result.SourceProcessResult);
         Assert.Same(output, result.SourceOutput);
     }
 
@@ -169,4 +213,7 @@ public sealed class FlutterDoctorParserTests
                 ProcessStream.StdOut,
                 text))
             .ToArray();
+
+    private static ProcessOutputLine Line(ProcessStream stream, string text)
+        => new(DateTimeOffset.UnixEpoch, stream, text);
 }
