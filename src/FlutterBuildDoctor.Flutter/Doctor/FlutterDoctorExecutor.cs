@@ -1,3 +1,4 @@
+using System.IO;
 using FlutterBuildDoctor.Application.Processes;
 
 namespace FlutterBuildDoctor.Flutter.Doctor;
