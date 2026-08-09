@@ -34,10 +34,26 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
                 continue;
             }
 
+            if (line.Stream == ProcessStream.StdOut && LooksLikeSectionHeader(line.Text))
+            {
+                unknownEvidence.Add(new FlutterDoctorUnknownEvidence(
+                    FlutterDoctorUnknownEvidenceKind.MalformedSectionHeader,
+                    index,
+                    new[] { line },
+                    "Line resembles a Flutter doctor section header but could not be parsed."));
+            }
+
             if (current is null)
             {
                 unsectioned.Add(line);
-                unknownEvidence.Add(BuildUnsectionedEvidence(line, index));
+                if (!(line.Stream == ProcessStream.StdOut && LooksLikeSectionHeader(line.Text)))
+                {
+                    unknownEvidence.Add(new FlutterDoctorUnknownEvidence(
+                        FlutterDoctorUnknownEvidenceKind.UnclassifiedLine,
+                        index,
+                        new[] { line },
+                        "Line was not classified into a Flutter doctor section."));
+                }
             }
             else
             {
@@ -88,20 +104,6 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
                 section.Lines,
                 $"Unrecognized Flutter doctor section: {section.Title}"));
         }
-    }
-
-    private static FlutterDoctorUnknownEvidence BuildUnsectionedEvidence(ProcessOutputLine line, int index)
-    {
-        var looksLikeMalformedHeader = line.Stream == ProcessStream.StdOut && LooksLikeSectionHeader(line.Text);
-        return new FlutterDoctorUnknownEvidence(
-            looksLikeMalformedHeader
-                ? FlutterDoctorUnknownEvidenceKind.MalformedSectionHeader
-                : FlutterDoctorUnknownEvidenceKind.UnclassifiedLine,
-            index,
-            new[] { line },
-            looksLikeMalformedHeader
-                ? "Line resembles a Flutter doctor section header but could not be parsed."
-                : "Line was not classified into a Flutter doctor section.");
     }
 
     private static bool LooksLikeSectionHeader(string text)
