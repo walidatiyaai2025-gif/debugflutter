@@ -47,6 +47,17 @@ public sealed class EnvironmentDoctorViewModelTests
             SourcePropertiesPath: "C:\\Android\\Sdk\\cmdline-tools\\latest\\source.properties",
             RawSourceProperties: "Pkg.Revision=19.0",
             Message: null);
+        var adbResult = new AndroidAdbDetectionResult(
+            AndroidAdbDetectionStatus.Succeeded,
+            "C:\\Android\\Sdk",
+            "C:\\Android\\Sdk\\platform-tools",
+            "C:\\Android\\Sdk\\platform-tools\\adb.exe",
+            "1.0.41",
+            "36.0.0-13206524",
+            "C:\\Android\\Sdk\\platform-tools\\adb.exe",
+            "Android Debug Bridge version 1.0.41",
+            "Pkg.Revision=36.0.0",
+            "ADB 1.0.41 / platform-tools 36.0.0-13206524 detected.");
 
         using var viewModel = new EnvironmentDoctorViewModel(
             new StubEnvironmentScanner(new ToolStatus(
@@ -91,7 +102,8 @@ public sealed class EnvironmentDoctorViewModelTests
                 commandLineCandidate,
                 new[] { commandLineCandidate },
                 HasMultipleInstallations: false,
-                Message: "Android command-line tools 19.0 detected.")));
+                Message: "Android command-line tools 19.0 detected.")),
+            new StubAndroidAdbDetector(adbResult));
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
@@ -105,6 +117,9 @@ public sealed class EnvironmentDoctorViewModelTests
         Assert.Contains("C:\\Android\\Sdk", viewModel.AndroidSdkDetails, StringComparison.Ordinal);
         Assert.Contains("19.0", viewModel.CommandLineToolsSummary, StringComparison.Ordinal);
         Assert.Contains("sdkmanager.bat", viewModel.CommandLineToolsDetails, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ADB 1.0.41", viewModel.AdbSummary, StringComparison.Ordinal);
+        Assert.Contains("platform-tools 36.0.0-13206524", viewModel.AdbSummary, StringComparison.Ordinal);
+        Assert.Contains("adb.exe", viewModel.AdbDetails, StringComparison.OrdinalIgnoreCase);
         Assert.NotNull(viewModel.LastScannedAt);
     }
 
@@ -191,5 +206,17 @@ public sealed class EnvironmentDoctorViewModelTests
         public StubAndroidCommandLineToolsDetector(AndroidCommandLineToolsDetectionResult result) => _result = result;
 
         public AndroidCommandLineToolsDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
+    }
+
+    private sealed class StubAndroidAdbDetector : IAndroidAdbDetector
+    {
+        private readonly AndroidAdbDetectionResult _result;
+
+        public StubAndroidAdbDetector(AndroidAdbDetectionResult result) => _result = result;
+
+        public Task<AndroidAdbDetectionResult> DetectAsync(
+            AndroidSdkRootDetectionResult sdkRootResult,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(_result);
     }
 }
