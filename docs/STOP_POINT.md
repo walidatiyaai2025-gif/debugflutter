@@ -7,11 +7,12 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-418` — Refresh environment action
 
-Status: `DONE` pending final-head CI and merge
+Status: `DONE`
 PR: `#75` — `[FBD-418] Refresh environment action`
-Validated code head: `01ac80e195bf94bfa437b4730cbef6a357da1d44`
-Validation workflow: `31317615410`
-Validation job: `93255291694`
+Final validated feature head: `03919d59654d9f5dd09f19a788c0961bd76c873d`
+Final validation workflow: `31317731572`
+Final validation job: `93255582044`
+Integration merge commit: `3175fb00e630cac8c542ac2e92f21442f565d808`
 
 ## Recently completed environment work
 
@@ -32,7 +33,8 @@ Validation job: `93255291694`
 - `FBD-415` — Android license status — DONE — PR `#58`
 - `FBD-416` — immutable EnvironmentSnapshot composition — DONE — PR `#68`
 - `FBD-417` — Environment Doctor dashboard UI — DONE — PR `#72`
-- `FBD-418` — Refresh environment action — DONE pending final-head CI/merge — PR `#75`
+- `FBD-418` — Refresh environment action — DONE — PR `#75`
+  - integration merge commit `3175fb00e630cac8c542ac2e92f21442f565d808`
 
 ## Verified completed sequence
 
@@ -41,10 +43,6 @@ Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305
 Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417 → FBD-418`.
 
 Do not reimplement these tasks. Continue from the active integration branch.
-
-## Validation note
-
-FBD-418 code-head CI passed Restore, Release Build including WPF/XAML, the full unit/integration test suite, and artifact upload on `01ac80e195bf94bfa437b4730cbef6a357da1d44`. Final-head validation after this receipt/checkpoint update is still required before merge.
 
 ## Next task
 
@@ -56,7 +54,7 @@ Acceptance: execute `flutter doctor -v` through the canonical process runner and
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-418 is merged. Reuse the detected Flutter executable/SDK evidence and canonical `IProcessRunner`; do not parse doctor sections in FBD-501 (owned by FBD-502), do not repair the environment, and preserve raw process evidence.
+Start from integration commit `3175fb00e630cac8c542ac2e92f21442f565d808` or a newer `agent/fbd-foundation` head. Reuse the detected Flutter executable/SDK evidence and canonical `IProcessRunner`; do not parse doctor sections in FBD-501 (owned by FBD-502), do not repair the environment, and preserve raw process evidence.
 
 ## Bookkeeping note
 
