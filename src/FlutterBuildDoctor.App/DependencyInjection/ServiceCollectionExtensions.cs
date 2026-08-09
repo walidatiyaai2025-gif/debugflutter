@@ -1,3 +1,4 @@
+using FlutterBuildDoctor.App.Services;
 using FlutterBuildDoctor.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +10,10 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddSingleton<IGitExecutableResolver, GitExecutableResolver>();
+        services.AddSingleton<IRepositoryImportCoordinator, RepositoryImportCoordinator>();
         services.AddSingleton<ProjectHeaderViewModel>();
+        services.AddSingleton<RepositoryManagerViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
 
