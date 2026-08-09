@@ -14,12 +14,25 @@ public enum FlutterProjectRootStatus
 public sealed record FlutterProjectCandidate(
     string RootPath,
     string PubspecPath,
-    bool HasFlutterSdkDependency,
     bool HasMetadataFile,
     bool HasLibDirectory,
-    bool HasAndroidDirectory)
+    bool HasAndroidDirectory,
+    bool HasIosDirectory,
+    bool HasWebDirectory,
+    bool HasWindowsDirectory,
+    bool HasMacOsDirectory,
+    bool HasLinuxDirectory)
 {
-    public bool IsFlutterProject => HasFlutterSdkDependency || HasMetadataFile;
+    public bool HasPlatformDirectory =>
+        HasAndroidDirectory ||
+        HasIosDirectory ||
+        HasWebDirectory ||
+        HasWindowsDirectory ||
+        HasMacOsDirectory ||
+        HasLinuxDirectory;
+
+    public bool HasFlutterProjectEvidence =>
+        HasMetadataFile || (HasLibDirectory && HasPlatformDirectory);
 }
 
 public sealed record FlutterProjectRootResult(
