@@ -96,6 +96,18 @@ public sealed class FlutterProjectRootLocator : IFlutterProjectRootLocator
             if (repositoryCandidate is not null)
                 return Success(normalizedRepositoryPath, repositoryCandidate, candidates, scan.PubspecPaths, rootPreferred: true);
 
+            if (candidates.Length == 1 && scan.InspectionErrors > 0)
+            {
+                return new FlutterProjectRootResult(
+                    FlutterProjectRootStatus.InspectionFailed,
+                    normalizedRepositoryPath,
+                    null,
+                    null,
+                    candidates,
+                    scan.PubspecPaths,
+                    "One nested Flutter project candidate was found, but repository inspection was incomplete, so a unique project root cannot be proven safely.");
+            }
+
             if (candidates.Length == 1)
                 return Success(normalizedRepositoryPath, candidates[0], candidates, scan.PubspecPaths, rootPreferred: false);
 
