@@ -20,6 +20,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IAndroidPlatformDetector _androidPlatformDetector;
     private readonly IAndroidBuildToolsDetector _androidBuildToolsDetector;
     private readonly IAndroidEmulatorDetector _androidEmulatorDetector;
+    private readonly IAndroidAvdManagerDetector _androidAvdManagerDetector;
     private CancellationTokenSource? _scanCancellation;
 
     [ObservableProperty]
@@ -62,6 +63,12 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private string _commandLineToolsDetails = "Run Environment Doctor to detect sdkmanager and Android command-line tools.";
 
     [ObservableProperty]
+    private string _avdManagerSummary = "Not scanned";
+
+    [ObservableProperty]
+    private string _avdManagerDetails = "Run Environment Doctor to detect avdmanager availability.";
+
+    [ObservableProperty]
     private string _adbSummary = "Not scanned";
 
     [ObservableProperty]
@@ -98,7 +105,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IAndroidAdbDetector androidAdbDetector,
         IAndroidPlatformDetector androidPlatformDetector,
         IAndroidBuildToolsDetector androidBuildToolsDetector,
-        IAndroidEmulatorDetector androidEmulatorDetector)
+        IAndroidEmulatorDetector androidEmulatorDetector,
+        IAndroidAvdManagerDetector androidAvdManagerDetector)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
@@ -110,6 +118,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         _androidPlatformDetector = androidPlatformDetector ?? throw new ArgumentNullException(nameof(androidPlatformDetector));
         _androidBuildToolsDetector = androidBuildToolsDetector ?? throw new ArgumentNullException(nameof(androidBuildToolsDetector));
         _androidEmulatorDetector = androidEmulatorDetector ?? throw new ArgumentNullException(nameof(androidEmulatorDetector));
+        _androidAvdManagerDetector = androidAvdManagerDetector ?? throw new ArgumentNullException(nameof(androidAvdManagerDetector));
     }
 
     public bool CanScan => !IsBusy;
@@ -133,7 +142,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         }
 
         IsBusy = true;
-        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, ADB, installed platforms, build-tools and emulator...";
+        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, avdmanager, ADB, installed platforms, build-tools and emulator...";
         _scanCancellation = new CancellationTokenSource();
 
         try
@@ -158,6 +167,10 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             token.ThrowIfCancellationRequested();
             var commandLineTools = _androidCommandLineToolsDetector.Detect(androidSdk);
             ApplyCommandLineTools(commandLineTools);
+
+            token.ThrowIfCancellationRequested();
+            var avdManager = _androidAvdManagerDetector.Detect(commandLineTools);
+            ApplyAvdManager(avdManager);
 
             token.ThrowIfCancellationRequested();
             var platforms = _androidPlatformDetector.Detect(androidSdk);
@@ -287,6 +300,35 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
                 _ => result.Status.ToString()
             };
         CommandLineToolsDetails = JoinDetails(candidate?.SdkManagerPath ?? candidate?.InstallationPath, result.Message);
+    }
+
+    private void ApplyAvdManager(AndroidAvdManagerDetectionResult result)
+    {
+        var effective = result.EffectiveCandidate;
+        AvdManagerSummary = result.IsSuccess
+            ? JoinSummary(effective?.CommandLineToolsRevision, "avdmanager")
+            : result.Status switch
+            {
+                AndroidAvdManagerDetectionStatus.CommandLineToolsUnavailable => "cmdline-tools unavailable",
+                AndroidAvdManagerDetectionStatus.AvdManagerMissing => "avdmanager missing",
+                _ => result.Status.ToString()
+            };
+
+        var evidence = result.Candidates.Count == 0
+            ? null
+            : string.Join(
+                " | ",
+                result.Candidates.Select(candidate =>
+                {
+                    var revision = candidate.CommandLineToolsRevision ?? candidate.Layout.ToString();
+                    var state = candidate.Exists ? "ready" : "missing";
+                    var effectiveTag = candidate.IsEffective ? " effective" : string.Empty;
+                    return $"{revision}: {state}{effectiveTag}";
+                }));
+
+        AvdManagerDetails = JoinDetails(
+            effective?.AvdManagerPath ?? effective?.InstallationPath,
+            JoinSummary(evidence, result.Message));
     }
 
     private void ApplyAndroidPlatforms(AndroidPlatformDetectionResult result)
