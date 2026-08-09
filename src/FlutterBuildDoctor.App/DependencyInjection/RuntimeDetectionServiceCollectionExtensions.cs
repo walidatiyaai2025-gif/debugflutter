@@ -20,8 +20,11 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IProcessSecretRedactor, DefaultProcessSecretRedactor>();
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
+        services.TryAddSingleton<IVariableValueSource, SystemVariableValueSource>();
+        services.TryAddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>();
         services.TryAddSingleton<IFlutterSdkDetector, FlutterSdkDetector>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
+        services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
