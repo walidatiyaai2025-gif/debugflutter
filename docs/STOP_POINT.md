@@ -5,14 +5,13 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-601` — Locate Flutter project root
+`FBD-603` — Parse `pubspec.lock`
 
-Status: `DONE`
-PR: `#92` — `[FBD-601] Locate Flutter project root`
-Final validated feature head: `1ba7a7c0fda936fe85bf90fc56afcfa1e4534790`
-Final validation workflow: `31322040008`
-Final validation job: `93266424883`
-Integration merge commit: `41525dc0aa08b05696e9b3a6c423b2efaa03a0d3`
+Status: `DONE` pending final-head CI and merge
+PR: `#96` — `[FBD-603] Parse pubspec.lock`
+Validated feature head before receipt: `e02326fe12a1bf398aa20a1967559757d0920089`
+Validation workflow: `31322827081`
+Validation job: `93268345901`
 
 ## Verified completed sequence
 
@@ -22,40 +21,36 @@ Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD
 
 Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504`.
 
-Project Analyzer: `FBD-601` is merged and fully validated.
+Project Analyzer: `FBD-601 → FBD-602 → FBD-603` implemented; FBD-603 is pending final-head CI/merge.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
-## FBD-601 behavior checkpoint
+## Project Analyzer checkpoint
 
-- accepts the imported repository path and performs bounded read-only traversal
-- finds `pubspec.yaml` candidates while excluding VCS/generated/cache directories
-- does not parse pubspec contents; semantic YAML parsing remains FBD-602
-- validates root candidates using filesystem evidence: `.metadata`, or `lib` plus a Flutter platform directory
-- skips reparse-point directories instead of following them
-- prefers a valid repository-root Flutter project while retaining nested candidates as evidence
-- selects one nested root only when it is unambiguous and repository inspection completed successfully
-- returns explicit states for missing repository, missing pubspec, no Flutter filesystem evidence, ambiguity, traversal limits, and inspection failure
-- does not modify repository files or run Flutter, Dart, Gradle, or package commands
+- FBD-601 locates the effective Flutter project root using bounded filesystem evidence only.
+- FBD-602 parses the effective `pubspec.yaml` read-only and exposes package identity, SDK constraints, dependencies and sanitized structured URL evidence. Integration merge commit: `461031b92490a9e3703593da505d1268e7cd220d`.
+- FBD-603 parses an existing `pubspec.lock` read-only and exposes locked versions/source metadata plus SDK constraints.
+- FBD-603 never runs dependency resolution when the lock file is missing.
+- `pubspec.yaml` and `pubspec.lock` raw text remain parser source evidence and are not logged/displayed by these tasks.
 
 ## Next critical-path task
 
-`FBD-602` — Parse `pubspec.yaml`
+`FBD-604` — Detect Groovy vs Kotlin Gradle DSL
 
-Reason: project-root discovery now supplies one effective `pubspec.yaml` path or a clear blocking state. The next analyzer layer can parse project metadata and dependency declarations without mixing root discovery with YAML semantics.
+Reason: Flutter package metadata and locked package versions are now available. The Android analyzer can next identify which Gradle DSL/file layout is present before AGP/Kotlin/SDK parsing tasks consume those files.
 
-Acceptance: parse the effective pubspec safely, expose the project/package identity plus SDK/dependency evidence needed by later compatibility checks, preserve clear malformed/missing evidence, and never mutate the file.
+Acceptance: detect supported `.gradle` and `.gradle.kts` project/app build-script layouts with clear path/evidence and without modifying or executing Gradle.
 
 ## Parallel follow-ups
 
 - `FBD-505` — Doctor UI detail panel
 - `FBD-506` — Flutter doctor parser fixture tests
 
-These remain separate tasks and must not be folded into FBD-602.
+These remain separate tasks and must not be folded into FBD-604.
 
 ## Resume instruction
 
-Start FBD-602 from merge commit `41525dc0aa08b05696e9b3a6c423b2efaa03a0d3` or a newer `agent/fbd-foundation` head. Consume the effective pubspec path returned by `IFlutterProjectRootLocator`; keep parsing read-only and keep later `pubspec.lock` work in FBD-603.
+After FBD-603 merges, start FBD-604 from the latest `agent/fbd-foundation` head. Reuse the FBD-601 effective project root; keep discovery read-only and leave wrapper/AGP/Kotlin/SDK parsing to FBD-605 through FBD-609.
 
 ## Bookkeeping note
 
