@@ -14,7 +14,7 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
             return new FlutterDoctorParseResult(
                 FlutterDoctorParseStatus.NoProcessEvidence,
                 Array.Empty<FlutterDoctorSection>(),
-                Array.Empty<ProcessOutputLine>(),
+                null,
                 "Flutter doctor process evidence is required before sections can be parsed.");
         }
 
@@ -23,7 +23,8 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
 
         foreach (var line in processResult.Output)
         {
-            if (TryReadHeader(line.Text, out var marker, out var title))
+            if (line.Stream == ProcessStream.StdOut &&
+                TryReadHeader(line.Text, out var marker, out var title))
             {
                 FlushPending(pending, sections);
                 pending = null;
@@ -41,7 +42,8 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
                 continue;
             }
 
-            pending?.Lines.Add(line);
+            if (pending is not null && line.Stream == ProcessStream.StdOut)
+                pending.Lines.Add(line);
         }
 
         FlushPending(pending, sections);
@@ -51,14 +53,14 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
             return new FlutterDoctorParseResult(
                 FlutterDoctorParseStatus.NoRecognizedSections,
                 Array.Empty<FlutterDoctorSection>(),
-                processResult.Output,
-                "Flutter doctor output did not contain a recognized section header. Raw process output was preserved.");
+                processResult,
+                "Flutter doctor output did not contain a recognized section header. Raw process evidence was preserved.");
         }
 
         return new FlutterDoctorParseResult(
             FlutterDoctorParseStatus.Succeeded,
             sections,
-            processResult.Output,
+            processResult,
             $"Parsed {sections.Count} recognized Flutter doctor section(s).");
     }
 
@@ -82,23 +84,27 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
         marker = default;
         title = string.Empty;
 
-        if (string.IsNullOrEmpty(text) || text.Length < 4 || text[0] != '[' || text[2] != ']')
+        if (string.IsNullOrWhiteSpace(text))
             return false;
 
-        marker = text[1];
+        var trimmed = text.AsSpan().TrimStart();
+        if (trimmed.Length < 4 || trimmed[0] != '[' || trimmed[2] != ']')
+            return false;
+
+        marker = trimmed[1];
         if (char.IsWhiteSpace(marker))
             return false;
 
-        title = text[3..].TrimStart();
+        title = trimmed[3..].TrimStart().ToString();
         return title.Length > 0;
     }
 
     private static FlutterDoctorSectionStatus MapStatus(char marker)
         => marker switch
         {
-            '✓' => FlutterDoctorSectionStatus.Ready,
+            '✓' or '√' => FlutterDoctorSectionStatus.Ready,
             '!' => FlutterDoctorSectionStatus.Warning,
-            '✗' => FlutterDoctorSectionStatus.Error,
+            '✗' or 'X' or 'x' => FlutterDoctorSectionStatus.Error,
             '-' => FlutterDoctorSectionStatus.NotApplicable,
             _ => FlutterDoctorSectionStatus.Unknown
         };
