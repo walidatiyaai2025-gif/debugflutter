@@ -7,6 +7,7 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(1);
     private static readonly char[] MetadataSeparators = ['•', '\a'];
+    private static readonly string[] MetadataSeparatorAliases = ["ΓÇó", "â€¢"];
     private readonly IProcessRunner _processRunner;
 
     public FlutterVersionProbe(IProcessRunner processRunner)
@@ -165,10 +166,11 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
             if (line.Length == 0)
                 continue;
 
-            // Windows PowerShell / OEM code pages can round-trip U+2022 BULLET as ASCII BEL
-            // when output is redirected through cmd.exe. Treat both as parse separators only;
-            // ProcessResult retains the exact raw text for diagnostics.
-            var segments = line.Split(
+            // Windows command shims can round-trip U+2022 BULLET through several
+            // OEM/ANSI representations. Normalize only known separator aliases for
+            // parsing; ProcessResult retains the exact original text as raw evidence.
+            var normalizedLine = NormalizeMetadataSeparators(line);
+            var segments = normalizedLine.Split(
                 MetadataSeparators,
                 StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             if (segments.Length == 0)
@@ -216,6 +218,14 @@ public sealed class FlutterVersionProbe : IFlutterVersionProbe
             engineDate,
             dartVersion,
             devToolsVersion);
+    }
+
+    private static string NormalizeMetadataSeparators(string line)
+    {
+        foreach (var alias in MetadataSeparatorAliases)
+            line = line.Replace(alias, "•", StringComparison.Ordinal);
+
+        return line;
     }
 
     private static bool IsRepositoryUrl(string segment)
