@@ -4,7 +4,7 @@ public sealed class PathExecutableFinder
 {
     public string? Find(string executable)
     {
-        var paths = Environment.GetEnvironmentVariable("PATH")?
+        var paths = System.Environment.GetEnvironmentVariable("PATH")?
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             ?? Array.Empty<string>();
 

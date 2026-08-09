@@ -44,11 +44,14 @@ public sealed class ProcessRunner : IProcessRunner
             {
                 TryKillTree(process);
                 var timedOut = timeoutCts?.IsCancellationRequested == true && !cancellationToken.IsCancellationRequested;
-                return Finish(timedOut ? ProcessExecutionStatus.TimedOut : ProcessExecutionStatus.Cancelled, null,
+                return Finish(
+                    timedOut ? ProcessExecutionStatus.TimedOut : ProcessExecutionStatus.Cancelled,
+                    null,
                     timedOut ? "Process timed out." : "Process was cancelled.");
             }
 
-            return Finish(process.ExitCode == 0 ? ProcessExecutionStatus.Succeeded : ProcessExecutionStatus.Failed,
+            return Finish(
+                process.ExitCode == 0 ? ProcessExecutionStatus.Succeeded : ProcessExecutionStatus.Failed,
                 process.ExitCode,
                 process.ExitCode == 0 ? null : $"Process exited with code {process.ExitCode}.");
         }
@@ -60,14 +63,23 @@ public sealed class ProcessRunner : IProcessRunner
 
         void Publish(string? text, ProcessStream stream)
         {
-            if (text is null) return;
+            if (text is null)
+                return;
+
             var line = new ProcessOutputLine(DateTimeOffset.UtcNow, stream, text);
             output.Enqueue(line);
             progress?.Report(line);
         }
 
         ProcessResult Finish(ProcessExecutionStatus status, int? exitCode, string? failureReason) =>
-            new(status, exitCode, startedAt, DateTimeOffset.UtcNow, output.ToArray(), BuildSanitizedCommand(request), failureReason);
+            new(
+                status,
+                exitCode,
+                startedAt,
+                DateTimeOffset.UtcNow,
+                output.ToArray(),
+                BuildSanitizedCommand(request),
+                failureReason);
     }
 
     private static ProcessStartInfo CreateStartInfo(ProcessRequest request)
@@ -76,7 +88,7 @@ public sealed class ProcessRunner : IProcessRunner
         {
             FileName = request.FileName,
             WorkingDirectory = string.IsNullOrWhiteSpace(request.WorkingDirectory)
-                ? Environment.CurrentDirectory
+                ? System.Environment.CurrentDirectory
                 : request.WorkingDirectory,
             UseShellExecute = false,
             RedirectStandardOutput = true,
@@ -107,7 +119,9 @@ public sealed class ProcessRunner : IProcessRunner
             : string.Join(' ', new[] { request.FileName }.Concat(request.Arguments.Select(Quote)));
 
     private static string Quote(string value) =>
-        value.Any(char.IsWhiteSpace) ? $"\"{value.Replace("\"", "\\\"")}\"" : value;
+        value.Any(char.IsWhiteSpace)
+            ? $"\"{value.Replace("\"", "\\\"")}\""
+            : value;
 
     private static void TryKillTree(Process process)
     {
