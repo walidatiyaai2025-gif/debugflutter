@@ -5,14 +5,13 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-503` — Preserve unknown doctor output
+`FBD-504` — Run `flutter --version` structured probe
 
-Status: `DONE`
-PR: `#82` — `[FBD-503] Preserve unknown Flutter Doctor output`
-Final validated feature head: `f4053ee0d38858b98806a12c76c5582c6333f432`
-Final validation workflow: `31320414267`
-Final validation job: `93262366846`
-Integration merge commit: `e68fcb64bb438f08fd0d9d7f85c40c24ea75eebc`
+Status: `DONE` pending final-head CI and merge
+PR: `#88` — `[FBD-504] Run flutter --version structured probe`
+Validated code head: `32b94f95a7897bf9c0275a67d9dcdf96b36723cf`
+Validation workflow: `31321364979`
+Validation job: `93264761673`
 
 ## Verified completed sequence
 
@@ -20,32 +19,40 @@ Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305
 
 Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417 → FBD-418`.
 
-Flutter Doctor pipeline: `FBD-501 → FBD-502 → FBD-503` is implemented, validated, and merged.
+Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504` validated through the current code head. FBD-501 through FBD-503 are merged; FBD-504 is pending final-head CI/merge after documentation updates.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
-## FBD-503 behavior checkpoint
+## FBD-504 behavior checkpoint
 
-- keeps FBD-502 known-section parsing and membership unchanged
-- explicitly exposes unknown doctor sections as `UnknownSection` evidence
-- explicitly exposes malformed header-like stdout as `MalformedSectionHeader` evidence
-- explicitly exposes stderr and preamble/unsectioned output as `UnclassifiedLine` evidence
-- preserves exact original `ProcessOutputLine` references and their indexes in `ProcessResult.Output`
-- retains the original `FlutterDoctorExecutionResult` / `ProcessResult`; no output text is normalized or replaced
-- performs no Flutter execution, repair, environment mutation, or UI behavior
+- consumes the detected Flutter executable from FBD-404 and canonical `IProcessRunner`
+- executes only `flutter --version` with bounded timeout/cancellation
+- preserves complete raw `ProcessResult` evidence
+- parses structured fields from stdout only; stderr cannot supply version metadata
+- exposes Flutter version, channel, repository URL, framework revision/date, engine hash/revision/date, Dart version, and DevTools version
+- missing required fields return explicit `ParseFailed` with partial/raw evidence preserved
+- handles Windows console/code-page bullet variants (`•`, BEL, `ΓÇó`, `â€¢`) in a parse-only copy without changing raw output
+- performs no Flutter update, PATH/environment mutation, doctor execution, repair, or UI behavior
 
-## Next task
+## Next critical-path task
 
-`FBD-504` — Run `flutter --version` structured probe
+`FBD-601` — Locate Flutter project root
 
-Reason: FBD-503 completes graceful Flutter Doctor output preservation. FBD-504 is the remaining P0 structured Flutter version probe in the same epic and provides authoritative Flutter/Dart/channel/framework revision data for compatibility and diagnostic views.
+Reason: the P0 Flutter Doctor/version execution and parsing gates are now complete. The M1 path proceeds into Project Analyzer so an imported repository can be resolved to its effective Flutter project root before pubspec parsing and requirement checks.
 
-Acceptance: execute the detected Flutter binary with `--version`, capture raw process evidence, and parse Flutter version, Dart version, channel, framework revision, and related structured fields without mutating the SDK or environment.
+Acceptance: locate `pubspec.yaml`, identify the effective Flutter project root, and return clear read-only evidence for valid, missing, ambiguous, or invalid project locations without modifying repository files.
+
+## Parallel follow-ups
+
+- `FBD-505` — Doctor UI detail panel
+- `FBD-506` — Flutter doctor parser fixture tests
+
+These remain separate tasks and must not be folded into FBD-601.
 
 ## Resume instruction
 
-Start from integration commit `e68fcb64bb438f08fd0d9d7f85c40c24ea75eebc` or a newer `agent/fbd-foundation` head after this receipt reconciliation is merged. Reuse the FBD-404 Flutter detection result and canonical `IProcessRunner`; do not update Flutter, alter PATH, or fold doctor parsing/UI work into FBD-504.
+After FBD-504 is merged, start FBD-601 from the newest `agent/fbd-foundation` head. Reuse the Repository Manager's imported repository path; perform read-only root discovery and do not parse pubspec contents yet because FBD-602 owns pubspec parsing.
 
 ## Bookkeeping note
 
-`docs/TASK_BOARD.md` still contains stale READY/TODO states for several already merged environment and FBD-500 tasks. Reconcile those historical rows in a dedicated documentation/integration bookkeeping change instead of reimplementing completed logic.
+`docs/TASK_BOARD.md` contains stale historical statuses for several already merged tasks. Reconcile those rows in a dedicated documentation/integration bookkeeping change rather than reimplementing verified work.

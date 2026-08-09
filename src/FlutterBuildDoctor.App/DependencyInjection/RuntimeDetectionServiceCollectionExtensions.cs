@@ -31,6 +31,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IAndroidStudioDetector, AndroidStudioDetector>();
         services.TryAddSingleton<IFlutterSdkDetector, FlutterSdkDetector>();
         services.TryAddSingleton<IDartSdkDetector, DartSdkDetector>();
+        services.TryAddSingleton<IFlutterVersionProbe, FlutterVersionProbe>();
         services.TryAddSingleton<IFlutterDoctorExecutor, FlutterDoctorExecutor>();
         services.TryAddSingleton<IFlutterDoctorParser, FlutterDoctorParser>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
