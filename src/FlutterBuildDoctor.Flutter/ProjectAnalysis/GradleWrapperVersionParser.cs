@@ -23,7 +23,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                null,
                 "A successfully resolved Flutter project root is required before Gradle wrapper parsing.");
         }
 
@@ -49,7 +48,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                null,
                 $"Resolved project path is invalid: {ex.Message}");
         }
 
@@ -62,7 +60,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                null,
                 "The Flutter project does not contain an Android project directory.");
         }
 
@@ -89,15 +86,13 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                     null,
                     null,
                     GradleDistributionKind.Unknown,
-                    null,
                     "gradle-wrapper.properties was not found under android/gradle/wrapper. Gradle was not executed or repaired.");
             }
 
             if (IsReparsePoint(propertiesPath))
                 return UnsafeBoundary(projectRoot, propertiesPath, "Gradle wrapper properties file");
 
-            var fileInfo = new FileInfo(propertiesPath);
-            if (fileInfo.Length > MaxPropertiesBytes)
+            if (new FileInfo(propertiesPath).Length > MaxPropertiesBytes)
             {
                 return Result(
                     GradleWrapperVersionStatus.FileTooLarge,
@@ -106,7 +101,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                     null,
                     null,
                     GradleDistributionKind.Unknown,
-                    null,
                     $"gradle-wrapper.properties exceeds the {MaxPropertiesBytes} byte inspection limit.");
             }
         }
@@ -119,33 +113,13 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                null,
                 $"Gradle wrapper path inspection failed: {ex.Message}");
         }
 
-        string rawText;
+        var distributionValues = new List<string>();
         try
         {
-            rawText = File.ReadAllText(propertiesPath);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-        {
-            return Result(
-                GradleWrapperVersionStatus.ReadFailed,
-                projectRoot,
-                propertiesPath,
-                null,
-                null,
-                GradleDistributionKind.Unknown,
-                null,
-                $"gradle-wrapper.properties could not be read: {ex.Message}");
-        }
-
-        List<string> distributionValues;
-        try
-        {
-            distributionValues = new List<string>();
-            foreach (var logicalLine in ReadLogicalLines(rawText))
+            foreach (var logicalLine in ReadLogicalLines(propertiesPath))
             {
                 if (!TrySplitProperty(logicalLine, out var key, out var rawValue) ||
                     !string.Equals(key, "distributionUrl", StringComparison.Ordinal))
@@ -160,7 +134,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                         null,
                         null,
                         GradleDistributionKind.Unknown,
-                        rawText,
                         "distributionUrl contains an invalid Java properties escape sequence.");
                 }
 
@@ -176,8 +149,18 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                rawText,
                 $"gradle-wrapper.properties is malformed: {ex.Message}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            return Result(
+                GradleWrapperVersionStatus.ReadFailed,
+                projectRoot,
+                propertiesPath,
+                null,
+                null,
+                GradleDistributionKind.Unknown,
+                $"gradle-wrapper.properties could not be read: {ex.Message}");
         }
 
         if (distributionValues.Count == 0)
@@ -189,7 +172,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                rawText,
                 "distributionUrl is missing from gradle-wrapper.properties.");
         }
 
@@ -206,7 +188,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 null,
                 null,
                 GradleDistributionKind.Unknown,
-                rawText,
                 distinctValues.Length == 0
                     ? "distributionUrl is empty in gradle-wrapper.properties."
                     : "Multiple different distributionUrl values were found; no wrapper version was selected implicitly.");
@@ -223,7 +204,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
                 SanitizeDistributionUrl(distributionUrl),
                 null,
                 GradleDistributionKind.Unknown,
-                rawText,
                 "distributionUrl was read, but a Gradle distribution version could not be parsed from its archive name.");
         }
 
@@ -239,13 +219,12 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
             SanitizeDistributionUrl(distributionUrl),
             version,
             kind,
-            rawText,
             $"Gradle wrapper {version} ({kind.ToString().ToLowerInvariant()}) detected from gradle-wrapper.properties without executing Gradle.");
     }
 
-    private static IEnumerable<string> ReadLogicalLines(string rawText)
+    private static IEnumerable<string> ReadLogicalLines(string path)
     {
-        using var reader = new StringReader(rawText);
+        using var reader = new StreamReader(path, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
         var builder = new StringBuilder();
         var logicalLineCount = 0;
 
@@ -417,7 +396,6 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
             null,
             null,
             GradleDistributionKind.Unknown,
-            null,
             $"{subject} is a reparse point or symbolic link and will not be followed outside the resolved Flutter project boundary.");
 
     private static GradleWrapperVersionResult Result(
@@ -427,9 +405,8 @@ public sealed partial class GradleWrapperVersionParser : IGradleWrapperVersionPa
         string? distributionUrl,
         string? version,
         GradleDistributionKind distributionKind,
-        string? rawText,
         string message)
-        => new(status, projectRoot, propertiesPath, distributionUrl, version, distributionKind, rawText, message);
+        => new(status, projectRoot, propertiesPath, distributionUrl, version, distributionKind, message);
 
     [GeneratedRegex(@"(?i)(?:^|[/\\])gradle-(?<version>[0-9][0-9A-Za-z.+-]*)-(?<kind>all|bin)\.zip(?:$|[?#])", RegexOptions.CultureInvariant)]
     private static partial Regex GradleDistributionRegex();
