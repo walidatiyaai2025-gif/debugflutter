@@ -176,7 +176,7 @@ public sealed class WindowsPathExecutableDiscoveryTests
     [Fact]
     public void Discover_PreservesWindowsDriveRootWhenItIsAnExplicitPathEntry()
     {
-        var systemDriveRoot = Path.GetPathRoot(Environment.SystemDirectory);
+        var systemDriveRoot = Path.GetPathRoot(System.Environment.SystemDirectory);
         Assert.False(string.IsNullOrWhiteSpace(systemDriveRoot));
         var discovery = new WindowsPathExecutableDiscovery();
 
