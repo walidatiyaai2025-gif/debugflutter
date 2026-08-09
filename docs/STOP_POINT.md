@@ -17,8 +17,9 @@ The production-facing WPF shell on `main` contains the Git Repository Manager an
 - repository identity header
 - Windows workspace lock recovery
 
-### Environment Doctor — live through FBD-415
+### Environment Doctor — live through FBD-401 / FBD-415
 
+- Windows version/build, OS architecture, process architecture and bitness
 - Git executable/version
 - Flutter SDK/version/channel
 - Java/JDK detection
@@ -30,23 +31,28 @@ The production-facing WPF shell on `main` contains the Git Repository Manager an
 - installed Android platforms and build-tools
 - Android emulator binary/version
 
-FBD-415 live UI promotion was merged to `main` after branch and exact PR CI passed. License detection is diagnostic only and never sends acceptance input.
+FBD-401 and FBD-415 live UI promotions were merged to `main` after branch and exact PR CI passed. License detection remains diagnostic only and never sends acceptance input.
 
 ## Current task
 
-`FBD-401` — Detect Windows version/architecture — LIVE UI PROMOTION IN PROGRESS
+`FBD-414` — Detect Android Studio installations — LIVE UI PROMOTION IN PROGRESS
 
-Branch: `agent/fbd-401-main-ui`
+Branch: `agent/fbd-414-main-ui`
 
 Scope:
-- port the validated FBD-401 managed Windows detector onto current `main`
-- register `IWindowsRuntimeInfoSource` and `IWindowsEnvironmentDetector`
-- show Windows description/version/build, OS architecture, process architecture and bitness in Environment Doctor
-- use managed runtime APIs only; no WMI, PowerShell, registry mutation or external process execution
+- port the validated FBD-414 Android Studio detector onto current `main`
+- consume the already-live FBD-401 Windows evidence
+- search bounded known Windows installation roots in Program Files, Program Files (x86), LocalAppData Programs and JetBrains Toolbox
+- discover `studio64.exe` / `studio.exe`
+- parse `product-info.json` first with `build.txt` and executable-version fallbacks
+- preserve multiple installations and metadata/source evidence
+- show Android Studio readiness, version/build and executable paths in Environment Doctor
+
+Safety boundary: FBD-414 performs bounded file-system inspection only. It does not launch Android Studio, execute Studio binaries, install plugins, mutate SDK configuration, or alter Toolbox state.
 
 ## Next promotion
 
-`FBD-414` — Android Studio installations. Its backend PR is now merged/validated on the integration line and depends on FBD-401 Windows evidence, so promote it only after this FBD-401 main-line promotion passes exact PR CI and merges.
+After FBD-414 passes branch CI, exact PR merged-tree CI and live merge, select the next already validated backend capability whose dependencies are satisfied. Keep Compatibility, Build Center, Devices & Emulators, Problems, Auto Repair and Release Center disabled until their complete backend workflows are genuinely available.
 
 ## Team coordination rule
 
