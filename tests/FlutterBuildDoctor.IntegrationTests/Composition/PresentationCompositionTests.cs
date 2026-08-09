@@ -13,6 +13,7 @@ public sealed class PresentationCompositionTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFlutterBuildDoctorExceptionHandling();
+        services.AddFlutterBuildDoctorRuntimeDetection();
         services.AddFlutterBuildDoctorPresentation();
 
         using var provider = services.BuildServiceProvider();
@@ -21,6 +22,12 @@ public sealed class PresentationCompositionTests
         Assert.Equal("Flutter Build Doctor", viewModel.ApplicationName);
         Assert.Equal("Ready", viewModel.StartupStatus);
         Assert.Equal("Ready", viewModel.StatusMessage);
+        Assert.NotNull(viewModel.ProjectHeader);
+        Assert.Equal("No project selected", viewModel.ProjectHeader.ProjectName);
+        Assert.Contains(
+            services,
+            descriptor => descriptor.ServiceType == typeof(ProjectHeaderViewModel)
+                && descriptor.Lifetime == ServiceLifetime.Singleton);
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(MainWindow)
