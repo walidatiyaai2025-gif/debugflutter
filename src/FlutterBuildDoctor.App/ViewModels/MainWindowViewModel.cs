@@ -40,7 +40,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _exceptionReporter.ExceptionReported -= OnExceptionReported;
-        RepositoryManager.Dispose();
     }
 
     private void OnExceptionReported(AppExceptionRecord record)
