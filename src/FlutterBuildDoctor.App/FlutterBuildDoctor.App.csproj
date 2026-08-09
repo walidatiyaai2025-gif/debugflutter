@@ -5,6 +5,7 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FlutterBuildDoctor.Android\FlutterBuildDoctor.Android.csproj" />
     <ProjectReference Include="..\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
     <ProjectReference Include="..\FlutterBuildDoctor.Flutter\FlutterBuildDoctor.Flutter.csproj" />
     <ProjectReference Include="..\FlutterBuildDoctor.Git\FlutterBuildDoctor.Git.csproj" />
