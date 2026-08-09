@@ -37,6 +37,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IFlutterDoctorParser, FlutterDoctorParser>();
         services.TryAddSingleton<IFlutterProjectRootLocator, FlutterProjectRootLocator>();
         services.TryAddSingleton<IPubspecParser, PubspecParser>();
+        services.TryAddSingleton<IPubspecLockParser, PubspecLockParser>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
         services.TryAddSingleton<IAndroidCommandLineToolsDetector, AndroidCommandLineToolsDetector>();
