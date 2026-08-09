@@ -18,6 +18,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IAndroidCommandLineToolsDetector _androidCommandLineToolsDetector;
     private readonly IAndroidAdbDetector _androidAdbDetector;
     private readonly IAndroidPlatformDetector _androidPlatformDetector;
+    private readonly IAndroidBuildToolsDetector _androidBuildToolsDetector;
     private CancellationTokenSource? _scanCancellation;
 
     [ObservableProperty]
@@ -72,6 +73,12 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private string _androidPlatformsDetails = "Run Environment Doctor to inventory installed Android platforms.";
 
     [ObservableProperty]
+    private string _androidBuildToolsSummary = "Not scanned";
+
+    [ObservableProperty]
+    private string _androidBuildToolsDetails = "Run Environment Doctor to inventory installed Android build-tools.";
+
+    [ObservableProperty]
     private DateTimeOffset? _lastScannedAt;
 
     public EnvironmentDoctorViewModel(
@@ -82,7 +89,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IAndroidSdkRootDetector androidSdkRootDetector,
         IAndroidCommandLineToolsDetector androidCommandLineToolsDetector,
         IAndroidAdbDetector androidAdbDetector,
-        IAndroidPlatformDetector androidPlatformDetector)
+        IAndroidPlatformDetector androidPlatformDetector,
+        IAndroidBuildToolsDetector androidBuildToolsDetector)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
@@ -92,6 +100,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         _androidCommandLineToolsDetector = androidCommandLineToolsDetector ?? throw new ArgumentNullException(nameof(androidCommandLineToolsDetector));
         _androidAdbDetector = androidAdbDetector ?? throw new ArgumentNullException(nameof(androidAdbDetector));
         _androidPlatformDetector = androidPlatformDetector ?? throw new ArgumentNullException(nameof(androidPlatformDetector));
+        _androidBuildToolsDetector = androidBuildToolsDetector ?? throw new ArgumentNullException(nameof(androidBuildToolsDetector));
     }
 
     public bool CanScan => !IsBusy;
@@ -115,7 +124,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         }
 
         IsBusy = true;
-        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, ADB and installed platforms...";
+        StatusMessage = "Scanning Git, Flutter, Java, Android SDK, sdkmanager, ADB, installed platforms and build-tools...";
         _scanCancellation = new CancellationTokenSource();
 
         try
@@ -144,6 +153,10 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
             token.ThrowIfCancellationRequested();
             var platforms = _androidPlatformDetector.Detect(androidSdk);
             ApplyAndroidPlatforms(platforms);
+
+            token.ThrowIfCancellationRequested();
+            var buildTools = _androidBuildToolsDetector.Detect(androidSdk);
+            ApplyAndroidBuildTools(buildTools);
 
             token.ThrowIfCancellationRequested();
             var adb = await _androidAdbDetector.DetectAsync(androidSdk, token);
@@ -294,6 +307,49 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
                 }));
 
         AndroidPlatformsDetails = JoinDetails(packageEvidence, result.Message);
+    }
+
+    private void ApplyAndroidBuildTools(AndroidBuildToolsDetectionResult result)
+    {
+        if (result.IsSuccess)
+        {
+            var latest = result.InstalledVersions.FirstOrDefault();
+            var usableCount = result.Packages.Count(package => package.IsUsable);
+            AndroidBuildToolsSummary = string.IsNullOrWhiteSpace(latest)
+                ? $"{usableCount} usable"
+                : $"{latest} • {usableCount} usable";
+        }
+        else
+        {
+            AndroidBuildToolsSummary = result.Status switch
+            {
+                AndroidBuildToolsDetectionStatus.BuildToolsDirectoryMissing => "build-tools missing",
+                AndroidBuildToolsDetectionStatus.NoBuildToolsInstalled => "None installed",
+                AndroidBuildToolsDetectionStatus.PartialInstallationsOnly => "Partial/broken only",
+                AndroidBuildToolsDetectionStatus.AndroidSdkRootUnavailable => "SDK unavailable",
+                AndroidBuildToolsDetectionStatus.InspectionFailed => "Inspection failed",
+                _ => result.Status.ToString()
+            };
+        }
+
+        var packageEvidence = result.Packages.Count == 0
+            ? null
+            : string.Join(
+                " | ",
+                result.Packages.Select(package =>
+                {
+                    var readiness = package.IsUsable ? "ready" : "partial";
+                    var revision = string.IsNullOrWhiteSpace(package.Revision) ? package.DirectoryName : package.Revision;
+                    var missing = new List<string>();
+                    if (!package.Aapt2Exists) missing.Add("aapt2");
+                    if (!package.ZipAlignExists) missing.Add("zipalign");
+                    if (!package.D8Exists) missing.Add("d8");
+                    if (!package.ApkSignerExists) missing.Add("apksigner");
+                    var missingText = missing.Count == 0 ? string.Empty : $" missing {string.Join(",", missing)}";
+                    return $"{revision}: {readiness}{missingText}";
+                }));
+
+        AndroidBuildToolsDetails = JoinDetails(packageEvidence, result.Message);
     }
 
     private void ApplyAdb(AndroidAdbDetectionResult result)

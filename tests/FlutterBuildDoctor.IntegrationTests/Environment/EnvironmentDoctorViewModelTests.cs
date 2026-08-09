@@ -74,6 +74,22 @@ public sealed class EnvironmentDoctorViewModelTests
             "C:\\Android\\Sdk",
             new[] { platformPackage },
             "Detected 1 usable Android platform package(s).");
+        var buildToolsPackage = new AndroidBuildToolsPackage(
+            "36.0.0",
+            "C:\\Android\\Sdk\\build-tools\\36.0.0",
+            Revision: "36.0.0",
+            Aapt2Exists: true,
+            ZipAlignExists: true,
+            D8Exists: true,
+            ApkSignerExists: true,
+            SourcePropertiesPath: "C:\\Android\\Sdk\\build-tools\\36.0.0\\source.properties",
+            RawSourceProperties: "Pkg.Revision=36.0.0\n",
+            Message: null);
+        var buildToolsResult = new AndroidBuildToolsDetectionResult(
+            AndroidBuildToolsDetectionStatus.Succeeded,
+            "C:\\Android\\Sdk",
+            new[] { buildToolsPackage },
+            "Detected 1 usable Android build-tools package(s).");
 
         using var viewModel = new EnvironmentDoctorViewModel(
             new StubEnvironmentScanner(new ToolStatus(
@@ -120,7 +136,8 @@ public sealed class EnvironmentDoctorViewModelTests
                 HasMultipleInstallations: false,
                 Message: "Android command-line tools 19.0 detected.")),
             new StubAndroidAdbDetector(adbResult),
-            new StubAndroidPlatformDetector(platformResult));
+            new StubAndroidPlatformDetector(platformResult),
+            new StubAndroidBuildToolsDetector(buildToolsResult));
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
@@ -139,6 +156,8 @@ public sealed class EnvironmentDoctorViewModelTests
         Assert.Contains("adb.exe", viewModel.AdbDetails, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("API 35", viewModel.AndroidPlatformsSummary);
         Assert.Contains("android-35: ready rev 2", viewModel.AndroidPlatformsDetails, StringComparison.Ordinal);
+        Assert.Equal("36.0.0 • 1 usable", viewModel.AndroidBuildToolsSummary);
+        Assert.Contains("36.0.0: ready", viewModel.AndroidBuildToolsDetails, StringComparison.Ordinal);
         Assert.NotNull(viewModel.LastScannedAt);
     }
 
@@ -246,5 +265,14 @@ public sealed class EnvironmentDoctorViewModelTests
         public StubAndroidPlatformDetector(AndroidPlatformDetectionResult result) => _result = result;
 
         public AndroidPlatformDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
+    }
+
+    private sealed class StubAndroidBuildToolsDetector : IAndroidBuildToolsDetector
+    {
+        private readonly AndroidBuildToolsDetectionResult _result;
+
+        public StubAndroidBuildToolsDetector(AndroidBuildToolsDetectionResult result) => _result = result;
+
+        public AndroidBuildToolsDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
     }
 }
