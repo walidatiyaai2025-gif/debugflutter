@@ -14,10 +14,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public MainWindowViewModel(
         IAppExceptionReporter exceptionReporter,
-        ProjectHeaderViewModel projectHeader)
+        ProjectHeaderViewModel projectHeader,
+        RepositoryManagerViewModel repositoryManager)
     {
         _exceptionReporter = exceptionReporter ?? throw new ArgumentNullException(nameof(exceptionReporter));
         ProjectHeader = projectHeader ?? throw new ArgumentNullException(nameof(projectHeader));
+        RepositoryManager = repositoryManager ?? throw new ArgumentNullException(nameof(repositoryManager));
         _uiContext = SynchronizationContext.Current;
         _exceptionReporter.ExceptionReported += OnExceptionReported;
 
@@ -29,6 +31,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public ProjectHeaderViewModel ProjectHeader { get; }
 
+    public RepositoryManagerViewModel RepositoryManager { get; }
+
     public string ApplicationName => "Flutter Build Doctor";
 
     public string StartupStatus => "Ready";
@@ -36,6 +40,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _exceptionReporter.ExceptionReported -= OnExceptionReported;
+        RepositoryManager.Dispose();
     }
 
     private void OnExceptionReported(AppExceptionRecord record)
