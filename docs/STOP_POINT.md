@@ -5,12 +5,12 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-403` — Read relevant environment variables
+`FBD-407` — Detect Android SDK roots
 
 Status: `DONE` pending final-head CI and merge
-PR: `#38` — `[FBD-403] Read relevant environment variables`
-Validated feature code head before receipt: `98e6ed189cefa271a819e8b09778e6920d2a31cc`
-Validation workflow: `31309277467`
+PR: `#41` — `[FBD-407] Detect Android SDK roots`
+Validated feature code head before receipt: `104a002b445ffe75655b0bf66b912ceda1b0b0b5`
+Validation workflow: `31310021171`
 
 ## Recently completed environment work
 
@@ -21,31 +21,41 @@ Validation workflow: `31309277467`
 - `FBD-406` — Java installations detection — DONE
   - PR `#36`
   - integration merge commit `8ba0d00d1a5b8280c792c9772da361270fb0c24c`
-- `FBD-403` — environment-variable snapshot — DONE pending final-head CI/merge
+- `FBD-403` — environment-variable snapshot — DONE
+  - PR `#38`
+  - integration merge commit `52e482f27c59fe3c8cb8d2ff829651c7495b1ebe`
+- `FBD-407` — Android SDK root detection — DONE pending final-head CI/merge
 
 ## Verified completed sequence
 
 Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
 
-Environment foundation/detection: `FBD-402 → FBD-404 → FBD-406 → FBD-403`
+Environment foundation/detection: `FBD-402 → FBD-404 → FBD-406 → FBD-403 → FBD-407`
 
 Do not reimplement these tasks. Continue from the task board on the active integration branch.
 
 ## Newly unlocked work
 
 - `FBD-405` — Detect Dart SDK + version — READY
-- `FBD-407` — Detect Android SDK roots — READY after FBD-403 merge
+- `FBD-408` — Detect sdkmanager/cmdline-tools — READY after FBD-407 merge
+- `FBD-409` — Detect platform-tools/ADB — READY after FBD-407 merge
+- `FBD-412` — Detect emulator binary — READY after FBD-407 merge
+- `FBD-413` — Detect avdmanager — READY after FBD-407 merge
 - `FBD-501` — Execute `flutter doctor -v` — READY
 - `FBD-504` — Run `flutter --version` structured probe — READY
 
 ## Next task
 
-`FBD-407` — Detect Android SDK roots
+`FBD-408` — Detect sdkmanager/cmdline-tools
 
-Reason: FBD-407 is the next M1 critical-path task after Flutter, Java, and environment-variable discovery. It must validate Android SDK root candidates from `ANDROID_SDK_ROOT`, `ANDROID_HOME`, and other safe local evidence before cmdline-tools/ADB discovery can proceed.
+Reason: FBD-408 is the next M1 critical-path task after Android SDK root discovery. It should enumerate installed command-line-tools layouts/versions, identify the effective `sdkmanager` executable, and preserve conflicting or legacy layouts as evidence without modifying the SDK.
 
-Acceptance: Android SDK root candidates are discovered, normalized, validated, prioritized with explicit evidence/conflicts, and exposed without mutating environment variables.
+Acceptance: installed cmdline-tools versions and sdkmanager path/status are reported from the validated FBD-407 SDK root, with explicit missing/broken/conflict evidence and no package installation or license acceptance side effects.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-403 is merged. Re-read `docs/TASK_BOARD.md`, this file, and only Android/environment files required for FBD-407. Consume the FBD-403 environment snapshot rather than rereading or mutating global variables inside the Android SDK detector. Preserve the FBD-402 PATH discovery, FBD-404 Flutter detector, FBD-406 Java detector, and Git Repository Manager implementation.
+Start from the latest `agent/fbd-foundation` head after FBD-407 is merged. Re-read `docs/TASK_BOARD.md`, this file, and only Android/environment files required for FBD-408. Consume FBD-407 root detection instead of rediscovering SDK roots. Do not install/update cmdline-tools or accept licenses in FBD-408. Preserve the completed PATH, Flutter, Java, environment-variable, Android SDK root, and Git Repository Manager implementations.
+
+## Bookkeeping note
+
+`docs/TASK_BOARD.md` still contains stale READY/TODO states for some already merged environment tasks. Reconcile those statuses in a separate documentation-only integration change so the one-task-per-PR boundary for FBD-407 remains intact.
