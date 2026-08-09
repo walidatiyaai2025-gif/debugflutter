@@ -89,23 +89,26 @@ public sealed class PubspecLockParserValidationTests : IDisposable
     [InlineData("version", "[1.2.3]")]
     public void Parse_KnownPackageFieldHasWrongShape_ReturnsInvalidDocument(string field, string value)
     {
+        var dependency = field == "dependency" ? value : "direct main";
+        var source = field == "source" ? value : "hosted";
+        var version = field == "version" ? value : "1.2.3";
         WriteLock(
             $"""
             packages:
               http:
-                dependency: direct main
+                dependency: {dependency}
                 description:
                   name: http
                   url: https://pub.dev
-                source: hosted
-                version: 1.2.3
-                {field}: {value}
+                source: {source}
+                version: {version}
             """);
 
         var result = new PubspecLockParser().Parse(SuccessfulRoot());
 
         Assert.Equal(PubspecLockParseStatus.InvalidDocument, result.Status);
         Assert.Null(result.Metadata);
+        Assert.NotNull(result.RawText);
     }
 
     [Fact]
