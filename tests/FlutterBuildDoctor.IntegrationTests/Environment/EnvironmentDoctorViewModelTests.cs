@@ -47,6 +47,28 @@ public sealed class EnvironmentDoctorViewModelTests
             SourcePropertiesPath: "C:\\Android\\Sdk\\cmdline-tools\\latest\\source.properties",
             RawSourceProperties: "Pkg.Revision=19.0",
             Message: null);
+        var commandLineResult = new AndroidCommandLineToolsDetectionResult(
+            AndroidCommandLineToolsDetectionStatus.Succeeded,
+            "C:\\Android\\Sdk",
+            commandLineCandidate,
+            new[] { commandLineCandidate },
+            HasMultipleInstallations: false,
+            Message: "Android command-line tools 19.0 detected.");
+        var avdManagerCandidate = new AndroidAvdManagerCandidate(
+            "C:\\Android\\Sdk\\cmdline-tools\\latest",
+            "C:\\Android\\Sdk\\cmdline-tools\\latest\\bin\\avdmanager.bat",
+            "19.0",
+            AndroidCommandLineToolsLayout.LatestAlias,
+            IsEffective: true,
+            Exists: true,
+            Message: null);
+        var avdManagerResult = new AndroidAvdManagerDetectionResult(
+            AndroidAvdManagerDetectionStatus.Succeeded,
+            "C:\\Android\\Sdk",
+            avdManagerCandidate,
+            new[] { avdManagerCandidate },
+            HasMultipleInstallations: false,
+            Message: "avdmanager detected from command-line tools 19.0.");
         var adbResult = new AndroidAdbDetectionResult(
             AndroidAdbDetectionStatus.Succeeded,
             "C:\\Android\\Sdk",
@@ -138,17 +160,12 @@ public sealed class EnvironmentDoctorViewModelTests
                 Message: "Ready")),
             new StubEnvironmentVariableReader(snapshot),
             new StubAndroidSdkRootDetector(sdkResult),
-            new StubAndroidCommandLineToolsDetector(new AndroidCommandLineToolsDetectionResult(
-                AndroidCommandLineToolsDetectionStatus.Succeeded,
-                "C:\\Android\\Sdk",
-                commandLineCandidate,
-                new[] { commandLineCandidate },
-                HasMultipleInstallations: false,
-                Message: "Android command-line tools 19.0 detected.")),
+            new StubAndroidCommandLineToolsDetector(commandLineResult),
             new StubAndroidAdbDetector(adbResult),
             new StubAndroidPlatformDetector(platformResult),
             new StubAndroidBuildToolsDetector(buildToolsResult),
-            new StubAndroidEmulatorDetector(emulatorResult));
+            new StubAndroidEmulatorDetector(emulatorResult),
+            new StubAndroidAvdManagerDetector(avdManagerResult));
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
@@ -162,6 +179,9 @@ public sealed class EnvironmentDoctorViewModelTests
         Assert.Contains("C:\\Android\\Sdk", viewModel.AndroidSdkDetails, StringComparison.Ordinal);
         Assert.Contains("19.0", viewModel.CommandLineToolsSummary, StringComparison.Ordinal);
         Assert.Contains("sdkmanager.bat", viewModel.CommandLineToolsDetails, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("19.0 • avdmanager", viewModel.AvdManagerSummary);
+        Assert.Contains("avdmanager.bat", viewModel.AvdManagerDetails, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("19.0: ready effective", viewModel.AvdManagerDetails, StringComparison.Ordinal);
         Assert.Contains("ADB 1.0.41", viewModel.AdbSummary, StringComparison.Ordinal);
         Assert.Contains("platform-tools 36.0.0-13206524", viewModel.AdbSummary, StringComparison.Ordinal);
         Assert.Contains("adb.exe", viewModel.AdbDetails, StringComparison.OrdinalIgnoreCase);
@@ -241,6 +261,13 @@ public sealed class EnvironmentDoctorViewModelTests
         private readonly AndroidCommandLineToolsDetectionResult _result;
         public StubAndroidCommandLineToolsDetector(AndroidCommandLineToolsDetectionResult result) => _result = result;
         public AndroidCommandLineToolsDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
+    }
+
+    private sealed class StubAndroidAvdManagerDetector : IAndroidAvdManagerDetector
+    {
+        private readonly AndroidAvdManagerDetectionResult _result;
+        public StubAndroidAvdManagerDetector(AndroidAvdManagerDetectionResult result) => _result = result;
+        public AndroidAvdManagerDetectionResult Detect(AndroidCommandLineToolsDetectionResult commandLineToolsResult) => _result;
     }
 
     private sealed class StubAndroidAdbDetector : IAndroidAdbDetector

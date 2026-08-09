@@ -1,61 +1,61 @@
 # Development Stop Point
 
 Recorded: 2026-08-09
+Live branch: `main`
 Integration branch: `agent/fbd-foundation`
 
-## Last completed task
+## Live application status
 
-`FBD-407` — Detect Android SDK roots
+The production-facing WPF shell on `main` now contains the Git Repository Manager and Environment Doctor integrations that have passed live-main CI. Do not reimplement those capabilities on parallel feature branches; promote validated backend work into the existing UI incrementally.
 
-Status: `DONE` pending final-head CI and merge
-PR: `#41` — `[FBD-407] Detect Android SDK roots`
-Validated feature code head before receipt: `104a002b445ffe75655b0bf66b912ceda1b0b0b5`
-Validation workflow: `31310021171`
+### Git Repository Manager — live
 
-## Recently completed environment work
+- clone/import and safe refresh/reclone
+- branch selection/switch support from the completed Git layer
+- pull current branch with fast-forward-only safety
+- dirty working tree protections
+- repository identity header (remote / branch / commit)
+- Windows workspace lock recovery
 
-- `FBD-402` — PATH executable discovery — DONE
-- `FBD-404` — Flutter SDK + version detection — DONE
-  - PR `#35`
-  - integration merge commit `6c94de6a8928c7d404d605ad2f869894055dcb56`
-- `FBD-406` — Java installations detection — DONE
-  - PR `#36`
-  - integration merge commit `8ba0d00d1a5b8280c792c9772da361270fb0c24c`
-- `FBD-403` — environment-variable snapshot — DONE
-  - PR `#38`
-  - integration merge commit `52e482f27c59fe3c8cb8d2ff829651c7495b1ebe`
-- `FBD-407` — Android SDK root detection — DONE pending final-head CI/merge
+### Environment Doctor — live through FBD-412
 
-## Verified completed sequence
+- Git executable/version
+- Flutter SDK/version/channel
+- Java/JDK detection
+- environment variables and Android SDK root validation
+- command-line tools / `sdkmanager`
+- platform-tools / ADB
+- installed Android platforms
+- installed Android build-tools
+- Android emulator binary/version
 
-Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
+`FBD-413` avdmanager detection is currently being promoted to the live UI on branch `agent/fbd-413-main-ui`. The branch also corrects the Environment Doctor XAML so the already-integrated emulator result is visibly rendered as a readiness card.
 
-Environment foundation/detection: `FBD-402 → FBD-404 → FBD-406 → FBD-403 → FBD-407`
+## Current task
 
-Do not reimplement these tasks. Continue from the task board on the active integration branch.
+`FBD-413` — Detect avdmanager — LIVE UI PROMOTION IN PROGRESS
 
-## Newly unlocked work
+Branch: `agent/fbd-413-main-ui`
 
-- `FBD-405` — Detect Dart SDK + version — READY
-- `FBD-408` — Detect sdkmanager/cmdline-tools — READY after FBD-407 merge
-- `FBD-409` — Detect platform-tools/ADB — READY after FBD-407 merge
-- `FBD-412` — Detect emulator binary — READY after FBD-407 merge
-- `FBD-413` — Detect avdmanager — READY after FBD-407 merge
-- `FBD-501` — Execute `flutter doctor -v` — READY
-- `FBD-504` — Run `flutter --version` structured probe — READY
+Scope:
+- port the already validated FBD-413 backend implementation onto current `main`
+- register `IAndroidAvdManagerDetector`
+- execute the read-only file-presence detector from Environment Doctor after command-line-tools discovery
+- show effective path/revision and alternate-installation evidence
+- keep `Devices & Emulators` disabled because AVD inventory, creation/deletion and launch/lifecycle management are not implemented yet
 
-## Next task
+Safety boundary: FBD-413 does not execute avdmanager and does not create, delete, list, modify or launch AVDs.
 
-`FBD-408` — Detect sdkmanager/cmdline-tools
+## Next promotion
 
-Reason: FBD-408 is the next M1 critical-path task after Android SDK root discovery. It should enumerate installed command-line-tools layouts/versions, identify the effective `sdkmanager` executable, and preserve conflicting or legacy layouts as evidence without modifying the SDK.
+`FBD-415` — Android license readiness.
 
-Acceptance: installed cmdline-tools versions and sdkmanager path/status are reported from the validated FBD-407 SDK root, with explicit missing/broken/conflict evidence and no package installation or license acceptance side effects.
+The backend is already validated on the integration line. Promote it to Environment Doctor only after FBD-413 live-main CI/merge is complete. The license detector is status-only: it runs a bounded `sdkmanager --licenses` probe with stdin closed and must never send acceptance input or modify license files.
 
-## Resume instruction
+`FBD-414` Android Studio detection currently remains on its team feature/draft path and should be promoted only after that backend PR is finalized and validated.
 
-Start from the latest `agent/fbd-foundation` head after FBD-407 is merged. Re-read `docs/TASK_BOARD.md`, this file, and only Android/environment files required for FBD-408. Consume FBD-407 root detection instead of rediscovering SDK roots. Do not install/update cmdline-tools or accept licenses in FBD-408. Preserve the completed PATH, Flutter, Java, environment-variable, Android SDK root, and Git Repository Manager implementations.
+## Team coordination rule
 
-## Bookkeeping note
+Before starting another live UI promotion, re-read `docs/TASK_BOARD.md`, `docs/STOP_POINT.md`, and the relevant `docs/work/FBD-xxx.md`. Preserve all completed main-line UI integrations. Use one main-based branch per promotion, require Release Build + full Tests to pass, open a PR to `main`, and require exact PR merged-tree CI before merging.
 
-`docs/TASK_BOARD.md` still contains stale READY/TODO states for some already merged environment tasks. Reconcile those statuses in a separate documentation-only integration change so the one-task-per-PR boundary for FBD-407 remains intact.
+The task board contains historical stale TODO/READY states for several already completed environment tasks; treat validated merged code and work receipts as source of truth until a documentation-only reconciliation is completed.
