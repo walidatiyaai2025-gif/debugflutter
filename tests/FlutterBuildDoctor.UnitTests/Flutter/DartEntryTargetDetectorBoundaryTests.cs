@@ -189,6 +189,27 @@ public sealed class DartEntryTargetDetectorBoundaryTests : IDisposable
         Assert.Contains(result.Issues, issue => issue.Kind == DartEntryScanIssueKind.CandidateLimitReached);
     }
 
+    [Fact]
+    public void Detect_CandidateLimit_PreservesCanonicalMainBeforeFlavorCandidates()
+    {
+        var lib = Path.Combine(_root, "lib");
+        Directory.CreateDirectory(lib);
+        File.WriteAllText(Path.Combine(lib, "main.dart"), "void main() {}");
+        for (var index = 0; index < 129; index++)
+            File.WriteAllText(Path.Combine(lib, $"main_{index:D3}.dart"), "void main() {}");
+
+        var result = new DartEntryTargetDetector().Detect(SuccessfulRoot(_root));
+
+        Assert.Equal(DartEntryTargetDetectionStatus.ScanLimitExceeded, result.Status);
+        Assert.Equal(128, result.Targets.Count);
+        Assert.Contains(
+            result.Targets,
+            target => target.Kind == DartEntryTargetKind.CanonicalMain &&
+                      target.RelativeTargetPath == "lib/main.dart" &&
+                      target.IsRunnable);
+        Assert.Equal(DartEntryTargetKind.CanonicalMain, result.Targets[0].Kind);
+    }
+
     public void Dispose()
     {
         try
