@@ -39,7 +39,7 @@ public sealed class DefaultProcessSecretRedactor : IProcessSecretRedactor
 
             if (TryRedactInlineSecret(argument, out var redactedArgument))
             {
-                sanitizedArguments.Add(Quote(redactedArgument));
+                sanitizedArguments.Add(Quote(RedactText(redactedArgument, request)));
                 continue;
             }
 
