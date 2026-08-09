@@ -5,27 +5,27 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-308` — Display current commit/branch/remote
+`FBD-309` — Implement safe refresh/reclone workflow
 
 Status: `DONE`
-PR: `#27` — `[FBD-308] Display repository Git identity`
-Final validated PR head: `5a10e8d0c7afa6db8763ec20cb3effe34ada108e`
-Final PR CI run: `31302330567` — SUCCESS
-Integration merge commit: `f1b6c921d2730b6f29281a9afa2673dd3f26f0cd`
+PR: `#29` — `[FBD-309] Implement safe refresh/reclone workflow`
+Final validated PR head: `7a3708250c715b66427b3ce10a874b21987846e3`
+Final PR CI run: `31304936297` — SUCCESS
+Integration merge commit: `da92052dc946272cc6b9d6b10dbdfcca3f126331`
 
 ## Verified completed sequence
 
-`FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308`
+`FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309`
 
 Do not reimplement these tasks. Continue from the task board on the active integration branch.
 
 ## Next task
 
-`FBD-309` — Implement safe refresh/reclone workflow
+`FBD-310` — Repository Manager UI
 
 Current board status: `READY`
-Acceptance: existing repository folder can be backed up and recreated safely.
+Acceptance: user enters Git URL, branch, workspace and imports the project through the WPF application.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after this stop-point reconciliation is merged. Re-read `docs/TASK_BOARD.md`, this file, and only the files required for `FBD-309`. Preserve all merged Git Repository Manager behavior from FBD-301 through FBD-308.
+Start from the latest `agent/fbd-foundation` head after this stop-point reconciliation is merged. Re-read `docs/TASK_BOARD.md`, this file, and only the files required for `FBD-310`. Compose the existing Git services from FBD-301 through FBD-309; do not reimplement Git clone, branch, identity, dirty-tree, pull, or safe-refresh behavior.
