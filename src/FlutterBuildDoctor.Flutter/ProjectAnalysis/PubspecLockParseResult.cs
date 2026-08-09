@@ -25,10 +25,12 @@ public sealed record PubspecLockedPackage(
     string Name,
     string Version,
     PubspecLockedPackageSource Source,
-    string? DependencyType,
+    string DependencyType,
     string? DescriptionName,
     string? DescriptionUrl,
     string? DescriptionPath,
+    string? Sha256,
+    string? GitRef,
     string? GitResolvedRef,
     string? GitUrl);
 
