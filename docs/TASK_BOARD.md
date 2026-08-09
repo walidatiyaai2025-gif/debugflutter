@@ -70,7 +70,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | FBD-307 | Detect dirty working tree | Systems Engineer | P0 | FBD-303 | DONE | App never overwrites dirty repo silently |
 | FBD-308 | Display current commit/branch/remote | WPF Developer | P1 | FBD-305 | DONE | Project header shows exact Git identity |
 | FBD-309 | Implement safe refresh/reclone workflow | Systems Engineer | P1 | FBD-307 | DONE | Existing folder can be backed up/recreated safely |
-| FBD-310 | Repository Manager UI | WPF Developer | P0 | FBD-303,FBD-305 | READY | User enters Git URL, branch, workspace and imports project |
+| FBD-310 | Repository Manager UI | WPF Developer | P0 | FBD-303,FBD-305 | DONE | User enters Git URL, branch, workspace and imports project |
 
 ---
 
