@@ -31,6 +31,22 @@ public sealed class EnvironmentDoctorViewModelTests
             HasCmdlineToolsDirectory: true,
             HasLicensesDirectory: true,
             ValidationMessage: "valid");
+        var sdkResult = new AndroidSdkRootDetectionResult(
+            AndroidSdkRootDetectionStatus.Succeeded,
+            sdkCandidate,
+            new[] { sdkCandidate },
+            HasConflict: false,
+            Message: "Android SDK root is valid.");
+        var commandLineCandidate = new AndroidCommandLineToolsCandidate(
+            "C:\\Android\\Sdk\\cmdline-tools\\latest",
+            "C:\\Android\\Sdk\\cmdline-tools\\latest\\bin\\sdkmanager.bat",
+            "19.0",
+            AndroidCommandLineToolsLayout.LatestAlias,
+            IsEffective: true,
+            SdkManagerExists: true,
+            SourcePropertiesPath: "C:\\Android\\Sdk\\cmdline-tools\\latest\\source.properties",
+            RawSourceProperties: "Pkg.Revision=19.0",
+            Message: null);
 
         using var viewModel = new EnvironmentDoctorViewModel(
             new StubEnvironmentScanner(new ToolStatus(
@@ -68,12 +84,14 @@ public sealed class EnvironmentDoctorViewModelTests
                 EmptyDiscovery("java.exe"),
                 Message: "Ready")),
             new StubEnvironmentVariableReader(snapshot),
-            new StubAndroidSdkRootDetector(new AndroidSdkRootDetectionResult(
-                AndroidSdkRootDetectionStatus.Succeeded,
-                sdkCandidate,
-                new[] { sdkCandidate },
-                HasConflict: false,
-                Message: "Android SDK root is valid.")));
+            new StubAndroidSdkRootDetector(sdkResult),
+            new StubAndroidCommandLineToolsDetector(new AndroidCommandLineToolsDetectionResult(
+                AndroidCommandLineToolsDetectionStatus.Succeeded,
+                "C:\\Android\\Sdk",
+                commandLineCandidate,
+                new[] { commandLineCandidate },
+                HasMultipleInstallations: false,
+                Message: "Android command-line tools 19.0 detected.")));
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
@@ -85,6 +103,8 @@ public sealed class EnvironmentDoctorViewModelTests
         Assert.Contains("17.0.12", viewModel.JavaSummary, StringComparison.Ordinal);
         Assert.Equal("Ready", viewModel.AndroidSdkSummary);
         Assert.Contains("C:\\Android\\Sdk", viewModel.AndroidSdkDetails, StringComparison.Ordinal);
+        Assert.Contains("19.0", viewModel.CommandLineToolsSummary, StringComparison.Ordinal);
+        Assert.Contains("sdkmanager.bat", viewModel.CommandLineToolsDetails, StringComparison.OrdinalIgnoreCase);
         Assert.NotNull(viewModel.LastScannedAt);
     }
 
@@ -116,10 +136,7 @@ public sealed class EnvironmentDoctorViewModelTests
     {
         private readonly ToolStatus _status;
 
-        public StubEnvironmentScanner(ToolStatus status)
-        {
-            _status = status;
-        }
+        public StubEnvironmentScanner(ToolStatus status) => _status = status;
 
         public Task<IReadOnlyList<ToolStatus>> ScanAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<ToolStatus>>(new[] { _status });
@@ -129,10 +146,7 @@ public sealed class EnvironmentDoctorViewModelTests
     {
         private readonly FlutterDetectionResult _result;
 
-        public StubFlutterDetector(FlutterDetectionResult result)
-        {
-            _result = result;
-        }
+        public StubFlutterDetector(FlutterDetectionResult result) => _result = result;
 
         public Task<FlutterDetectionResult> DetectAsync(
             FlutterSdkDetectionRequest? request = null,
@@ -144,10 +158,7 @@ public sealed class EnvironmentDoctorViewModelTests
     {
         private readonly JavaDetectionResult _result;
 
-        public StubJavaDetector(JavaDetectionResult result)
-        {
-            _result = result;
-        }
+        public StubJavaDetector(JavaDetectionResult result) => _result = result;
 
         public Task<JavaDetectionResult> DetectAsync(
             JavaDetectionRequest? request = null,
@@ -159,10 +170,7 @@ public sealed class EnvironmentDoctorViewModelTests
     {
         private readonly EnvironmentVariableSnapshot _snapshot;
 
-        public StubEnvironmentVariableReader(EnvironmentVariableSnapshot snapshot)
-        {
-            _snapshot = snapshot;
-        }
+        public StubEnvironmentVariableReader(EnvironmentVariableSnapshot snapshot) => _snapshot = snapshot;
 
         public EnvironmentVariableSnapshot Read() => _snapshot;
     }
@@ -171,11 +179,17 @@ public sealed class EnvironmentDoctorViewModelTests
     {
         private readonly AndroidSdkRootDetectionResult _result;
 
-        public StubAndroidSdkRootDetector(AndroidSdkRootDetectionResult result)
-        {
-            _result = result;
-        }
+        public StubAndroidSdkRootDetector(AndroidSdkRootDetectionResult result) => _result = result;
 
         public AndroidSdkRootDetectionResult Detect(EnvironmentVariableSnapshot snapshot) => _result;
+    }
+
+    private sealed class StubAndroidCommandLineToolsDetector : IAndroidCommandLineToolsDetector
+    {
+        private readonly AndroidCommandLineToolsDetectionResult _result;
+
+        public StubAndroidCommandLineToolsDetector(AndroidCommandLineToolsDetectionResult result) => _result = result;
+
+        public AndroidCommandLineToolsDetectionResult Detect(AndroidSdkRootDetectionResult sdkRootResult) => _result;
     }
 }
