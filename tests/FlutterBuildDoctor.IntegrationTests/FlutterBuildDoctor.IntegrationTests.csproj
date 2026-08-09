@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.App\FlutterBuildDoctor.App.csproj" />
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
+    <ProjectReference Include="..\..\src\FlutterBuildDoctor.Git\FlutterBuildDoctor.Git.csproj" />
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
