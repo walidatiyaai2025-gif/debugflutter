@@ -30,7 +30,6 @@ public sealed record GradleWrapperVersionResult(
     string? DistributionUrl,
     string? Version,
     GradleDistributionKind DistributionKind,
-    string? RawText,
     string Message)
 {
     public bool IsSuccess => Status == GradleWrapperVersionStatus.Succeeded;
