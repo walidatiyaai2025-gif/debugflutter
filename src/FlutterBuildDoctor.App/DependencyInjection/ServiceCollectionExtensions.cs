@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRepositoryImportCoordinator, RepositoryImportCoordinator>();
         services.AddSingleton<ProjectHeaderViewModel>();
         services.AddSingleton<RepositoryManagerViewModel>();
+        services.AddSingleton<EnvironmentDoctorViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
 
