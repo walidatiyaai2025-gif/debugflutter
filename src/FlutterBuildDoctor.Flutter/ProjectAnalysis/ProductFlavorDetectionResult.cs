@@ -49,16 +49,76 @@ public sealed record AndroidProductFlavor(
     IReadOnlyList<ProductFlavorField> UnresolvedFields,
     string ScriptPath);
 
-public sealed record ProductFlavorDetectionResult(
-    ProductFlavorDetectionStatus Status,
-    GradleDslDetectionResult GradleDsl,
-    IReadOnlyList<string> DeclaredDimensions,
-    IReadOnlyList<AndroidProductFlavor> Flavors,
-    IReadOnlyList<ProductFlavorEvidence> Evidence,
-    int UnresolvedFlavorDeclarations,
-    bool HasUnresolvedDimensionDeclarations,
-    string Message)
+public sealed record ProductFlavorDetectionResult
 {
+    public ProductFlavorDetectionResult(
+        ProductFlavorDetectionStatus status,
+        GradleDslDetectionResult gradleDsl,
+        IReadOnlyList<string> declaredDimensions,
+        IReadOnlyList<AndroidProductFlavor> flavors,
+        IReadOnlyList<ProductFlavorEvidence> evidence,
+        int unresolvedFlavorDeclarations,
+        bool hasUnresolvedDimensionDeclarations,
+        string message)
+    {
+        ArgumentNullException.ThrowIfNull(gradleDsl);
+        ArgumentNullException.ThrowIfNull(declaredDimensions);
+        ArgumentNullException.ThrowIfNull(flavors);
+        ArgumentNullException.ThrowIfNull(evidence);
+        ArgumentNullException.ThrowIfNull(message);
+
+        DeclaredDimensions = declaredDimensions;
+        Evidence = evidence;
+        UnresolvedFlavorDeclarations = unresolvedFlavorDeclarations;
+        HasUnresolvedDimensionDeclarations = hasUnresolvedDimensionDeclarations;
+        Message = message;
+        GradleDsl = gradleDsl;
+
+        var dimensionCannotBeInferred = declaredDimensions.Count > 1 || hasUnresolvedDimensionDeclarations;
+        if (!dimensionCannotBeInferred || flavors.Count == 0)
+        {
+            Flavors = flavors;
+            Status = status;
+            return;
+        }
+
+        var normalized = new List<AndroidProductFlavor>(flavors.Count);
+        var addedUnresolvedDimension = false;
+
+        foreach (var flavor in flavors)
+        {
+            if (flavor.Dimension is not null ||
+                flavor.UnresolvedFields.Contains(ProductFlavorField.Dimension))
+            {
+                normalized.Add(flavor);
+                continue;
+            }
+
+            var unresolved = flavor.UnresolvedFields
+                .Append(ProductFlavorField.Dimension)
+                .Distinct()
+                .OrderBy(field => field)
+                .ToArray();
+
+            normalized.Add(flavor with { UnresolvedFields = unresolved });
+            addedUnresolvedDimension = true;
+        }
+
+        Flavors = normalized;
+        Status = addedUnresolvedDimension && status == ProductFlavorDetectionStatus.Succeeded
+            ? ProductFlavorDetectionStatus.Partial
+            : status;
+    }
+
+    public ProductFlavorDetectionStatus Status { get; }
+    public GradleDslDetectionResult GradleDsl { get; }
+    public IReadOnlyList<string> DeclaredDimensions { get; }
+    public IReadOnlyList<AndroidProductFlavor> Flavors { get; }
+    public IReadOnlyList<ProductFlavorEvidence> Evidence { get; }
+    public int UnresolvedFlavorDeclarations { get; }
+    public bool HasUnresolvedDimensionDeclarations { get; }
+    public string Message { get; }
+
     public bool IsSuccess => Status is
         ProductFlavorDetectionStatus.Succeeded or
         ProductFlavorDetectionStatus.NoFlavors or
