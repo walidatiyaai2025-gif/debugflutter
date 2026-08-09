@@ -5,12 +5,12 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-408` — Detect sdkmanager/cmdline-tools
+`FBD-409` — Detect platform-tools/ADB
 
 Status: `DONE` pending final-head CI and merge
-PR: `#44` — `[FBD-408] Detect sdkmanager and cmdline-tools`
-Validated feature code head before receipt: `35d229b036f78fea776ec2b7e5a79257294101bf`
-Validation workflow: `31310468516`
+PR: `#47` — `[FBD-409] Detect platform-tools and ADB`
+Validated feature code head before receipt: `dae9cc297bf74bc2ec03e99955de85553dc10dae`
+Validation workflow: `31310773678`
 
 ## Recently completed environment work
 
@@ -27,39 +27,43 @@ Validation workflow: `31310468516`
 - `FBD-407` — Android SDK root detection — DONE
   - PR `#41`
   - integration merge commit `a8d4ab8a4759847b03d6b12b2bb02766a952fd51`
-- `FBD-408` — sdkmanager/cmdline-tools detection — DONE pending final-head CI/merge
+- `FBD-408` — sdkmanager/cmdline-tools detection — DONE
+  - PR `#44`
+  - integration merge commit `160ad8855a5c977fe5f7472be6d68c899ee9d5e6`
+- `FBD-409` — platform-tools/ADB detection — DONE pending final-head CI/merge
 
 ## Verified completed sequence
 
 Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
 
-Environment foundation/detection: `FBD-402 → FBD-404 → FBD-406 → FBD-403 → FBD-407 → FBD-408`
+Environment foundation/detection: `FBD-402 → FBD-404 → FBD-406 → FBD-403 → FBD-407 → FBD-408 → FBD-409`
 
 Do not reimplement these tasks. Continue from the task board on the active integration branch.
 
 ## Ready work
 
 - `FBD-405` — Detect Dart SDK + version — READY
-- `FBD-409` — Detect platform-tools/ADB — READY
-- `FBD-410` — Detect installed platforms — READY after FBD-408 merge
-- `FBD-411` — Detect installed build-tools — READY after FBD-408 merge
+- `FBD-410` — Detect installed platforms — READY
+- `FBD-411` — Detect installed build-tools — READY
 - `FBD-412` — Detect emulator binary — READY
 - `FBD-413` — Detect avdmanager — READY
-- `FBD-415` — Detect Android license status — READY after FBD-408 merge
+- `FBD-415` — Detect Android license status — READY
 - `FBD-501` — Execute `flutter doctor -v` — READY
 - `FBD-504` — Run `flutter --version` structured probe — READY
+- `FBD-1001` — Parse `adb devices -l` — READY after FBD-409 merge
+- `FBD-1214` — Repair: ADB restart — READY after later repair framework prerequisites
 
 ## Next task
 
-`FBD-409` — Detect platform-tools/ADB
+`FBD-410` — Detect installed Android platforms
 
-Reason: FBD-409 is the next M1 critical-path task after cmdline-tools detection. It must locate the effective ADB executable under the validated FBD-407 SDK root, execute a bounded read-only version probe through the canonical process runner, and report explicit missing/broken/version evidence.
+Reason: with SDK root, cmdline-tools, and ADB discovery complete, the next environment inventory step is to enumerate installed `platforms/android-*` packages so project requirements can later be matched without invoking sdkmanager or modifying the SDK.
 
-Acceptance: ADB path/version/status are reported from the validated Android SDK root with cancellation/timeout support and without starting or restarting the ADB server.
+Acceptance: installed Android platform package/API levels are enumerated from the validated SDK root with package revision/evidence where available, malformed or partial installations are preserved explicitly, and no SDK mutation occurs.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-408 is merged. Re-read `docs/TASK_BOARD.md`, this file, and only Android/environment/process files required for FBD-409. Consume FBD-407 root detection instead of rediscovering SDK roots, use the canonical `IProcessRunner`, and do not run `adb start-server`, `kill-server`, device enumeration, package installation, or any repair action in FBD-409.
+Start from the latest `agent/fbd-foundation` head after FBD-409 is merged. Re-read `docs/TASK_BOARD.md`, this file, and only Android/environment files required for FBD-410. Consume FBD-407 root detection instead of rediscovering SDK roots. Enumerate local platform packages only; do not install/update packages or invoke sdkmanager for mutation.
 
 ## Bookkeeping note
 
