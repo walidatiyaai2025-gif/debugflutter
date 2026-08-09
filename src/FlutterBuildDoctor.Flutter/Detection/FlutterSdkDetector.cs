@@ -61,9 +61,12 @@ public sealed class FlutterSdkDetector : IFlutterSdkDetector
                 PathDiscovery: pathResult);
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         var preferred = candidates.First(static candidate => candidate.IsPreferred);
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Cancelled(candidates, pathResult, preferred);
+        }
+
         if (!preferred.HasExpectedSdkLayout || string.IsNullOrWhiteSpace(preferred.SdkRoot))
         {
             return new FlutterDetectionResult(
