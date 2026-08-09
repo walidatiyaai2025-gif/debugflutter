@@ -32,7 +32,9 @@ public sealed class FlutterDoctorExecutorIntegrationTests
             var result = await executor.ExecuteAsync(
                 new FlutterDoctorExecutionRequest(Flutter(flutterPath), TimeSpan.FromSeconds(15)));
 
-            Assert.Equal(FlutterDoctorExecutionStatus.Succeeded, result.Status);
+            Assert.True(
+                result.IsSuccess,
+                BuildFailureEvidence(result));
             Assert.NotNull(result.ProcessResult);
             Assert.Equal(ProcessExecutionStatus.Succeeded, result.ProcessResult!.Status);
             Assert.Equal(0, result.ProcessResult.ExitCode);
@@ -58,6 +60,17 @@ public sealed class FlutterDoctorExecutorIntegrationTests
 
         Assert.IsType<FlutterDoctorExecutor>(first);
         Assert.Same(first, second);
+    }
+
+    private static string BuildFailureEvidence(FlutterDoctorExecutionResult result)
+    {
+        if (result.ProcessResult is null)
+            return $"Doctor status={result.Status}; message={result.Message}; no ProcessResult was returned.";
+
+        var output = string.Join(
+            " | ",
+            result.ProcessResult.Output.Select(line => $"{line.Stream}:{line.Text}"));
+        return $"Doctor status={result.Status}; process={result.ProcessResult.Status}; exit={result.ProcessResult.ExitCode}; command={result.ProcessResult.SanitizedCommand}; failure={result.ProcessResult.FailureReason}; output={output}";
     }
 
     private static FlutterDetectionResult Flutter(string executablePath)
