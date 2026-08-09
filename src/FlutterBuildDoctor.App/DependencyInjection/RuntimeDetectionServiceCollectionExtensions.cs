@@ -1,3 +1,4 @@
+using FlutterBuildDoctor.Android.Detection;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
@@ -20,6 +21,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
         services.TryAddSingleton<IFlutterSdkDetector, FlutterSdkDetector>();
+        services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
