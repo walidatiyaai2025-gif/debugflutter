@@ -317,7 +317,7 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
     private static partial Regex ModernPluginRegex();
 
     [GeneratedRegex(
-        "(?ix)com\\.android\\.tools\\.build\\s*:\\s*gradle\\s*:\\s*(?<version>[0-9][0-9A-Za-z.+-]*)",
+        "(?ix)\\bclasspath\\s*(?:\\(\\s*)?[\"']com\\.android\\.tools\\.build\\s*:\\s*gradle\\s*:\\s*(?<version>[0-9][0-9A-Za-z.+-]*)[\"']\\s*\\)?",
         RegexOptions.CultureInvariant)]
     private static partial Regex LegacyClasspathRegex();
 
