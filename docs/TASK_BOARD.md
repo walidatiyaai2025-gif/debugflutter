@@ -63,8 +63,8 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 |---|---|---|---|---|---|---|
 | FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | DONE | Git status shown with path/version |
 | FBD-302 | Validate repository URL | Systems Engineer | P0 | FBD-301 | DONE | Invalid URL blocked with clear reason |
-| FBD-303 | Clone repository | Systems Engineer | P0 | FBD-301 | READY | Clone supports target workspace and progress logs |
-| FBD-304 | Fetch branches | Systems Engineer | P0 | FBD-303 | TODO | Remote/local branch list available |
+| FBD-303 | Clone repository | Systems Engineer | P0 | FBD-301 | DONE | Clone supports target workspace and progress logs |
+| FBD-304 | Fetch branches | Systems Engineer | P0 | FBD-303 | READY | Remote/local branch list available |
 | FBD-305 | Checkout/switch branch | Systems Engineer | P0 | FBD-304 | TODO | Selected branch checked out safely |
 | FBD-306 | Pull current branch | Systems Engineer | P1 | FBD-305 | TODO | Fast-forward/update result clearly reported |
 | FBD-307 | Detect dirty working tree | Systems Engineer | P0 | FBD-303 | TODO | App never overwrites dirty repo silently |
@@ -197,7 +197,6 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 ---
 
 ## EPIC FBD-1000 — Device & Emulator Manager
-
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
 | FBD-1001 | Parse `adb devices -l` | Android Engineer | P0 | FBD-409,FBD-202 | TODO | Physical/emulated device records generated |
