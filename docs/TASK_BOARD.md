@@ -10,8 +10,8 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | READY | Solution builds with all planned projects and tests |
-| FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | TODO | App starts through DI and ViewModels resolve from container |
+| FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | DONE | Solution builds with all planned projects and tests |
+| FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | READY | App starts through DI and ViewModels resolve from container |
 | FBD-003 | Implement Serilog logging baseline | Systems Engineer | P0 | FBD-001 | TODO | File + in-app structured logs with timestamps and levels |
 | FBD-004 | Add global exception handling | Tech Lead | P0 | FBD-002,FBD-003 | TODO | UI/thread/task exceptions captured and surfaced safely |
 | FBD-005 | Define Domain enums/status contracts | Tech Lead | P0 | FBD-001 | TODO | Shared Ready/Missing/Broken/Incompatible/etc. contracts compile |
@@ -125,7 +125,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | FBD-607 | Parse Kotlin plugin version | Android Engineer | P0 | FBD-604 | TODO | Kotlin version detected when explicit |
 | FBD-608 | Parse compileSdk/minSdk/targetSdk | Android Engineer | P0 | FBD-604 | TODO | Static values and common Flutter references handled |
 | FBD-609 | Parse applicationId/namespace | Android Engineer | P0 | FBD-604 | TODO | Android identifiers exposed |
-| FBD-610 | Parse versionName/versionCode | Android Engineer | P1 | FBD-602,FBD-604 | TODO | Effective release version represented |
+| FBD-610 | Parse versionName/versionCode | Flutter Engineer | P1 | FBD-602,FBD-604 | TODO | Effective release version represented |
 | FBD-611 | Detect flavors | Flutter Engineer | P1 | FBD-604 | TODO | Product flavors enumerated where configured |
 | FBD-612 | Detect common Dart entry targets | Flutter Engineer | P1 | FBD-601 | TODO | main.dart and likely flavor entrypoints shown |
 | FBD-613 | Parse local.properties SDK/Flutter paths | Android Engineer | P0 | FBD-601 | TODO | Missing/invalid local paths detected |
