@@ -5,66 +5,57 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-603` — Parse `pubspec.lock`
+`FBD-605` — Parse Gradle wrapper version
 
-Status: `DONE` + post-merge validation hardening merged
-Original PR: `#96` — `[FBD-603] Parse pubspec.lock`
-Original integration merge: `fb7f85355c9f5fc4d5ea384cbfaaff5e35bf350d`
-Hardening PR: `#100` — `[FBD-603] Harden pubspec.lock validation`
-Hardening merge: `b22a71a8f0b1b995901e9e9d1573d67f39e65243`
+Status: `DONE` pending final PR-head CI and merge
+PR: `#103` — `[FBD-605] Parse Gradle wrapper version`
+Validated feature head before receipt: `eaaf5d6cc6b12c901a5c11b118e037c1094f71e4`
+Validation workflow: `31324441240`
+Validation job: `93272437761`
 
-## Verified completed sequence
+## Recently completed Project Analyzer work
 
-Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`.
+- `FBD-601` — locate Flutter project root — DONE
+- `FBD-602` — parse `pubspec.yaml` — DONE
+- `FBD-603` — parse `pubspec.lock` + validation hardening — DONE
+- `FBD-604` — detect Groovy/Kotlin Gradle DSL — DONE — PR `#102`
+  - validated head `463c8288d09cd84ebd69b738f056755b0fb81fdf`
+  - CI `31323813969` / job `93270862973` — PASS
+  - merge `fca961bb1d3331fe9276de2cc77f7a783c6004b6`
+- `FBD-605` — Gradle wrapper version parser — code-validated, awaiting final PR-head CI/merge
 
-Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417 → FBD-418`.
+## FBD-605 behavior checkpoint
 
-Flutter Doctor/version pipeline: `FBD-501 → FBD-502 → FBD-503 → FBD-504`.
-
-Project Analyzer: `FBD-601 → FBD-602 → FBD-603` is merged and validated.
-
-Do not reimplement these tasks. Continue from the active integration branch.
-
-## FBD-603 hardening checkpoint
-
-- requires locked version, source, and dependency relationship evidence for each package
-- validates known package, description, and SDK YAML shapes instead of silently dropping malformed values
-- preserves hosted checksum plus Git declared and resolved refs
-- keeps structured URL evidence sanitized
-- preserves the read-only/no-package-resolution boundary
-
-## Current critical-path task
-
-`FBD-604` — Detect Groovy vs Kotlin Gradle DSL — IN PROGRESS
-
-Branch: `agent/fbd-604-gradle-dsl-detection`
-
-Scope:
-- consume the successful FBD-601 effective Flutter project root
-- inspect standard Android `settings.gradle(.kts)`, project `build.gradle(.kts)`, and `app/build.gradle(.kts)` locations
-- classify Groovy, Kotlin, or mixed script layouts from filenames only
-- preserve exact role/path evidence
-- return ambiguity when both Groovy and Kotlin variants exist for the same role instead of guessing
-- do not read or execute Gradle scripts
-
-Safety boundary: FBD-604 is filesystem presence detection only. AGP, Kotlin, SDK, identifier, flavor, signing, wrapper, and release-version semantics remain separate tasks.
+- consumes the successful FBD-601 effective project root
+- reads only `android/gradle/wrapper/gradle-wrapper.properties`
+- understands Java-properties escapes, Unicode escapes, separators, and continuation lines
+- detects standard `gradle-<version>-bin/all.zip` distributions including prerelease versions
+- rejects conflicting duplicate `distributionUrl` values instead of guessing
+- enforces 256 KiB and 2048 logical-line safety limits
+- rejects project/Android/Gradle/wrapper/properties reparse boundaries
+- sanitizes structured URL evidence, removing credentials/query/fragment values
+- intentionally does not expose raw properties text because wrapper URLs may contain secrets
+- does not execute Gradle, download distributions, access the network, or modify project files
+- uses one canonical `IGradleWrapperVersionParser`; a concurrent duplicate parser implementation was removed
 
 ## Next critical-path task
 
-`FBD-605` — Parse Gradle wrapper version
+`FBD-606` — Parse Android Gradle Plugin version
 
-Acceptance: read the existing Gradle wrapper properties evidence and parse `distributionUrl` / the wrapper version without executing Gradle or modifying project files.
+Reason: Gradle wrapper version evidence will be available independently from the project Gradle scripts. The next compatibility input is the Android Gradle Plugin version declared by the supported Groovy/Kotlin script layouts identified in FBD-604.
+
+Acceptance: parse AGP version evidence read-only from supported Gradle script/plugin declaration patterns, preserve file/path evidence and clear unknown/ambiguous/malformed states, handle both Groovy and Kotlin DSL, and never execute or modify Gradle.
 
 ## Parallel follow-ups
 
 - `FBD-505` — Doctor UI detail panel
 - `FBD-506` — Flutter doctor parser fixture tests
 
-These remain separate tasks and must not be folded into FBD-604/FBD-605.
+These remain separate tasks and must not be folded into FBD-606.
 
 ## Resume instruction
 
-Finish FBD-604 branch and exact PR validation first. After merge, start FBD-605 from the newest `agent/fbd-foundation` head. Keep FBD-605 limited to wrapper properties/version parsing; AGP and Kotlin plugin parsing remain FBD-606/FBD-607.
+After FBD-605 merges, start FBD-606 from the newest `agent/fbd-foundation` head. Consume FBD-601 project-root evidence and FBD-604 Gradle script-role evidence; do not re-discover script layouts, and keep Kotlin plugin parsing in FBD-607.
 
 ## Bookkeeping note
 
