@@ -7,11 +7,12 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-501` — Execute `flutter doctor -v`
 
-Status: `DONE` pending final-head CI and merge
+Status: `DONE`
 PR: `#77` — `[FBD-501] Execute flutter doctor -v`
-Validated code head: `99e6ccb8cacf1d0515b228d8545f31778d8b04c9`
-Validation workflow: `31318840066`
-Validation job: `93258439842`
+Final validated feature head: `3ced5dddcab4bbbfa2e7eb612e56fa15c9272ce8`
+Final validation workflow: `31318974949`
+Final validation job: `93258779759`
+Integration merge commit: `8b8a6606f0c85013f716520d5563fd56d7df7bfd`
 
 ## Recently completed environment work
 
@@ -33,7 +34,8 @@ Validation job: `93258439842`
 - `FBD-416` — immutable EnvironmentSnapshot composition — DONE — PR `#68`
 - `FBD-417` — Environment Doctor dashboard UI — DONE — PR `#72`
 - `FBD-418` — Refresh environment action — DONE — PR `#75`
-- `FBD-501` — Execute `flutter doctor -v` — DONE pending final-head CI/merge — PR `#77`
+- `FBD-501` — Execute `flutter doctor -v` — DONE — PR `#77`
+  - integration merge commit `8b8a6606f0c85013f716520d5563fd56d7df7bfd`
 
 ## Verified completed sequence
 
@@ -41,13 +43,15 @@ Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305
 
 Environment discovery and presentation: `FBD-401 → FBD-402 → FBD-403 → FBD-404 → FBD-405 → FBD-406 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-414 → FBD-415 → FBD-416 → FBD-417 → FBD-418`.
 
-Flutter Doctor execution: `FBD-501` validated on its code head; final PR-head validation is pending after documentation updates.
+Flutter Doctor execution: `FBD-501` is implemented, validated, and merged.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
 ## Validation note
 
-The initial FBD-501 PR-head build passed and all unit tests passed. Its only integration failure was caused by the Windows command-shim fixture writing a trailing space before stderr redirection. The fixture was corrected to place redirection immediately after the payload. Production process output remains untrimmed so raw stdout/stderr evidence is preserved exactly. The corrected code head passed Restore, Release Build, the full test suite, artifact upload, and cleanup.
+FBD-501's real Windows `flutter.cmd` smoke test exposed two command/fixture details during CI. The production executor was corrected to pass the batch launcher and `doctor -v` as structured `cmd.exe` arguments. The final remaining failure was test-fixture-only: `echo doctor-stderr 1>&2` emitted a trailing space, so the fixture was corrected without trimming production output. Raw stdout/stderr therefore remains preserved exactly.
+
+The final PR-head workflow `31318974949` / job `93258779759` passed Restore, Release Build, the full test suite, artifact upload, and cleanup on head `3ced5dddcab4bbbfa2e7eb612e56fa15c9272ce8` before PR #77 was squash-merged.
 
 ## Next task
 
@@ -59,8 +63,8 @@ Acceptance: recognized Flutter Doctor sections are parsed into typed records whi
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-501 is merged. Consume `FlutterDoctorExecutionResult.ProcessResult`; do not rerun `flutter doctor -v` inside the parser, do not perform repairs, and do not silently discard raw/unknown lines. Unknown-output preservation is completed explicitly in FBD-503.
+Start from integration commit `8b8a6606f0c85013f716520d5563fd56d7df7bfd` or a newer `agent/fbd-foundation` head. Consume `FlutterDoctorExecutionResult.ProcessResult`; do not rerun `flutter doctor -v` inside the parser, do not perform repairs, and do not silently discard raw/unknown lines. Unknown-output preservation is completed explicitly in FBD-503.
 
 ## Bookkeeping note
 
-`docs/TASK_BOARD.md` still contains stale READY/TODO states for several already merged environment tasks. Reconcile those historical rows in a dedicated documentation/integration bookkeeping change instead of reimplementing completed feature logic.
+`docs/TASK_BOARD.md` still contains stale READY/TODO states for several already merged environment tasks, including the FBD-500 rows. Reconcile those historical rows in a dedicated documentation/integration bookkeeping change instead of reimplementing completed feature logic.
