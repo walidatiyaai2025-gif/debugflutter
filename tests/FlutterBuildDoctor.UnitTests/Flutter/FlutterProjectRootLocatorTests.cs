@@ -12,8 +12,8 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     [Fact]
     public void Locate_WhenRepositoryRootIsFlutterProject_PrefersRootAndRetainsNestedEvidence()
     {
-        WriteFlutterPubspec(_root);
-        WriteFlutterPubspec(Path.Combine(_root, "example"));
+        WriteFlutterProject(_root);
+        WriteFlutterProject(Path.Combine(_root, "example"));
 
         var result = _locator.Locate(_root);
 
@@ -30,7 +30,7 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     {
         File.WriteAllText(Path.Combine(_root, "README.md"), "monorepo");
         var appRoot = Path.Combine(_root, "apps", "mobile");
-        WriteFlutterPubspec(appRoot);
+        WriteFlutterProject(appRoot);
 
         var result = _locator.Locate(_root);
 
@@ -42,8 +42,8 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     [Fact]
     public void Locate_WhenMultipleNestedFlutterProjectsExist_ReturnsAmbiguous()
     {
-        WriteFlutterPubspec(Path.Combine(_root, "apps", "one"));
-        WriteFlutterPubspec(Path.Combine(_root, "apps", "two"));
+        WriteFlutterProject(Path.Combine(_root, "apps", "one"));
+        WriteFlutterProject(Path.Combine(_root, "apps", "two"));
 
         var result = _locator.Locate(_root);
 
@@ -64,7 +64,7 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     }
 
     [Fact]
-    public void Locate_WhenPubspecIsNotFlutter_ReturnsNotFlutterProject()
+    public void Locate_WhenPubspecHasNoFlutterFilesystemEvidence_ReturnsNotFlutterProject()
     {
         File.WriteAllText(
             Path.Combine(_root, "pubspec.yaml"),
@@ -78,7 +78,7 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     }
 
     [Fact]
-    public void Locate_WhenMetadataExists_ValidatesFlutterProjectWithoutParsingFullPubspec()
+    public void Locate_WhenMetadataExists_ValidatesFlutterProjectWithoutParsingPubspec()
     {
         File.WriteAllText(Path.Combine(_root, "pubspec.yaml"), "name: metadata_project\n");
         File.WriteAllText(Path.Combine(_root, ".metadata"), "version:\n  revision: test\n");
@@ -92,8 +92,8 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     [Fact]
     public void Locate_IgnoresGeneratedBuildAndDartToolTrees()
     {
-        WriteFlutterPubspec(Path.Combine(_root, "build", "generated-app"));
-        WriteFlutterPubspec(Path.Combine(_root, ".dart_tool", "cached-app"));
+        WriteFlutterProject(Path.Combine(_root, "build", "generated-app"));
+        WriteFlutterProject(Path.Combine(_root, ".dart_tool", "cached-app"));
 
         var result = _locator.Locate(_root);
 
@@ -113,17 +113,21 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
     }
 
     [Fact]
-    public void Locate_DetectsQuotedFlutterSdkDependency()
+    public void Locate_UsesFilesystemEvidenceWithoutParsingPubspecContents()
     {
-        Directory.CreateDirectory(_root);
+        Directory.CreateDirectory(Path.Combine(_root, "lib"));
+        Directory.CreateDirectory(Path.Combine(_root, "android"));
         File.WriteAllText(
             Path.Combine(_root, "pubspec.yaml"),
-            "name: quoted\ndependencies:\n  flutter:\n    sdk: 'flutter'\n");
+            "name: filesystem_evidence_only\ndependencies:\n  collection: ^1.19.0\n");
 
         var result = _locator.Locate(_root);
 
         Assert.True(result.IsSuccess);
-        Assert.True(Assert.Single(result.Candidates).HasFlutterSdkDependency);
+        var candidate = Assert.Single(result.Candidates);
+        Assert.True(candidate.HasLibDirectory);
+        Assert.True(candidate.HasAndroidDirectory);
+        Assert.True(candidate.HasFlutterProjectEvidence);
     }
 
     public void Dispose()
@@ -139,7 +143,7 @@ public sealed class FlutterProjectRootLocatorTests : IDisposable
         }
     }
 
-    private static void WriteFlutterPubspec(string directory)
+    private static void WriteFlutterProject(string directory)
     {
         Directory.CreateDirectory(directory);
         Directory.CreateDirectory(Path.Combine(directory, "lib"));
