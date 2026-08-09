@@ -44,16 +44,16 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-201 | Define process request/result contracts | Systems Engineer | P0 | FBD-005 | TODO | Contracts support executable,args,cwd,env,timeout |
-| FBD-202 | Implement async process runner | Systems Engineer | P0 | FBD-201 | TODO | Runs command without blocking UI |
-| FBD-203 | Stream stdout/stderr events | Systems Engineer | P0 | FBD-202 | TODO | Output visible while command executes |
-| FBD-204 | Implement cancellation/kill process tree | Systems Engineer | P0 | FBD-202 | TODO | Cancellation terminates child process tree safely |
-| FBD-205 | Add timeout support | Systems Engineer | P1 | FBD-202 | TODO | Timed out operation returns explicit status |
-| FBD-206 | Add environment overrides | Systems Engineer | P1 | FBD-202 | TODO | Per-command PATH/JAVA_HOME/etc. supported |
-| FBD-207 | Implement secret/redaction filter | Systems Engineer | P0 | FBD-203 | TODO | Password/token/keystore secrets never logged |
-| FBD-208 | Create execution receipt model | Systems Engineer | P1 | FBD-202 | TODO | Records command identity, exit code, duration, result |
-| FBD-209 | Persist command history | Persistence Developer | P2 | FBD-208 | TODO | Previous executions are queryable |
-| FBD-210 | Add process runner tests with fake commands | QA | P0 | FBD-202 | TODO | Success/failure/cancel/timeout covered |
+| FBD-201 | Define process request/result contracts | Systems Engineer | P0 | FBD-005 | DONE | Contracts support executable,args,cwd,env,timeout |
+| FBD-202 | Implement async process runner | Systems Engineer | P0 | FBD-201 | DONE | Runs command without blocking UI |
+| FBD-203 | Stream stdout/stderr events | Systems Engineer | P0 | FBD-202 | DONE | Output visible while command executes |
+| FBD-204 | Implement cancellation/kill process tree | Systems Engineer | P0 | FBD-202 | DONE | Cancellation terminates child process tree safely |
+| FBD-205 | Add timeout support | Systems Engineer | P1 | FBD-202 | DONE | Timed out operation returns explicit status |
+| FBD-206 | Add environment overrides | Systems Engineer | P1 | FBD-202 | DONE | Per-command PATH/JAVA_HOME/etc. supported |
+| FBD-207 | Implement secret/redaction filter | Systems Engineer | P0 | FBD-203 | DONE | Password/token/keystore secrets never logged |
+| FBD-208 | Create execution receipt model | Systems Engineer | P1 | FBD-202 | DONE | Records command identity, exit code, duration, result |
+| FBD-209 | Persist command history | Persistence Developer | P2 | FBD-208 | READY | Previous executions are queryable |
+| FBD-210 | Add process runner tests with fake commands | QA | P0 | FBD-202 | DONE | Success/failure/cancel/timeout covered |
 
 ---
 
@@ -61,7 +61,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | TODO | Git status shown with path/version |
+| FBD-301 | Detect Git executable/version | Systems Engineer | P0 | FBD-202 | READY | Git status shown with path/version |
 | FBD-302 | Validate repository URL | Systems Engineer | P0 | FBD-301 | TODO | Invalid URL blocked with clear reason |
 | FBD-303 | Clone repository | Systems Engineer | P0 | FBD-301 | TODO | Clone supports target workspace and progress logs |
 | FBD-304 | Fetch branches | Systems Engineer | P0 | FBD-303 | TODO | Remote/local branch list available |
@@ -79,7 +79,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
 | FBD-401 | Detect Windows version/architecture | Systems Engineer | P1 | FBD-005 | TODO | OS info represented in environment snapshot |
-| FBD-402 | Implement PATH executable discovery utility | Systems Engineer | P0 | FBD-201 | TODO | Finds all matches and identifies conflicts |
+| FBD-402 | Implement PATH executable discovery utility | Systems Engineer | P0 | FBD-201 | READY | Finds all matches and identifies conflicts |
 | FBD-403 | Read relevant environment variables | Systems Engineer | P0 | FBD-402 | TODO | PATH,JAVA_HOME,ANDROID_HOME,ANDROID_SDK_ROOT captured |
 | FBD-404 | Detect Flutter SDK + version | Flutter Engineer | P0 | FBD-402 | TODO | Flutter path/version/channel detected |
 | FBD-405 | Detect Dart SDK + version | Flutter Engineer | P0 | FBD-404 | TODO | Dart version/path detected and linked to Flutter where applicable |
