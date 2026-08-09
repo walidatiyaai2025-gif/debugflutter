@@ -7,12 +7,11 @@ Integration branch: `agent/fbd-foundation`
 
 `FBD-603` — Parse `pubspec.lock`
 
-Status: `DONE`
-PR: `#96` — `[FBD-603] Parse pubspec.lock`
-Final validated feature head: `e02326fe12a1bf398aa20a1967559757d0920089`
-Final validation workflow: `31322827081`
-Final validation job: `93268345901`
-Integration merge commit: `fb7f85355c9f5fc4d5ea384cbfaaff5e35bf350d`
+Status: `DONE` + post-merge validation hardening merged
+Original PR: `#96` — `[FBD-603] Parse pubspec.lock`
+Original integration merge: `fb7f85355c9f5fc4d5ea384cbfaaff5e35bf350d`
+Hardening PR: `#100` — `[FBD-603] Harden pubspec.lock validation`
+Hardening merge: `b22a71a8f0b1b995901e9e9d1573d67f39e65243`
 
 ## Verified completed sequence
 
@@ -26,35 +25,46 @@ Project Analyzer: `FBD-601 → FBD-602 → FBD-603` is merged and validated.
 
 Do not reimplement these tasks. Continue from the active integration branch.
 
-## FBD-603 behavior checkpoint
+## FBD-603 hardening checkpoint
 
-- consumes only a successful FBD-601 effective project root
-- reads an existing `<effective-root>/pubspec.lock` only; a missing lock file never triggers dependency resolution
-- enforces an 8 MiB lock-file safety limit and rejects reparse/symlink lock files before reading
-- parses locked package name/version, dependency relationship, and hosted/git/path/sdk/unknown source evidence
-- exposes Dart and Flutter SDK constraints from the lockfile
-- sanitizes structured hosted/Git URLs by removing credentials/query/fragment data
-- preserves bounded raw lock YAML only as parser source evidence and does not log/display it in this task
-- does not run Flutter/Dart/pub/Gradle/network commands and does not mutate repository files
+- requires locked version, source, and dependency relationship evidence for each package
+- validates known package, description, and SDK YAML shapes instead of silently dropping malformed values
+- preserves hosted checksum plus Git declared and resolved refs
+- keeps structured URL evidence sanitized
+- preserves the read-only/no-package-resolution boundary
+
+## Current critical-path task
+
+`FBD-604` — Detect Groovy vs Kotlin Gradle DSL — IN PROGRESS
+
+Branch: `agent/fbd-604-gradle-dsl-detection`
+
+Scope:
+- consume the successful FBD-601 effective Flutter project root
+- inspect standard Android `settings.gradle(.kts)`, project `build.gradle(.kts)`, and `app/build.gradle(.kts)` locations
+- classify Groovy, Kotlin, or mixed script layouts from filenames only
+- preserve exact role/path evidence
+- return ambiguity when both Groovy and Kotlin variants exist for the same role instead of guessing
+- do not read or execute Gradle scripts
+
+Safety boundary: FBD-604 is filesystem presence detection only. AGP, Kotlin, SDK, identifier, flavor, signing, wrapper, and release-version semantics remain separate tasks.
 
 ## Next critical-path task
 
-`FBD-604` — Detect Groovy vs Kotlin Gradle DSL
+`FBD-605` — Parse Gradle wrapper version
 
-Reason: Flutter package metadata and resolved package versions are now represented. Android project analysis can next identify the Gradle DSL/file layout before wrapper, AGP, Kotlin, SDK, and identifier parsers consume those files.
-
-Acceptance: detect supported `.gradle` and `.gradle.kts` project/app build-script layouts with clear path/evidence and without modifying or executing Gradle.
+Acceptance: read the existing Gradle wrapper properties evidence and parse `distributionUrl` / the wrapper version without executing Gradle or modifying project files.
 
 ## Parallel follow-ups
 
 - `FBD-505` — Doctor UI detail panel
 - `FBD-506` — Flutter doctor parser fixture tests
 
-These remain separate tasks and must not be folded into FBD-604.
+These remain separate tasks and must not be folded into FBD-604/FBD-605.
 
 ## Resume instruction
 
-Start FBD-604 from merge commit `fb7f85355c9f5fc4d5ea384cbfaaff5e35bf350d` or a newer `agent/fbd-foundation` head. Reuse the FBD-601 effective project root; keep Gradle-file detection read-only and leave wrapper/AGP/Kotlin/SDK parsing to FBD-605 through FBD-609.
+Finish FBD-604 branch and exact PR validation first. After merge, start FBD-605 from the newest `agent/fbd-foundation` head. Keep FBD-605 limited to wrapper properties/version parsing; AGP and Kotlin plugin parsing remain FBD-606/FBD-607.
 
 ## Bookkeeping note
 
