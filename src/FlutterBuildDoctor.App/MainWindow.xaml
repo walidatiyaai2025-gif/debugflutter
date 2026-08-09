@@ -27,7 +27,7 @@
                     <Button Content="Environment Doctor" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
                     <Button Content="Compatibility" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
                     <Button Content="Build Center" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
-                    <Button Content="Devices & Emulators" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
+                    <Button Content="Devices &amp; Emulators" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
                     <TextBlock Text="RECOVERY" Foreground="#64748B" FontSize="11" FontWeight="Bold" Margin="4,18,0,8" />
                     <Button Content="Problems" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
                     <Button Content="Auto Repair" Height="40" HorizontalContentAlignment="Left" Padding="12,0" Margin="0,0,0,6" />
