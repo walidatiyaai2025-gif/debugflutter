@@ -189,6 +189,19 @@ public sealed class WindowsPathExecutableDiscoveryTests
         Assert.Equal(systemDriveRoot, result.SearchDirectories[0], ignoreCase: true);
     }
 
+    [Fact]
+    public void Discover_WithoutOverrides_FindsWhereExeFromCurrentWindowsPath()
+    {
+        var discovery = new WindowsPathExecutableDiscovery();
+
+        var result = discovery.Discover(new PathExecutableDiscoveryRequest("where"));
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.IsFound, result.Message);
+        Assert.NotNull(result.PreferredMatch);
+        Assert.EndsWith("where.exe", result.PreferredMatch!.FullPath, StringComparison.OrdinalIgnoreCase);
+    }
+
     private sealed class PathFixture : IDisposable
     {
         private readonly string _root = Path.Combine(
