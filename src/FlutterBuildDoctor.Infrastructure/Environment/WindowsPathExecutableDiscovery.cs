@@ -19,8 +19,8 @@ public sealed class WindowsPathExecutableDiscovery : IPathExecutableDiscovery
                 "Executable name must be a simple file name without a directory, drive prefix, or traversal segment.");
         }
 
-        var rawPath = request.PathValue ?? Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-        var rawPathExt = request.PathExtValue ?? Environment.GetEnvironmentVariable("PATHEXT");
+        var rawPath = request.PathValue ?? System.Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        var rawPathExt = request.PathExtValue ?? System.Environment.GetEnvironmentVariable("PATHEXT");
 
         var ignoredEntries = new List<IgnoredPathEntry>();
         var searchDirectories = NormalizePathEntries(rawPath, ignoredEntries);
@@ -136,7 +136,7 @@ public sealed class WindowsPathExecutableDiscovery : IPathExecutableDiscovery
             string fullPath;
             try
             {
-                var expanded = Environment.ExpandEnvironmentVariables(trimmed);
+                var expanded = System.Environment.ExpandEnvironmentVariables(trimmed);
                 fullPath = NormalizeDirectoryPath(Path.GetFullPath(expanded));
             }
             catch (Exception ex) when (IsPathException(ex))
