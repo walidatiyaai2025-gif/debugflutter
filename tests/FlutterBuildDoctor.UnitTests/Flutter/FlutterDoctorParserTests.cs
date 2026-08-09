@@ -60,6 +60,22 @@ public sealed class FlutterDoctorParserTests
         Assert.Equal(FlutterDoctorSectionKind.ConnectedDevice, result.Sections[3].Kind);
         Assert.Equal(FlutterDoctorSectionStatus.Passed, result.Sections[3].Status);
         Assert.True(result.HasRecognizedSections);
+
+        Assert.True(result.HasUnknownEvidence);
+        Assert.Collection(
+            result.UnknownEvidence,
+            evidence =>
+            {
+                Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, evidence.Kind);
+                Assert.Equal(0, evidence.StartIndex);
+                Assert.Same(preamble, Assert.Single(evidence.Lines));
+            },
+            evidence =>
+            {
+                Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, evidence.Kind);
+                Assert.Equal(4, evidence.StartIndex);
+                Assert.Same(androidStderr, Assert.Single(evidence.Lines));
+            });
     }
 
     [Fact]
@@ -85,10 +101,11 @@ public sealed class FlutterDoctorParserTests
                 FlutterDoctorSectionKind.NetworkResources
             },
             result.Sections.Select(section => section.Kind));
+        Assert.Empty(result.UnknownEvidence);
     }
 
     [Fact]
-    public void Parse_UnknownSectionIsRetainedAndDoesNotCorruptFollowingKnownSection()
+    public void Parse_UnknownSectionIsRetainedAndExposedAsUnknownEvidence()
     {
         var unknownHeader = Out("[?] Future Flutter capability");
         var unknownDetail = Out("    • future detail");
@@ -110,24 +127,79 @@ public sealed class FlutterDoctorParserTests
             line => Assert.Same(unknownHeader, line),
             line => Assert.Same(unknownDetail, line));
         Assert.Equal(FlutterDoctorSectionKind.Flutter, result.Sections[1].Kind);
+
+        var unknownSection = Assert.Single(result.UnknownSections);
+        Assert.Same(result.Sections[0], unknownSection);
+        var evidence = Assert.Single(result.UnknownEvidence);
+        Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnknownSection, evidence.Kind);
+        Assert.Equal(0, evidence.StartIndex);
+        Assert.Collection(
+            evidence.Lines,
+            line => Assert.Same(unknownHeader, line),
+            line => Assert.Same(unknownDetail, line));
     }
 
     [Fact]
-    public void Parse_StderrBracketTextDoesNotStartASection()
+    public void Parse_StderrBracketTextDoesNotStartASectionAndIsExplicitUnknownEvidence()
     {
         var stderr = Err("[X] transport warning from stderr");
         var flutterHeader = Out("[✓] Flutter (Channel stable)");
+        var detailStderr = Err("diagnostic detail on stderr");
         var execution = Execution(Process(
             ProcessExecutionStatus.Succeeded,
             stderr,
-            flutterHeader));
+            flutterHeader,
+            detailStderr));
 
         var result = _parser.Parse(execution);
 
         Assert.Single(result.UnsectionedLines);
         Assert.Same(stderr, result.UnsectionedLines[0]);
-        Assert.Single(result.Sections);
-        Assert.Equal(FlutterDoctorSectionKind.Flutter, result.Sections[0].Kind);
+        var section = Assert.Single(result.Sections);
+        Assert.Equal(FlutterDoctorSectionKind.Flutter, section.Kind);
+        Assert.Contains(section.Lines, line => ReferenceEquals(line, detailStderr));
+
+        Assert.Collection(
+            result.UnknownEvidence,
+            first =>
+            {
+                Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, first.Kind);
+                Assert.Equal(0, first.StartIndex);
+                Assert.Same(stderr, Assert.Single(first.Lines));
+            },
+            second =>
+            {
+                Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, second.Kind);
+                Assert.Equal(2, second.StartIndex);
+                Assert.Same(detailStderr, Assert.Single(second.Lines));
+            });
+    }
+
+    [Fact]
+    public void Parse_MalformedHeaderInsideKnownSection_IsExplicitButKeepsExistingSectionMembership()
+    {
+        var header = Out("[✓] Flutter (Channel stable)");
+        var malformed = Out("[!]   ");
+        var detail = Out("    • detail after malformed line");
+        var execution = Execution(Process(
+            ProcessExecutionStatus.Succeeded,
+            header,
+            malformed,
+            detail));
+
+        var result = _parser.Parse(execution);
+
+        var section = Assert.Single(result.Sections);
+        Assert.Collection(
+            section.Lines,
+            line => Assert.Same(header, line),
+            line => Assert.Same(malformed, line),
+            line => Assert.Same(detail, line));
+
+        var evidence = Assert.Single(result.UnknownEvidence);
+        Assert.Equal(FlutterDoctorUnknownEvidenceKind.MalformedSectionHeader, evidence.Kind);
+        Assert.Equal(1, evidence.StartIndex);
+        Assert.Same(malformed, Assert.Single(evidence.Lines));
     }
 
     [Fact]
@@ -143,11 +215,12 @@ public sealed class FlutterDoctorParserTests
         Assert.Equal(FlutterDoctorParseStatus.NoProcessEvidence, result.Status);
         Assert.Empty(result.Sections);
         Assert.Empty(result.UnsectionedLines);
+        Assert.Empty(result.UnknownEvidence);
         Assert.Same(execution, result.Execution);
     }
 
     [Fact]
-    public void Parse_NoSectionHeadersPreservesAllRawLinesAsUnsectioned()
+    public void Parse_NoSectionHeadersPreservesAllRawLinesAsUnsectionedAndUnknownEvidence()
     {
         var first = Out("Doctor output without a section header");
         var second = Err("diagnostic stderr");
@@ -162,6 +235,10 @@ public sealed class FlutterDoctorParserTests
             line => Assert.Same(first, line),
             line => Assert.Same(second, line));
         Assert.Same(process, result.ProcessResult);
+        Assert.Equal(2, result.UnknownEvidence.Count);
+        Assert.Equal(new[] { 0, 1 }, result.UnknownEvidence.Select(evidence => evidence.StartIndex));
+        Assert.All(result.UnknownEvidence, evidence =>
+            Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, evidence.Kind));
     }
 
     [Fact]
@@ -184,6 +261,9 @@ public sealed class FlutterDoctorParserTests
         Assert.Equal(FlutterDoctorSectionKind.AndroidToolchain, result.Sections[0].Kind);
         Assert.Equal(FlutterDoctorSectionStatus.Failed, result.Sections[0].Status);
         Assert.Same(process, result.ProcessResult);
+        var evidence = Assert.Single(result.UnknownEvidence);
+        Assert.Equal(FlutterDoctorUnknownEvidenceKind.UnclassifiedLine, evidence.Kind);
+        Assert.Same(process.Output[1], Assert.Single(evidence.Lines));
     }
 
     [Fact]
@@ -197,6 +277,10 @@ public sealed class FlutterDoctorParserTests
         Assert.Equal(FlutterDoctorParseStatus.NoSections, result.Status);
         Assert.Single(result.UnsectionedLines);
         Assert.Same(malformed, result.UnsectionedLines[0]);
+        var evidence = Assert.Single(result.UnknownEvidence);
+        Assert.Equal(FlutterDoctorUnknownEvidenceKind.MalformedSectionHeader, evidence.Kind);
+        Assert.Equal(0, evidence.StartIndex);
+        Assert.Same(malformed, Assert.Single(evidence.Lines));
     }
 
     private static FlutterDoctorExecutionResult Execution(ProcessResult process)
