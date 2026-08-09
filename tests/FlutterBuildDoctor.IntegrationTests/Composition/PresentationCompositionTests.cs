@@ -37,6 +37,7 @@ public sealed class PresentationCompositionTests
         Assert.NotNull(provider.GetRequiredService<IRepositoryImportCoordinator>());
         Assert.NotNull(provider.GetRequiredService<IGitBranchService>());
         Assert.NotNull(provider.GetRequiredService<IGitBranchSwitcher>());
+        Assert.NotNull(provider.GetRequiredService<IGitPullService>());
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(ProjectHeaderViewModel)
