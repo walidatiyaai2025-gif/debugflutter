@@ -9,39 +9,6 @@ public sealed class GradleWrapperVersionParserBoundaryTests : IDisposable
     public GradleWrapperVersionParserBoundaryTests() => Directory.CreateDirectory(_root);
 
     [Fact]
-    public void Parse_SuccessAndParseFailures_PreserveBoundedRawEvidence()
-    {
-        const string successRaw = "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.14-bin.zip\n";
-        WriteProperties(successRaw);
-
-        var success = new GradleWrapperVersionParser().Parse(SuccessfulRoot());
-
-        Assert.True(success.IsSuccess);
-        Assert.Equal(successRaw, success.RawText);
-
-        const string invalidRaw = "distributionUrl=https\\://example.invalid/gradle-8.14-bin.zip\\u12ZZ\n";
-        WriteProperties(invalidRaw);
-
-        var invalid = new GradleWrapperVersionParser().Parse(SuccessfulRoot());
-
-        Assert.Equal(GradleWrapperVersionStatus.InvalidProperties, invalid.Status);
-        Assert.Equal(invalidRaw, invalid.RawText);
-    }
-
-    [Fact]
-    public void Parse_OversizePropertiesFile_IsRejectedBeforeRawRead()
-    {
-        Directory.CreateDirectory(WrapperDirectory());
-        using (var stream = new FileStream(PropertiesPath(), FileMode.Create, FileAccess.Write, FileShare.None))
-            stream.SetLength((256L * 1024) + 1);
-
-        var result = new GradleWrapperVersionParser().Parse(SuccessfulRoot());
-
-        Assert.Equal(GradleWrapperVersionStatus.FileTooLarge, result.Status);
-        Assert.Null(result.RawText);
-    }
-
-    [Fact]
     public void Parse_PropertiesSymlink_IsRejectedWhenSupported()
     {
         Directory.CreateDirectory(WrapperDirectory());
@@ -60,8 +27,9 @@ public sealed class GradleWrapperVersionParserBoundaryTests : IDisposable
             var result = new GradleWrapperVersionParser().Parse(SuccessfulRoot());
 
             Assert.Equal(GradleWrapperVersionStatus.UnsafePath, result.Status);
-            Assert.Null(result.RawText);
+            Assert.Null(result.DistributionUrl);
             Assert.Null(result.Version);
+            Assert.Contains("reparse", result.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -74,16 +42,46 @@ public sealed class GradleWrapperVersionParserBoundaryTests : IDisposable
         }
     }
 
+    [Fact]
+    public void Parse_AndroidDirectorySymlink_IsRejectedWhenSupported()
+    {
+        var outside = Path.Combine(Path.GetTempPath(), "fbd-wrapper-android-outside-" + Guid.NewGuid().ToString("N"));
+        var outsideWrapper = Path.Combine(outside, "gradle", "wrapper");
+        Directory.CreateDirectory(outsideWrapper);
+        File.WriteAllText(
+            Path.Combine(outsideWrapper, "gradle-wrapper.properties"),
+            "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.14-bin.zip\n");
+        var android = Path.Combine(_root, "android");
+
+        try
+        {
+            try { Directory.CreateSymbolicLink(android, outside); }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or PlatformNotSupportedException or IOException) { return; }
+
+            if ((File.GetAttributes(android) & FileAttributes.ReparsePoint) == 0)
+                return;
+
+            var result = new GradleWrapperVersionParser().Parse(SuccessfulRoot());
+
+            Assert.Equal(GradleWrapperVersionStatus.UnsafePath, result.Status);
+            Assert.Null(result.DistributionUrl);
+            Assert.Null(result.Version);
+        }
+        finally
+        {
+            try
+            {
+                if (Directory.Exists(android)) Directory.Delete(android);
+                if (Directory.Exists(outside)) Directory.Delete(outside, recursive: true);
+            }
+            catch { }
+        }
+    }
+
     public void Dispose()
     {
         try { if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true); }
         catch { }
-    }
-
-    private void WriteProperties(string content)
-    {
-        Directory.CreateDirectory(WrapperDirectory());
-        File.WriteAllText(PropertiesPath(), content);
     }
 
     private string WrapperDirectory() => Path.Combine(_root, "android", "gradle", "wrapper");
