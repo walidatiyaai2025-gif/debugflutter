@@ -153,7 +153,7 @@ public sealed class FlutterDoctorParser : IFlutterDoctorParser
     private static bool LooksLikeMalformedHeader(string text)
     {
         var candidate = text.TrimStart();
-        return candidate.StartsWith('[', StringComparison.Ordinal) &&
+        return candidate.StartsWith("[", StringComparison.Ordinal) &&
                !TryParseHeader(
                    new ProcessOutputLine(DateTimeOffset.UnixEpoch, ProcessStream.StdOut, text),
                    out _);
