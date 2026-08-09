@@ -1,4 +1,5 @@
 using FlutterBuildDoctor.Android.Detection;
+using FlutterBuildDoctor.App.Environment;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
@@ -38,6 +39,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IAndroidEmulatorDetector, AndroidEmulatorDetector>();
         services.TryAddSingleton<IAndroidAvdManagerDetector, AndroidAvdManagerDetector>();
         services.TryAddSingleton<IAndroidLicenseDetector, AndroidLicenseDetector>();
+        services.TryAddSingleton<IEnvironmentSnapshotService, EnvironmentSnapshotService>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
