@@ -1,6 +1,7 @@
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
+using FlutterBuildDoctor.Git.Cloning;
 using FlutterBuildDoctor.Git.Repository;
 using FlutterBuildDoctor.Infrastructure.Environment;
 using FlutterBuildDoctor.Infrastructure.Processes;
@@ -17,7 +18,11 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
+        services.TryAddSingleton<IGitCloneService, GitCloneService>();
+        services.TryAddSingleton<IGitWorkingTreeScanner, GitWorkingTreeScanner>();
         services.TryAddSingleton<IGitRepositoryIdentityService, GitRepositoryIdentityService>();
+        services.TryAddSingleton<IGitRefreshFileSystem, GitRefreshFileSystem>();
+        services.TryAddSingleton<IGitRepositoryRefreshService, GitRepositoryRefreshService>();
 
         return services;
     }
