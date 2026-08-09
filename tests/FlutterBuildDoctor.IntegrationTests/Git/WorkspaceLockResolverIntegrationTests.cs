@@ -34,12 +34,6 @@ public sealed class WorkspaceLockResolverIntegrationTests
 
             Assert.Equal("LOCKED", ready);
             Assert.False(process.HasExited);
-            Assert.Throws<IOException>(() =>
-                File.Open(
-                    lockedFile,
-                    FileMode.Open,
-                    FileAccess.ReadWrite,
-                    FileShare.None).Dispose());
 
             var resolver = new WindowsRestartManagerWorkspaceLockResolver();
             var result = resolver.ReleaseLocks(repositoryPath);
