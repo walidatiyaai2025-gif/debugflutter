@@ -17,9 +17,10 @@ The production-facing WPF shell on `main` contains the Git Repository Manager an
 - repository identity header
 - Windows workspace lock recovery
 
-### Environment Doctor — live through FBD-401 / FBD-415
+### Environment Doctor — live through FBD-414 / FBD-415
 
 - Windows version/build, OS architecture, process architecture and bitness
+- Android Studio installation discovery/version/build/path evidence
 - Git executable/version
 - Flutter SDK/version/channel
 - Java/JDK detection
@@ -31,28 +32,26 @@ The production-facing WPF shell on `main` contains the Git Repository Manager an
 - installed Android platforms and build-tools
 - Android emulator binary/version
 
-FBD-401 and FBD-415 live UI promotions were merged to `main` after branch and exact PR CI passed. License detection remains diagnostic only and never sends acceptance input.
+FBD-414 was merged to `main` after branch and exact PR CI passed. Android Studio detection is bounded file-system inspection only and does not launch Studio. Android license detection remains diagnostic only and never sends acceptance input.
 
 ## Current task
 
-`FBD-414` — Detect Android Studio installations — LIVE UI PROMOTION IN PROGRESS
+`FBD-405` — Detect Dart SDK + version — LIVE UI PROMOTION IN PROGRESS
 
-Branch: `agent/fbd-414-main-ui`
+Branch: `agent/fbd-405-main-ui`
 
 Scope:
-- port the validated FBD-414 Android Studio detector onto current `main`
-- consume the already-live FBD-401 Windows evidence
-- search bounded known Windows installation roots in Program Files, Program Files (x86), LocalAppData Programs and JetBrains Toolbox
-- discover `studio64.exe` / `studio.exe`
-- parse `product-info.json` first with `build.txt` and executable-version fallbacks
-- preserve multiple installations and metadata/source evidence
-- show Android Studio readiness, version/build and executable paths in Environment Doctor
-
-Safety boundary: FBD-414 performs bounded file-system inspection only. It does not launch Android Studio, execute Studio binaries, install plugins, mutate SDK configuration, or alter Toolbox state.
+- port the validated FBD-405 Dart SDK detector onto current `main`
+- consume the already-live Flutter SDK result
+- discover Flutter-bundled Dart plus PATH/standalone candidates
+- read SDK version metadata without executing Dart
+- preserve PATH preferred/shadowed candidates and Flutter/PATH mismatch evidence
+- show Dart version/source/path/conflict evidence in Environment Doctor
+- never change PATH or mutate Flutter/Dart installations
 
 ## Next promotion
 
-After FBD-414 passes branch CI, exact PR merged-tree CI and live merge, select the next already validated backend capability whose dependencies are satisfied. Keep Compatibility, Build Center, Devices & Emulators, Problems, Auto Repair and Release Center disabled until their complete backend workflows are genuinely available.
+After FBD-405 passes branch CI, exact PR merged-tree CI and live merge, select the next already validated backend capability whose dependencies are satisfied. Keep Compatibility, Build Center, Devices & Emulators, Problems, Auto Repair and Release Center disabled until their complete backend workflows are genuinely available.
 
 ## Team coordination rule
 
