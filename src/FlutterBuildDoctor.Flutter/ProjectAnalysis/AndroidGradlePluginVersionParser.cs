@@ -12,7 +12,7 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
     {
         ArgumentNullException.ThrowIfNull(gradleDsl);
 
-        if (!gradleDsl.IsSuccess)
+        if (!gradleDsl.IsSuccess || string.IsNullOrWhiteSpace(gradleDsl.AndroidDirectory))
         {
             return Result(
                 AndroidGradlePluginVersionStatus.GradleDslUnavailable,
@@ -32,43 +32,110 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
                 "No Gradle scripts are available for AGP version inspection.");
         }
 
+        string androidDirectory;
+        try
+        {
+            androidDirectory = Path.GetFullPath(gradleDsl.AndroidDirectory);
+            if (!Directory.Exists(androidDirectory) || IsReparsePoint(androidDirectory))
+            {
+                return Result(
+                    AndroidGradlePluginVersionStatus.UnsafePath,
+                    gradleDsl,
+                    null,
+                    Array.Empty<AndroidGradlePluginVersionEvidence>(),
+                    "The Android project directory is missing or is now a reparse point/symbolic link.");
+            }
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException or IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            return Result(
+                AndroidGradlePluginVersionStatus.UnsafePath,
+                gradleDsl,
+                null,
+                Array.Empty<AndroidGradlePluginVersionEvidence>(),
+                $"Android project boundary inspection failed: {ex.Message}");
+        }
+
         var evidence = new List<AndroidGradlePluginVersionEvidence>();
+        var declarationSeen = false;
+
         foreach (var script in gradleDsl.Scripts)
         {
+            string scriptPath;
+            string expectedPath;
+            try
+            {
+                scriptPath = Path.GetFullPath(script.Path);
+                expectedPath = ExpectedScriptPath(androidDirectory, script.Role, script.Dsl);
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+            {
+                return Result(
+                    AndroidGradlePluginVersionStatus.UnsafePath,
+                    gradleDsl,
+                    null,
+                    evidence.ToArray(),
+                    $"Gradle script path is invalid: {ex.Message}");
+            }
+
+            if (!PathsEqual(scriptPath, expectedPath))
+            {
+                return Result(
+                    AndroidGradlePluginVersionStatus.UnsafePath,
+                    gradleDsl,
+                    null,
+                    evidence.ToArray(),
+                    $"FBD-604 supplied a {script.Role} script outside its expected Android Gradle location.");
+            }
+
             string text;
             try
             {
-                if (!File.Exists(script.Path))
+                if (script.Role == GradleScriptRole.AppBuild)
+                {
+                    var appDirectory = Path.Combine(androidDirectory, "app");
+                    if (!Directory.Exists(appDirectory) || IsReparsePoint(appDirectory))
+                    {
+                        return Result(
+                            AndroidGradlePluginVersionStatus.UnsafePath,
+                            gradleDsl,
+                            null,
+                            evidence.ToArray(),
+                            "The Android app directory is missing or is now a reparse point/symbolic link.");
+                    }
+                }
+
+                if (!File.Exists(scriptPath))
                 {
                     return Result(
                         AndroidGradlePluginVersionStatus.ScriptUnavailable,
                         gradleDsl,
                         null,
-                        evidence,
-                        $"Gradle script evidence is stale because '{Path.GetFileName(script.Path)}' is no longer available.");
+                        evidence.ToArray(),
+                        $"Gradle script evidence is stale because '{Path.GetFileName(scriptPath)}' is no longer available.");
                 }
 
-                if ((File.GetAttributes(script.Path) & FileAttributes.ReparsePoint) != 0)
+                if (IsReparsePoint(scriptPath))
                 {
                     return Result(
                         AndroidGradlePluginVersionStatus.UnsafePath,
                         gradleDsl,
                         null,
-                        evidence,
-                        $"Gradle script '{Path.GetFileName(script.Path)}' is a reparse point or symbolic link and was not followed.");
+                        evidence.ToArray(),
+                        $"Gradle script '{Path.GetFileName(scriptPath)}' is a reparse point or symbolic link and was not followed.");
                 }
 
-                if (new FileInfo(script.Path).Length > MaxScriptBytes)
+                if (new FileInfo(scriptPath).Length > MaxScriptBytes)
                 {
                     return Result(
                         AndroidGradlePluginVersionStatus.FileTooLarge,
                         gradleDsl,
                         null,
-                        evidence,
-                        $"Gradle script '{Path.GetFileName(script.Path)}' exceeds the {MaxScriptBytes} byte inspection limit.");
+                        evidence.ToArray(),
+                        $"Gradle script '{Path.GetFileName(scriptPath)}' exceeds the {MaxScriptBytes} byte inspection limit.");
                 }
 
-                text = File.ReadAllText(script.Path, Encoding.UTF8);
+                text = File.ReadAllText(scriptPath, Encoding.UTF8);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
             {
@@ -76,18 +143,20 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
                     AndroidGradlePluginVersionStatus.ReadFailed,
                     gradleDsl,
                     null,
-                    evidence,
-                    $"Gradle script '{Path.GetFileName(script.Path)}' could not be read: {ex.Message}");
+                    evidence.ToArray(),
+                    $"Gradle script '{Path.GetFileName(scriptPath)}' could not be read: {ex.Message}");
             }
 
             var code = RemoveComments(text);
+            declarationSeen |= AgpDeclarationMarkerRegex().IsMatch(code);
+
             foreach (Match match in ModernPluginRegex().Matches(code))
             {
                 evidence.Add(new AndroidGradlePluginVersionEvidence(
                     match.Groups["version"].Value,
                     AndroidGradlePluginDeclarationKind.ModernPluginDsl,
                     script.Role,
-                    script.Path,
+                    scriptPath,
                     match.Groups["plugin"].Value));
             }
 
@@ -97,7 +166,7 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
                     match.Groups["version"].Value,
                     AndroidGradlePluginDeclarationKind.LegacyBuildscriptClasspath,
                     script.Role,
-                    script.Path,
+                    scriptPath,
                     null));
             }
         }
@@ -109,7 +178,9 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
                 gradleDsl,
                 null,
                 evidence,
-                "No explicit Android Gradle Plugin version was found in the detected Gradle scripts. Dynamic variables or version-catalog aliases are not guessed.");
+                declarationSeen
+                    ? "Android Gradle Plugin declarations were found, but no literal AGP version could be resolved. Dynamic variables or version-catalog aliases are not guessed."
+                    : "No supported Android Gradle Plugin declaration was found in the detected Gradle scripts.");
         }
 
         var versions = evidence
@@ -135,6 +206,18 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
             $"Android Gradle Plugin {versions[0]} detected from {evidence.Count} explicit declaration(s) without executing Gradle.");
     }
 
+    private static string ExpectedScriptPath(string androidDirectory, GradleScriptRole role, GradleDslKind dsl)
+    {
+        var fileName = dsl == GradleDslKind.Kotlin ? "build.gradle.kts" : "build.gradle";
+        return role switch
+        {
+            GradleScriptRole.Settings => Path.GetFullPath(Path.Combine(androidDirectory, dsl == GradleDslKind.Kotlin ? "settings.gradle.kts" : "settings.gradle")),
+            GradleScriptRole.ProjectBuild => Path.GetFullPath(Path.Combine(androidDirectory, fileName)),
+            GradleScriptRole.AppBuild => Path.GetFullPath(Path.Combine(androidDirectory, "app", fileName)),
+            _ => throw new ArgumentOutOfRangeException(nameof(role), role, "Unsupported Gradle script role.")
+        };
+    }
+
     private static string RemoveComments(string text)
     {
         var output = new StringBuilder(text.Length);
@@ -152,11 +235,12 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
                 if (current == '*' && next == '/')
                 {
                     inBlockComment = false;
+                    output.Append("  ");
                     index++;
                 }
-                else if (current is '\r' or '\n')
+                else
                 {
-                    output.Append(current);
+                    output.Append(current is '\r' or '\n' ? current : ' ');
                 }
                 continue;
             }
@@ -183,16 +267,20 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
 
             if (current == '/' && next == '/')
             {
-                while (index < text.Length && text[index] is not '\r' and not '\n')
+                output.Append("  ");
+                index++;
+                while (index + 1 < text.Length && text[index + 1] is not '\r' and not '\n')
+                {
+                    output.Append(' ');
                     index++;
-                if (index < text.Length)
-                    output.Append(text[index]);
+                }
                 continue;
             }
 
             if (current == '/' && next == '*')
             {
                 inBlockComment = true;
+                output.Append("  ");
                 index++;
                 continue;
             }
@@ -205,6 +293,15 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
 
         return output.ToString();
     }
+
+    private static bool PathsEqual(string left, string right)
+        => string.Equals(
+            Path.TrimEndingDirectorySeparator(left),
+            Path.TrimEndingDirectorySeparator(right),
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+
+    private static bool IsReparsePoint(string path)
+        => (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
 
     private static AndroidGradlePluginVersionResult Result(
         AndroidGradlePluginVersionStatus status,
@@ -223,4 +320,9 @@ public sealed partial class AndroidGradlePluginVersionParser : IAndroidGradlePlu
         "(?ix)com\\.android\\.tools\\.build\\s*:\\s*gradle\\s*:\\s*(?<version>[0-9][0-9A-Za-z.+-]*)",
         RegexOptions.CultureInvariant)]
     private static partial Regex LegacyClasspathRegex();
+
+    [GeneratedRegex(
+        "(?ix)com\\.android\\.(?:application|library|test|dynamic-feature|asset-pack|asset-pack-bundle|lint)|com\\.android\\.tools\\.build\\s*:\\s*gradle\\s*:",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex AgpDeclarationMarkerRegex();
 }
