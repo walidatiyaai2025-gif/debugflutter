@@ -1,3 +1,4 @@
+using System.IO;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Cloning;
