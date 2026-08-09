@@ -101,6 +101,15 @@ public sealed class PubspecLockParser : IPubspecLockParser
                 rawText,
                 $"pubspec.lock is malformed YAML: {ex.Message}");
         }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+        {
+            return Result(
+                PubspecLockParseStatus.MalformedYaml,
+                projectRoot,
+                lockPath,
+                rawText,
+                $"pubspec.lock could not be parsed: {ex.Message}");
+        }
 
         if (yaml.Documents.Count != 1 || yaml.Documents[0].RootNode is not YamlMappingNode root)
         {
@@ -122,6 +131,16 @@ public sealed class PubspecLockParser : IPubspecLockParser
                 "pubspec.lock must contain a 'packages' mapping.");
         }
 
+        if (ValidateSdkShape(root) is { } sdkShapeError)
+        {
+            return Result(
+                PubspecLockParseStatus.InvalidDocument,
+                projectRoot,
+                lockPath,
+                rawText,
+                sdkShapeError);
+        }
+
         var packages = new List<PubspecLockedPackage>(packagesNode.Children.Count);
         foreach (var pair in packagesNode.Children)
         {
@@ -137,17 +156,29 @@ public sealed class PubspecLockParser : IPubspecLockParser
             }
 
             var packageName = nameNode.Value.Trim();
-            var version = Scalar(packageNode, "version")?.Trim();
-            var sourceText = Scalar(packageNode, "source")?.Trim();
-            var dependencyType = Scalar(packageNode, "dependency")?.Trim();
-            if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(sourceText))
+            if (ValidatePackageShape(packageName, packageNode) is { } packageShapeError)
             {
                 return Result(
                     PubspecLockParseStatus.InvalidDocument,
                     projectRoot,
                     lockPath,
                     rawText,
-                    $"pubspec.lock package '{packageName}' is missing its locked version or source.");
+                    packageShapeError);
+            }
+
+            var version = Scalar(packageNode, "version")?.Trim();
+            var sourceText = Scalar(packageNode, "source")?.Trim();
+            var dependencyType = Scalar(packageNode, "dependency")?.Trim();
+            if (string.IsNullOrWhiteSpace(version) ||
+                string.IsNullOrWhiteSpace(sourceText) ||
+                string.IsNullOrWhiteSpace(dependencyType))
+            {
+                return Result(
+                    PubspecLockParseStatus.InvalidDocument,
+                    projectRoot,
+                    lockPath,
+                    rawText,
+                    $"pubspec.lock package '{packageName}' is missing its locked version, source, or dependency relationship.");
             }
 
             var source = ParseSource(sourceText);
@@ -155,6 +186,8 @@ public sealed class PubspecLockParser : IPubspecLockParser
             string? descriptionName = null;
             string? descriptionUrl = null;
             string? descriptionPath = null;
+            string? sha256 = null;
+            string? gitRef = null;
             string? gitResolvedRef = null;
             string? gitUrl = null;
 
@@ -170,19 +203,16 @@ public sealed class PubspecLockParser : IPubspecLockParser
                 descriptionName = Scalar(descriptionMap, "name");
                 descriptionUrl = SanitizeUrlEvidence(Scalar(descriptionMap, "url"));
                 descriptionPath = Scalar(descriptionMap, "path");
-                gitResolvedRef = Scalar(descriptionMap, "resolved-ref");
+                sha256 = Scalar(descriptionMap, "sha256");
+                gitRef = source == PubspecLockedPackageSource.Git
+                    ? Scalar(descriptionMap, "ref")
+                    : null;
+                gitResolvedRef = source == PubspecLockedPackageSource.Git
+                    ? Scalar(descriptionMap, "resolved-ref")
+                    : null;
                 gitUrl = source == PubspecLockedPackageSource.Git
                     ? SanitizeUrlEvidence(Scalar(descriptionMap, "url"))
                     : null;
-            }
-            else if (description is not null)
-            {
-                return Result(
-                    PubspecLockParseStatus.InvalidDocument,
-                    projectRoot,
-                    lockPath,
-                    rawText,
-                    $"pubspec.lock package '{packageName}' has an invalid description shape.");
             }
 
             packages.Add(new PubspecLockedPackage(
@@ -193,6 +223,8 @@ public sealed class PubspecLockParser : IPubspecLockParser
                 descriptionName,
                 descriptionUrl,
                 descriptionPath,
+                sha256,
+                gitRef,
                 gitResolvedRef,
                 gitUrl));
         }
@@ -210,6 +242,49 @@ public sealed class PubspecLockParser : IPubspecLockParser
             metadata,
             rawText,
             $"Parsed {metadata.Packages.Count} locked package(s) without modifying dependency resolution.");
+    }
+
+    private static string? ValidateSdkShape(YamlMappingNode root)
+    {
+        if (Node(root, "sdks") is not { } sdksNode)
+            return null;
+
+        if (sdksNode is not YamlMappingNode sdks)
+            return "pubspec.lock section 'sdks' must be a mapping.";
+
+        foreach (var key in new[] { "dart", "flutter" })
+        {
+            if (Node(sdks, key) is { } value && value is not YamlScalarNode)
+                return $"pubspec.lock field 'sdks.{key}' must be a scalar value.";
+        }
+
+        return null;
+    }
+
+    private static string? ValidatePackageShape(string packageName, YamlMappingNode packageNode)
+    {
+        foreach (var key in new[] { "dependency", "source", "version" })
+        {
+            if (Node(packageNode, key) is { } value && value is not YamlScalarNode)
+                return $"pubspec.lock package '{packageName}' field '{key}' must be a scalar value.";
+        }
+
+        if (Node(packageNode, "description") is { } description)
+        {
+            if (description is not YamlScalarNode && description is not YamlMappingNode)
+                return $"pubspec.lock package '{packageName}' has an invalid description shape.";
+
+            if (description is YamlMappingNode descriptionMap)
+            {
+                foreach (var key in new[] { "name", "url", "path", "sha256", "ref", "resolved-ref" })
+                {
+                    if (Node(descriptionMap, key) is { } value && value is not YamlScalarNode)
+                        return $"pubspec.lock package '{packageName}' description field '{key}' must be a scalar value.";
+                }
+            }
+        }
+
+        return null;
     }
 
     private static PubspecLockedPackageSource ParseSource(string value)
