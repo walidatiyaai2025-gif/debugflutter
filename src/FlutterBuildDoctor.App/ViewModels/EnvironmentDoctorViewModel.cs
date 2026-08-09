@@ -24,6 +24,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     private readonly IAndroidLicenseDetector? _androidLicenseDetector;
     private readonly IWindowsEnvironmentDetector? _windowsEnvironmentDetector;
     private readonly IAndroidStudioDetector? _androidStudioDetector;
+    private readonly IDartSdkDetector? _dartSdkDetector;
     private CancellationTokenSource? _scanCancellation;
 
     [ObservableProperty] private bool _isBusy;
@@ -37,6 +38,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     [ObservableProperty] private string _gitDetails = "Run Environment Doctor to detect Git.";
     [ObservableProperty] private string _flutterSummary = "Not scanned";
     [ObservableProperty] private string _flutterDetails = "Run Environment Doctor to detect the effective Flutter SDK.";
+    [ObservableProperty] private string _dartSummary = "Not scanned";
+    [ObservableProperty] private string _dartDetails = "Run Environment Doctor to detect Flutter-bundled and PATH Dart SDKs.";
     [ObservableProperty] private string _javaSummary = "Not scanned";
     [ObservableProperty] private string _javaDetails = "Run Environment Doctor to detect Java/JDK installations.";
     [ObservableProperty] private string _androidSdkSummary = "Not scanned";
@@ -71,7 +74,8 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         IAndroidAvdManagerDetector androidAvdManagerDetector,
         IAndroidLicenseDetector? androidLicenseDetector = null,
         IWindowsEnvironmentDetector? windowsEnvironmentDetector = null,
-        IAndroidStudioDetector? androidStudioDetector = null)
+        IAndroidStudioDetector? androidStudioDetector = null,
+        IDartSdkDetector? dartSdkDetector = null)
     {
         _environmentScanner = environmentScanner ?? throw new ArgumentNullException(nameof(environmentScanner));
         _flutterSdkDetector = flutterSdkDetector ?? throw new ArgumentNullException(nameof(flutterSdkDetector));
@@ -87,6 +91,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
         _androidLicenseDetector = androidLicenseDetector;
         _windowsEnvironmentDetector = windowsEnvironmentDetector;
         _androidStudioDetector = androidStudioDetector;
+        _dartSdkDetector = dartSdkDetector;
     }
 
     public bool CanScan => !IsBusy;
@@ -105,7 +110,7 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     {
         if (IsBusy) return;
         IsBusy = true;
-        StatusMessage = "Scanning Windows, Android Studio, Git, Flutter, Java, Android SDK, sdkmanager, avdmanager, licenses, ADB, installed platforms, build-tools and emulator...";
+        StatusMessage = "Scanning Windows, Android Studio, Git, Flutter, Dart, Java, Android SDK, sdkmanager, avdmanager, licenses, ADB, installed platforms, build-tools and emulator...";
         _scanCancellation = new CancellationTokenSource();
 
         try
@@ -126,7 +131,15 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
 
             var toolStatuses = await _environmentScanner.ScanAsync(token);
             ApplyGit(toolStatuses.FirstOrDefault(tool => string.Equals(tool.Name, "Git", StringComparison.OrdinalIgnoreCase)));
-            ApplyFlutter(await _flutterSdkDetector.DetectAsync(cancellationToken: token));
+
+            var flutter = await _flutterSdkDetector.DetectAsync(cancellationToken: token);
+            ApplyFlutter(flutter);
+            if (_dartSdkDetector is not null)
+            {
+                token.ThrowIfCancellationRequested();
+                ApplyDart(await _dartSdkDetector.DetectAsync(flutter, cancellationToken: token));
+            }
+
             ApplyJava(await _javaInstallationDetector.DetectAsync(cancellationToken: token));
 
             token.ThrowIfCancellationRequested();
@@ -230,6 +243,45 @@ public sealed partial class EnvironmentDoctorViewModel : ObservableObject, IDisp
     {
         FlutterSummary = flutter.IsSuccess ? JoinSummary(flutter.FlutterVersion, flutter.Channel) : flutter.Status.ToString();
         FlutterDetails = JoinDetails(flutter.FlutterSdkPath ?? flutter.FlutterPath, flutter.Message);
+    }
+
+    private void ApplyDart(DartDetectionResult result)
+    {
+        var primary = result.FlutterBundledCandidate?.IsUsable == true
+            ? result.FlutterBundledCandidate
+            : result.PathPreferredCandidate?.IsUsable == true
+                ? result.PathPreferredCandidate
+                : result.Candidates.FirstOrDefault(candidate => candidate.IsUsable);
+
+        DartSummary = result.IsSuccess
+            ? JoinSummary(primary?.Version, primary?.IsFlutterBundled == true ? "Flutter bundled" : "PATH/standalone")
+            : result.Status switch
+            {
+                DartSdkDetectionStatus.Missing => "Missing",
+                DartSdkDetectionStatus.MetadataMissing => "Version metadata missing",
+                DartSdkDetectionStatus.MetadataInvalid => "Version metadata invalid",
+                DartSdkDetectionStatus.Cancelled => "Cancelled",
+                _ => result.Status.ToString()
+            };
+
+        var evidence = result.Candidates.Count == 0
+            ? null
+            : string.Join(" | ", result.Candidates.Select(candidate =>
+            {
+                var flags = new List<string>();
+                if (candidate.IsFlutterBundled) flags.Add("Flutter");
+                if (candidate.IsPathPreferred) flags.Add("PATH preferred");
+                if (candidate.IsShadowed) flags.Add("shadowed");
+                var flagText = flags.Count == 0 ? string.Empty : $" [{string.Join(", ", flags)}]";
+                return $"{candidate.Version ?? "version ?"}{flagText} {candidate.ExecutablePath}";
+            }));
+
+        var warning = result.HasFlutterPathMismatch
+            ? "Flutter/PATH Dart mismatch detected; no PATH changes were made."
+            : result.HasPathConflict
+                ? "Multiple Dart executables are present on PATH."
+                : null;
+        DartDetails = JoinDetails(evidence ?? primary?.ExecutablePath, JoinSummary(warning, result.Message));
     }
 
     private void ApplyJava(JavaDetectionResult java)
