@@ -104,7 +104,7 @@ public sealed class FlutterDoctorExecutor : IFlutterDoctorExecutor
             var command = $"call \"{flutterPath}\" doctor -v";
             return new ProcessRequest(
                 "cmd.exe",
-                new[] { "/d", "/v:off", "/s", "/c", command },
+                new[] { "/d", "/v:off", "/c", command },
                 Timeout: timeout,
                 DisplayName: "Flutter doctor -v");
         }
