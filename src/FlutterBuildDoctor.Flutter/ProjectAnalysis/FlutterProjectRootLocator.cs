@@ -6,7 +6,6 @@ public sealed class FlutterProjectRootLocator : IFlutterProjectRootLocator
 {
     private const int MaxDirectories = 4096;
     private const int MaxPubspecs = 512;
-    private const int MaxPubspecLines = 4096;
 
     private static readonly HashSet<string> IgnoredDirectoryNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -73,7 +72,7 @@ public sealed class FlutterProjectRootLocator : IFlutterProjectRootLocator
 
             var candidates = scan.PubspecPaths
                 .Select(BuildCandidate)
-                .Where(candidate => candidate.IsFlutterProject)
+                .Where(candidate => candidate.HasFlutterProjectEvidence)
                 .OrderBy(candidate => RelativeDepth(normalizedRepositoryPath, candidate.RootPath))
                 .ThenBy(candidate => candidate.RootPath, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
@@ -88,8 +87,8 @@ public sealed class FlutterProjectRootLocator : IFlutterProjectRootLocator
                     candidates,
                     scan.PubspecPaths,
                     scan.InspectionErrors > 0
-                        ? "pubspec.yaml files were found, but repository inspection was incomplete and no Flutter project could be confirmed."
-                        : "pubspec.yaml files were found, but none contained Flutter project evidence.");
+                        ? "pubspec.yaml files were found, but repository inspection was incomplete and no Flutter project root could be confirmed from filesystem evidence."
+                        : "pubspec.yaml files were found, but none had Flutter filesystem evidence. Pubspec contents were intentionally not parsed by root discovery.");
             }
 
             var repositoryCandidate = candidates.FirstOrDefault(candidate =>
@@ -133,7 +132,7 @@ public sealed class FlutterProjectRootLocator : IFlutterProjectRootLocator
             inspectedPubspecPaths,
             rootPreferred && candidates.Count > 1
                 ? $"Flutter project found at the repository root; {candidates.Count - 1} nested Flutter project(s) were retained as evidence."
-                : "Flutter project root located and validated using read-only project evidence.");
+                : "Flutter project root located using read-only filesystem evidence.");
 
     private static FlutterProjectRootResult Failure(
         FlutterProjectRootStatus status,
@@ -206,40 +205,14 @@ public sealed class FlutterProjectRootLocator : IFlutterProjectRootLocator
         return new FlutterProjectCandidate(
             root,
             pubspecPath,
-            HasFlutterSdkDependency(pubspecPath),
             File.Exists(Path.Combine(root, ".metadata")),
             Directory.Exists(Path.Combine(root, "lib")),
-            Directory.Exists(Path.Combine(root, "android")));
-    }
-
-    private static bool HasFlutterSdkDependency(string pubspecPath)
-    {
-        using var reader = new StreamReader(pubspecPath);
-        var flutterIndent = -1;
-        var lineCount = 0;
-
-        while (!reader.EndOfStream && lineCount++ < MaxPubspecLines)
-        {
-            var rawLine = reader.ReadLine() ?? string.Empty;
-            var trimmed = rawLine.Trim();
-            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
-                continue;
-
-            var indent = rawLine.Length - rawLine.TrimStart().Length;
-            if (flutterIndent >= 0)
-            {
-                if (indent <= flutterIndent)
-                    flutterIndent = -1;
-                else if (trimmed.StartsWith("sdk:", StringComparison.OrdinalIgnoreCase) &&
-                         string.Equals(trimmed[4..].Trim().Trim('\'', '"'), "flutter", StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            if (trimmed.Equals("flutter:", StringComparison.OrdinalIgnoreCase))
-                flutterIndent = indent;
-        }
-
-        return false;
+            Directory.Exists(Path.Combine(root, "android")),
+            Directory.Exists(Path.Combine(root, "ios")),
+            Directory.Exists(Path.Combine(root, "web")),
+            Directory.Exists(Path.Combine(root, "windows")),
+            Directory.Exists(Path.Combine(root, "macos")),
+            Directory.Exists(Path.Combine(root, "linux")));
     }
 
     private static int RelativeDepth(string repositoryPath, string candidatePath)
