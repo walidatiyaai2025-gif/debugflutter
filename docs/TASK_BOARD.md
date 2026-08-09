@@ -10,14 +10,14 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
-| FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | READY | Solution builds with all planned projects and tests |
-| FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | TODO | App starts through DI and ViewModels resolve from container |
-| FBD-003 | Implement Serilog logging baseline | Systems Engineer | P0 | FBD-001 | TODO | File + in-app structured logs with timestamps and levels |
+| FBD-001 | Create .NET 8 solution and project structure | Tech Lead | P0 | — | DONE | Solution builds with all planned projects and tests |
+| FBD-002 | Add CommunityToolkit.Mvvm + Generic Host + DI | Tech Lead | P0 | FBD-001 | READY | App starts through DI and ViewModels resolve from container |
+| FBD-003 | Implement Serilog logging baseline | Systems Engineer | P0 | FBD-001 | READY | File + in-app structured logs with timestamps and levels |
 | FBD-004 | Add global exception handling | Tech Lead | P0 | FBD-002,FBD-003 | TODO | UI/thread/task exceptions captured and surfaced safely |
-| FBD-005 | Define Domain enums/status contracts | Tech Lead | P0 | FBD-001 | TODO | Shared Ready/Missing/Broken/Incompatible/etc. contracts compile |
-| FBD-006 | Add unit + integration test projects | QA | P0 | FBD-001 | TODO | Tests execute from CLI and CI |
+| FBD-005 | Define Domain enums/status contracts | Tech Lead | P0 | FBD-001 | DONE | Shared Ready/Missing/Broken/Incompatible/etc. contracts compile |
+| FBD-006 | Add unit + integration test projects | QA | P0 | FBD-001 | DONE | Tests execute from CLI and CI |
 | FBD-007 | Add editorconfig/analyzers/code conventions | Tech Lead | P1 | FBD-001 | TODO | Build uses agreed style/analyzer configuration |
-| FBD-008 | Add GitHub Actions CI for restore/build/test | DevOps | P0 | FBD-006 | TODO | PR CI builds solution and runs tests |
+| FBD-008 | Add GitHub Actions CI for restore/build/test | DevOps | P0 | FBD-006 | DONE | PR CI builds solution and runs tests |
 | FBD-009 | Write contributor/branch/PR guide | Tech Lead | P1 | FBD-001 | TODO | CONTRIBUTING.md exists and defines workflow |
 | FBD-010 | Add application version/build identity service | DevOps | P1 | FBD-001 | TODO | UI/logs can display product version + commit/build identity |
 
