@@ -395,7 +395,7 @@ public sealed class PubspecParser : IPubspecParser
         if (atIndex > 0)
         {
             var prefix = trimmed[..atIndex];
-            if (prefix.Contains(':', StringComparison.Ordinal))
+            if (prefix.Contains(':'))
                 return "[redacted]" + trimmed[atIndex..];
         }
 
