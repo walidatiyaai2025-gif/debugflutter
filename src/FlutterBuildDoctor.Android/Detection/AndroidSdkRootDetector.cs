@@ -91,23 +91,36 @@ public sealed class AndroidSdkRootDetector : IAndroidSdkRootDetector
 
     private static IEnumerable<AndroidSdkRootSourceEvidence> GetConfiguredSources(EnvironmentVariableSnapshot snapshot)
     {
-        foreach (var source in EnumerateVariable(snapshot.AndroidSdkRoot))
-            yield return source;
-
-        foreach (var source in EnumerateVariable(snapshot.AndroidHome))
-            yield return source;
-    }
-
-    private static IEnumerable<AndroidSdkRootSourceEvidence> EnumerateVariable(VariableRecord variable)
-    {
-        foreach (var value in new[] { variable.Process, variable.User, variable.Machine })
+        foreach (var scope in new[] { VariableScope.Process, VariableScope.User, VariableScope.Machine })
         {
-            if (value.Status != VariableReadStatus.Present || string.IsNullOrWhiteSpace(value.Value))
-                continue;
+            var sdkRoot = GetScopeValue(snapshot.AndroidSdkRoot, scope);
+            if (sdkRoot.Status == VariableReadStatus.Present && !string.IsNullOrWhiteSpace(sdkRoot.Value))
+            {
+                yield return new AndroidSdkRootSourceEvidence(
+                    snapshot.AndroidSdkRoot.Name,
+                    scope,
+                    sdkRoot.Value);
+            }
 
-            yield return new AndroidSdkRootSourceEvidence(variable.Name, value.Scope, value.Value);
+            var androidHome = GetScopeValue(snapshot.AndroidHome, scope);
+            if (androidHome.Status == VariableReadStatus.Present && !string.IsNullOrWhiteSpace(androidHome.Value))
+            {
+                yield return new AndroidSdkRootSourceEvidence(
+                    snapshot.AndroidHome.Name,
+                    scope,
+                    androidHome.Value);
+            }
         }
     }
+
+    private static VariableScopeValue GetScopeValue(VariableRecord variable, VariableScope scope)
+        => scope switch
+        {
+            VariableScope.Process => variable.Process,
+            VariableScope.User => variable.User,
+            VariableScope.Machine => variable.Machine,
+            _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unsupported environment-variable scope.")
+        };
 
     private static string? Normalize(string rawValue, out string? error)
     {
@@ -119,7 +132,7 @@ public sealed class AndroidSdkRootDetector : IAndroidSdkRootDetector
             return null;
         }
 
-        if (trimmed.Contains('%', StringComparison.Ordinal))
+        if (trimmed.Contains('%'))
         {
             error = "The configured path contains an unresolved environment-variable reference.";
             return null;
@@ -141,8 +154,7 @@ public sealed class AndroidSdkRootDetector : IAndroidSdkRootDetector
 
             var fullPath = Path.GetFullPath(trimmed);
             var root = Path.GetPathRoot(fullPath);
-            if (!string.IsNullOrEmpty(root) &&
-                fullPath.Length > root.Length)
+            if (!string.IsNullOrEmpty(root) && fullPath.Length > root.Length)
             {
                 fullPath = fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             }
