@@ -4,4 +4,7 @@
     <ProjectReference Include="..\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
     <ProjectReference Include="..\FlutterBuildDoctor.Domain\FlutterBuildDoctor.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
 </Project>
