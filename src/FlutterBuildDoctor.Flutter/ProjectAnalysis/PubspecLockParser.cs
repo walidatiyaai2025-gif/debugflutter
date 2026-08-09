@@ -266,7 +266,7 @@ public sealed class PubspecLockParser : IPubspecLockParser
         }
 
         var atIndex = trimmed.IndexOf('@');
-        if (atIndex > 0 && trimmed[..atIndex].Contains(':', StringComparison.Ordinal))
+        if (atIndex > 0 && trimmed[..atIndex].Contains(':'))
             return "[redacted]" + trimmed[atIndex..];
 
         return trimmed;
