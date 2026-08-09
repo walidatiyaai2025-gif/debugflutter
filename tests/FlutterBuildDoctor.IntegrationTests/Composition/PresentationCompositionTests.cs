@@ -8,10 +8,11 @@ namespace FlutterBuildDoctor.IntegrationTests.Composition;
 public sealed class PresentationCompositionTests
 {
     [Fact]
-    public void AddFlutterBuildDoctorPresentation_RegistersShellViewModelAndWindow()
+    public void PresentationComposition_ResolvesShellViewModelAndWindowRegistration()
     {
         var services = new ServiceCollection();
-
+        services.AddLogging();
+        services.AddFlutterBuildDoctorExceptionHandling();
         services.AddFlutterBuildDoctorPresentation();
 
         using var provider = services.BuildServiceProvider();
@@ -19,6 +20,7 @@ public sealed class PresentationCompositionTests
 
         Assert.Equal("Flutter Build Doctor", viewModel.ApplicationName);
         Assert.Equal("Ready", viewModel.StartupStatus);
+        Assert.Equal("Ready", viewModel.StatusMessage);
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(MainWindow)
