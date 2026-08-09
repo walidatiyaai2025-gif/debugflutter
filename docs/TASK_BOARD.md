@@ -349,7 +349,7 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | FBD-1801 | Create clean Windows VM test baseline | QA | P0 | FBD-008 | TODO | Repeatable clean-machine scenario documented |
 | FBD-1802 | Test missing Flutter scenario | QA | P0 | FBD-417 | TODO | Missing state/action shown correctly |
 | FBD-1803 | Test multiple Flutter installations | QA | P1 | FBD-404 | TODO | PATH conflicts detected and selectable |
-| FBD-1804 | Test Java 11/17/21 conflict matrix | QA | FBD-708,FBD-912 | TODO | Correct compatibility decisions verified |
+| FBD-1804 | Test Java 11/17/21 conflict matrix | QA | P0 | FBD-708,FBD-912 | TODO | Correct compatibility decisions verified |
 | FBD-1805 | Test missing SDK platform/build-tools | QA | P0 | FBD-904,FBD-905 | TODO | Detection/install/recheck passes |
 | FBD-1806 | Test Android license blocker | QA | P0 | FBD-908 | TODO | Blocker resolved with clear verification |
 | FBD-1807 | Test corrupted project Gradle cache | QA | P0 | FBD-1208 | TODO | Recognized/repaired/verified |
