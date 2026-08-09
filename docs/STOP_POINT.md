@@ -5,12 +5,12 @@ Integration branch: `agent/fbd-foundation`
 
 ## Last completed task
 
-`FBD-415` — Detect Android license status
+`FBD-401` — Detect Windows version/architecture
 
 Status: `DONE` pending final-head CI and merge
-PR: `#58` — `[FBD-415] Detect Android license status`
-Validated feature code head before receipt: `e29e6ea315962302fc24815b917724feaebbe8c2`
-Validation workflow: `31312609694`
+PR: `#59` — `[FBD-401] Detect Windows version and architecture`
+Validated feature code head before receipt: `b1e2c3f73ba1ce5d5155fd4dc8aca27640ee1d4d`
+Validation workflow: `31312942806`
 
 ## Recently completed environment work
 
@@ -25,34 +25,34 @@ Validation workflow: `31312609694`
 - `FBD-411` — installed Android build-tools — DONE — PR `#52`
 - `FBD-412` — emulator binary/version detection — DONE — PR `#54`
 - `FBD-413` — avdmanager availability detection — DONE — PR `#56`
-  - integration merge commit `14219f5cde46f45330b1d234bdea4b503823012b`
-- `FBD-415` — Android license status — DONE pending final-head CI/merge
+- `FBD-415` — Android license status — DONE — PR `#58`
+  - integration merge commit `39d8b4d41cf576ec6ac7aa2522304e77d00689d1`
+- `FBD-401` — Windows version/architecture — DONE pending final-head CI/merge
 
 ## Verified completed sequence
 
 Git Repository Manager: `FBD-301 → FBD-302 → FBD-303 → FBD-304 → FBD-305 → FBD-306 → FBD-307 → FBD-308 → FBD-309 → FBD-310`
 
-Environment foundation/detection: `FBD-402 → FBD-404 → FBD-406 → FBD-403 → FBD-407 → FBD-408 → FBD-409 → FBD-410 → FBD-411 → FBD-412 → FBD-413 → FBD-415`
+Environment discovery currently complete: `FBD-401`, `FBD-402`, `FBD-403`, `FBD-404`, `FBD-406`, `FBD-407`, `FBD-408`, `FBD-409`, `FBD-410`, `FBD-411`, `FBD-412`, `FBD-413`, `FBD-415`.
 
 Do not reimplement these tasks. Continue from the task board on the active integration branch.
 
 ## Remaining environment prerequisites for FBD-416
 
-- `FBD-401` — Detect Windows version/architecture — next
+- `FBD-414` — Detect Android Studio installations — next, unlocked by FBD-401
 - `FBD-405` — Detect Dart SDK + version — READY
-- `FBD-414` — Detect Android Studio installations — depends on FBD-401
 
 ## Next task
 
-`FBD-401` — Detect Windows version/architecture
+`FBD-414` — Detect Android Studio installations
 
-Reason: FBD-401 is required by FBD-414 Android Studio detection. Once FBD-401 and FBD-414 are complete, only FBD-405 remains before the immutable FBD-416 EnvironmentSnapshot can be assembled.
+Reason: Windows identity is now available and FBD-414 is the only remaining Windows-specific environment detector. After Studio detection, FBD-405 Dart detection is the final prerequisite before FBD-416 EnvironmentSnapshot assembly.
 
-Acceptance: Windows product/version/build/architecture information is represented in typed environment evidence without external mutation.
+Acceptance: Android Studio executable/version/install paths are discovered and represented as typed evidence. Multiple installations must remain visible; detection must be read-only and must not launch Studio.
 
 ## Resume instruction
 
-Start from the latest `agent/fbd-foundation` head after FBD-415 is merged. Keep FBD-401 read-only and prefer managed Windows/runtime APIs plus narrowly scoped OS evidence. Do not add installation or repair behavior.
+Start from the latest `agent/fbd-foundation` head after FBD-401 is merged. Consume FBD-401 Windows evidence. Detect Android Studio installations using read-only local evidence and do not launch Studio or modify JetBrains/Android configuration.
 
 ## Bookkeeping note
 
