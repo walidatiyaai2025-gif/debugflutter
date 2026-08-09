@@ -14,6 +14,7 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
     private readonly IRepositoryImportCoordinator _importCoordinator;
     private readonly IGitPullService _gitPullService;
     private readonly ProjectHeaderViewModel _projectHeader;
+    private readonly SynchronizationContext? _uiContext;
     private CancellationTokenSource? _operationCancellation;
 
     [ObservableProperty]
@@ -53,6 +54,7 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
         _importCoordinator = importCoordinator ?? throw new ArgumentNullException(nameof(importCoordinator));
         _gitPullService = gitPullService ?? throw new ArgumentNullException(nameof(gitPullService));
         _projectHeader = projectHeader ?? throw new ArgumentNullException(nameof(projectHeader));
+        _uiContext = SynchronizationContext.Current;
     }
 
     public ObservableCollection<string> Activity { get; } = new();
@@ -263,8 +265,8 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
 
     private bool CanCancelOperation() => IsBusy;
 
-    private Progress<ProcessOutputLine> CreateActivityProgress()
-        => new(line =>
+    private IProgress<ProcessOutputLine> CreateActivityProgress()
+        => new ContextProgress<ProcessOutputLine>(_uiContext, line =>
         {
             if (!string.IsNullOrWhiteSpace(line.Text))
             {
@@ -289,5 +291,28 @@ public sealed partial class RepositoryManagerViewModel : ObservableObject, IDisp
         _operationCancellation?.Cancel();
         _operationCancellation?.Dispose();
         _operationCancellation = null;
+    }
+
+    private sealed class ContextProgress<T> : IProgress<T>
+    {
+        private readonly SynchronizationContext? _context;
+        private readonly Action<T> _handler;
+
+        public ContextProgress(SynchronizationContext? context, Action<T> handler)
+        {
+            _context = context;
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        }
+
+        public void Report(T value)
+        {
+            if (_context is null || ReferenceEquals(SynchronizationContext.Current, _context))
+            {
+                _handler(value);
+                return;
+            }
+
+            _context.Post(_ => _handler(value), null);
+        }
     }
 }
