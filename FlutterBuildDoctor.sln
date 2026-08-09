@@ -1,0 +1,72 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.App", "src\FlutterBuildDoctor.App\FlutterBuildDoctor.App.csproj", "{0AF3685A-2801-42CA-83E8-087DFEEEA9ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Application", "src\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj", "{1814F1A3-CC42-4C2A-A6AA-10F257E8BDB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Domain", "src\FlutterBuildDoctor.Domain\FlutterBuildDoctor.Domain.csproj", "{4504CFFF-3133-4234-BE50-999AEB257B7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Infrastructure", "src\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj", "{24AE9396-CFCE-4D58-A536-CAD3D33E7891}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Flutter", "src\FlutterBuildDoctor.Flutter\FlutterBuildDoctor.Flutter.csproj", "{40D70195-4243-44D9-BBE0-477BD18F2F94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Android", "src\FlutterBuildDoctor.Android\FlutterBuildDoctor.Android.csproj", "{7255155F-4DE4-4EB8-8149-5129BE019133}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Repair", "src\FlutterBuildDoctor.Repair\FlutterBuildDoctor.Repair.csproj", "{DC7CC779-70F0-44CA-BD7E-201F7EB46D66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.Persistence", "src\FlutterBuildDoctor.Persistence\FlutterBuildDoctor.Persistence.csproj", "{7E918A97-4AA9-4D33-B899-CBE25608F6D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.UnitTests", "tests\FlutterBuildDoctor.UnitTests\FlutterBuildDoctor.UnitTests.csproj", "{04CFEAAC-3439-40F4-8A44-9ECF06A4EB81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlutterBuildDoctor.IntegrationTests", "tests\FlutterBuildDoctor.IntegrationTests\FlutterBuildDoctor.IntegrationTests.csproj", "{08B97A1C-409B-40C8-8F0D-B7063CAAA8BB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0AF3685A-2801-42CA-83E8-087DFEEEA9ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF3685A-2801-42CA-83E8-087DFEEEA9ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF3685A-2801-42CA-83E8-087DFEEEA9ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF3685A-2801-42CA-83E8-087DFEEEA9ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1814F1A3-CC42-4C2A-A6AA-10F257E8BDB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1814F1A3-CC42-4C2A-A6AA-10F257E8BDB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1814F1A3-CC42-4C2A-A6AA-10F257E8BDB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1814F1A3-CC42-4C2A-A6AA-10F257E8BDB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4504CFFF-3133-4234-BE50-999AEB257B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4504CFFF-3133-4234-BE50-999AEB257B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4504CFFF-3133-4234-BE50-999AEB257B7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4504CFFF-3133-4234-BE50-999AEB257B7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24AE9396-CFCE-4D58-A536-CAD3D33E7891}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24AE9396-CFCE-4D58-A536-CAD3D33E7891}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24AE9396-CFCE-4D58-A536-CAD3D33E7891}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24AE9396-CFCE-4D58-A536-CAD3D33E7891}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40D70195-4243-44D9-BBE0-477BD18F2F94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40D70195-4243-44D9-BBE0-477BD18F2F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40D70195-4243-44D9-BBE0-477BD18F2F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40D70195-4243-44D9-BBE0-477BD18F2F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7255155F-4DE4-4EB8-8149-5129BE019133}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7255155F-4DE4-4EB8-8149-5129BE019133}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7255155F-4DE4-4EB8-8149-5129BE019133}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7255155F-4DE4-4EB8-8149-5129BE019133}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC7CC779-70F0-44CA-BD7E-201F7EB46D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC7CC779-70F0-44CA-BD7E-201F7EB46D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC7CC779-70F0-44CA-BD7E-201F7EB46D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC7CC779-70F0-44CA-BD7E-201F7EB46D66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E918A97-4AA9-4D33-B899-CBE25608F6D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E918A97-4AA9-4D33-B899-CBE25608F6D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E918A97-4AA9-4D33-B899-CBE25608F6D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E918A97-4AA9-4D33-B899-CBE25608F6D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04CFEAAC-3439-40F4-8A44-9ECF06A4EB81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04CFEAAC-3439-40F4-8A44-9ECF06A4EB81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04CFEAAC-3439-40F4-8A44-9ECF06A4EB81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04CFEAAC-3439-40F4-8A44-9ECF06A4EB81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08B97A1C-409B-40C8-8F0D-B7063CAAA8BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08B97A1C-409B-40C8-8F0D-B7063CAAA8BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08B97A1C-409B-40C8-8F0D-B7063CAAA8BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08B97A1C-409B-40C8-8F0D-B7063CAAA8BB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

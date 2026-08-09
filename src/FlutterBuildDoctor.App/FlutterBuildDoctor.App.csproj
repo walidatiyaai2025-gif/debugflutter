@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FlutterBuildDoctor.Application\FlutterBuildDoctor.Application.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Flutter\FlutterBuildDoctor.Flutter.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Android\FlutterBuildDoctor.Android.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Repair\FlutterBuildDoctor.Repair.csproj" />
+    <ProjectReference Include="..\FlutterBuildDoctor.Persistence\FlutterBuildDoctor.Persistence.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+<Window x:Class="FlutterBuildDoctor.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Flutter Build Doctor"
+        Width="1100"
+        Height="720"
+        MinWidth="900"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="28"
+                   FontWeight="SemiBold"
+                   Text="Flutter Build Doctor" />
+    </Grid>
+</Window>

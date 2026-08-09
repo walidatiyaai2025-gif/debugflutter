@@ -1,0 +1,23 @@
+# Visual Studio / .NET
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test results / coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Build artifacts
+artifacts/
+publish/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
