@@ -79,11 +79,11 @@ Priorities: `P0 Critical` / `P1 High` / `P2 Medium` / `P3 Low`
 | ID | Task | Owner Role | Priority | Depends On | Status | Acceptance Criteria |
 |---|---|---|---|---|---|---|
 | FBD-401 | Detect Windows version/architecture | Systems Engineer | P1 | FBD-005 | TODO | OS info represented in environment snapshot |
-| FBD-402 | Implement PATH executable discovery utility | Systems Engineer | P0 | FBD-201 | READY | Finds all matches and identifies conflicts |
-| FBD-403 | Read relevant environment variables | Systems Engineer | P0 | FBD-402 | TODO | PATH,JAVA_HOME,ANDROID_HOME,ANDROID_SDK_ROOT captured |
-| FBD-404 | Detect Flutter SDK + version | Flutter Engineer | P0 | FBD-402 | TODO | Flutter path/version/channel detected |
+| FBD-402 | Implement PATH executable discovery utility | Systems Engineer | P0 | FBD-201 | DONE | Finds all matches and identifies conflicts |
+| FBD-403 | Read relevant environment variables | Systems Engineer | P0 | FBD-402 | READY | PATH,JAVA_HOME,ANDROID_HOME,ANDROID_SDK_ROOT captured |
+| FBD-404 | Detect Flutter SDK + version | Flutter Engineer | P0 | FBD-402 | READY | Flutter path/version/channel detected |
 | FBD-405 | Detect Dart SDK + version | Flutter Engineer | P0 | FBD-404 | TODO | Dart version/path detected and linked to Flutter where applicable |
-| FBD-406 | Detect Java installations | Android Engineer | P0 | FBD-402 | TODO | All likely JDKs discovered with version/vendor/path |
+| FBD-406 | Detect Java installations | Android Engineer | P0 | FBD-402 | READY | All likely JDKs discovered with version/vendor/path |
 | FBD-407 | Detect Android SDK roots | Android Engineer | P0 | FBD-403 | TODO | SDK root candidates validated |
 | FBD-408 | Detect sdkmanager/cmdline-tools | Android Engineer | P0 | FBD-407 | TODO | Installed cmdline-tools versions reported |
 | FBD-409 | Detect platform-tools/ADB | Android Engineer | P0 | FBD-407 | TODO | ADB path/version/status reported |

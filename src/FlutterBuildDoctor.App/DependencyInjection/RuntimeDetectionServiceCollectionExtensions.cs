@@ -17,6 +17,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
     {
         services.TryAddSingleton<IProcessSecretRedactor, DefaultProcessSecretRedactor>();
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
+        services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IToolDetector, GitToolDetector>());
         services.TryAddSingleton<IEnvironmentScanner, EnvironmentScanService>();
         services.TryAddSingleton<IGitCloneService, GitCloneService>();
