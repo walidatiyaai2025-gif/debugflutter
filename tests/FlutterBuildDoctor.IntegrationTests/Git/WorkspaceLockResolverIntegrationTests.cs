@@ -98,7 +98,7 @@ public sealed class WorkspaceLockResolverIntegrationTests
 
     private static string ResolvePowerShellExecutable()
     {
-        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var programFiles = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles);
         var pwsh = Path.Combine(programFiles, "PowerShell", "7", "pwsh.exe");
         return File.Exists(pwsh) ? pwsh : "powershell.exe";
     }
