@@ -1,5 +1,6 @@
 using FlutterBuildDoctor.Application.Persistence;
 using FlutterBuildDoctor.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
 
 namespace FlutterBuildDoctor.UnitTests.Persistence;
 
@@ -100,7 +101,12 @@ public sealed class SqliteApplicationPersistenceStoreTests : IDisposable
     {
         var store = Store();
         await store.InitializeAsync();
-        await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_databasePath}"))
+        var connectionString = new SqliteConnectionStringBuilder
+        {
+            DataSource = _databasePath,
+            Pooling = false
+        }.ToString();
+        await using (var connection = new SqliteConnection(connectionString))
         {
             await connection.OpenAsync();
             await using var command = connection.CreateCommand();
