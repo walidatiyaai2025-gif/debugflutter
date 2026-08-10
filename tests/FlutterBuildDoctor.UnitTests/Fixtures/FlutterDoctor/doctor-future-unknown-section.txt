@@ -1,0 +1,8 @@
+bootstrap noise retained for evidence
+[✓] Flutter (Channel stable, 4.0.0, on Microsoft Windows)
+    • Flutter version 4.0.0 on channel stable
+[?] Experimental Device Broker
+    • future field: broker=v2
+    • future field: transport=quic
+[✗] Android toolchain - develop for Android devices
+    ✗ Android SDK not found.

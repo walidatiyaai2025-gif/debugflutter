@@ -24,4 +24,8 @@
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Git\FlutterBuildDoctor.Git.csproj" />
     <ProjectReference Include="..\..\src\FlutterBuildDoctor.Infrastructure\FlutterBuildDoctor.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Fixtures\FlutterDoctor\*.txt" />
+    <EmbeddedResource Include="Fixtures\QA\*.json" />
+  </ItemGroup>
 </Project>

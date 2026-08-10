@@ -1,0 +1,7 @@
+{
+  "scenarioId": "clean-machine",
+  "description": "Fresh Windows workstation before Flutter tooling is installed.",
+  "presentTools": ["Windows"],
+  "missingTools": ["Git", "Flutter", "Dart", "Java", "AndroidSdk", "AndroidStudio", "Adb", "Emulator"],
+  "expectedMinimumBlockers": 4
+}

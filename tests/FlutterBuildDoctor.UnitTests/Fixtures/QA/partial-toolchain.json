@@ -1,0 +1,7 @@
+{
+  "scenarioId": "partial-toolchain",
+  "description": "Flutter and Git are present, Android toolchain is incomplete.",
+  "presentTools": ["Windows", "Git", "Flutter", "Dart"],
+  "missingTools": ["AndroidSdk", "SdkManager", "Adb", "AndroidPlatform", "AndroidBuildTools"],
+  "expectedMinimumBlockers": 3
+}
