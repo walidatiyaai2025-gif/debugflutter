@@ -24,7 +24,8 @@ public sealed record ProcessRequest(
     TimeSpan? Timeout = null,
     string? DisplayName = null,
     bool RedactCommand = false,
-    IReadOnlyCollection<string>? SensitiveValues = null);
+    IReadOnlyCollection<string>? SensitiveValues = null,
+    int? MaxCapturedOutputLines = null);
 
 public sealed record ProcessOutputLine(
     DateTimeOffset Timestamp,
@@ -45,10 +46,21 @@ public sealed record ProcessResult(
     public bool IsSuccess => Status == ProcessExecutionStatus.Succeeded;
 }
 
+public sealed record ProcessLaunchResult(
+    bool Started,
+    int? ProcessId,
+    string SanitizedCommand,
+    string? FailureReason = null);
+
 public interface IProcessRunner
 {
     Task<ProcessResult> RunAsync(
         ProcessRequest request,
         IProgress<ProcessOutputLine>? progress = null,
         CancellationToken cancellationToken = default);
+}
+
+public interface IDetachedProcessLauncher
+{
+    ProcessLaunchResult Launch(ProcessRequest request);
 }
