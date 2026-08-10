@@ -18,7 +18,7 @@ public sealed class EnvironmentDoctorSnapshotDashboardTests
         {
             AndroidLicenses = new AndroidLicenseDetectionResult(
                 AndroidLicenseDetectionStatus.Pending,
-                ready.AndroidSdk.AndroidSdkRoot,
+                ready.AndroidSdk.EffectiveCandidate?.NormalizedPath,
                 ready.AndroidCommandLineTools.EffectiveCandidate?.SdkManagerPath,
                 ready.AndroidCommandLineTools.EffectiveCandidate?.Revision,
                 new[] { "android-sdk-license" },
@@ -46,15 +46,15 @@ public sealed class EnvironmentDoctorSnapshotDashboardTests
         await viewModel.ScanCommand.ExecuteAsync(null);
 
         Assert.Equal("Environment ready", viewModel.OverallReadinessSummary);
-        Assert.Equal(14, viewModel.ReadyComponentCount);
+        Assert.Equal(13, viewModel.ReadyComponentCount);
         Assert.Equal(0, viewModel.AttentionComponentCount);
-        Assert.Equal(14, viewModel.TotalComponentCount);
+        Assert.Equal(13, viewModel.TotalComponentCount);
         Assert.Equal("Accepted / Ready", viewModel.AndroidLicenseSummary);
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
-        Assert.Equal("13/14 checks ready", viewModel.OverallReadinessSummary);
-        Assert.Equal(13, viewModel.ReadyComponentCount);
+        Assert.Equal("12/13 checks ready", viewModel.OverallReadinessSummary);
+        Assert.Equal(12, viewModel.ReadyComponentCount);
         Assert.Equal(1, viewModel.AttentionComponentCount);
         Assert.Equal("Action required", viewModel.AndroidLicenseSummary);
         Assert.Equal(2, snapshotService.CallCount);
@@ -109,6 +109,7 @@ public sealed class EnvironmentDoctorSnapshotDashboardTests
             "stable",
             Array.Empty<FlutterSdkCandidate>(),
             false,
+            FlutterVersionMetadataSource.None,
             "Flutter ready.");
 
         var dartCandidate = new DartSdkCandidate(

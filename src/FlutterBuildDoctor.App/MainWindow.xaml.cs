@@ -11,5 +11,6 @@ public partial class MainWindow : Window
 
         InitializeComponent();
         DataContext = viewModel;
+        Title = $"Flutter Build Doctor — {viewModel.ApplicationIdentityText}";
     }
 }

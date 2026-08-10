@@ -10,6 +10,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.AddSingleton<IApplicationIdentityService, ApplicationIdentityService>();
         services.AddSingleton<IGitExecutableResolver, GitExecutableResolver>();
         services.AddSingleton<IRepositoryImportCoordinator, RepositoryImportCoordinator>();
         services.AddSingleton<ProjectHeaderViewModel>();
