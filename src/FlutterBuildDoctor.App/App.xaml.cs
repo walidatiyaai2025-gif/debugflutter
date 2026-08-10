@@ -2,6 +2,7 @@ using System.Windows;
 using FlutterBuildDoctor.App.DependencyInjection;
 using FlutterBuildDoctor.App.Errors;
 using FlutterBuildDoctor.App.Logging;
+using FlutterBuildDoctor.App.Services;
 using FlutterBuildDoctor.Application.Errors;
 using FlutterBuildDoctor.Infrastructure.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +57,12 @@ public partial class App : System.Windows.Application
             await _host.StartAsync();
 
             var logger = _host.Services.GetRequiredService<ILogger<App>>();
-            logger.LogInformation("Flutter Build Doctor host started");
+            var identity = _host.Services.GetRequiredService<IApplicationIdentityService>().Current;
+            logger.LogInformation(
+                "Flutter Build Doctor host started. Version={ProductVersion} Build={BuildNumber} Commit={CommitSha}",
+                identity.ProductVersion,
+                identity.BuildNumber,
+                identity.ShortCommit);
 
             _host.Services.GetRequiredService<MainWindow>().Show();
         }

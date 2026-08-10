@@ -1,6 +1,7 @@
 using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FlutterBuildDoctor.App.Services;
 using FlutterBuildDoctor.Application.Errors;
 
 namespace FlutterBuildDoctor.App.ViewModels;
@@ -27,12 +28,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IAppExceptionReporter exceptionReporter,
         ProjectHeaderViewModel projectHeader,
         RepositoryManagerViewModel repositoryManager,
-        EnvironmentDoctorViewModel environmentDoctor)
+        EnvironmentDoctorViewModel environmentDoctor,
+        IApplicationIdentityService? applicationIdentityService = null)
     {
         _exceptionReporter = exceptionReporter ?? throw new ArgumentNullException(nameof(exceptionReporter));
         ProjectHeader = projectHeader ?? throw new ArgumentNullException(nameof(projectHeader));
         RepositoryManager = repositoryManager ?? throw new ArgumentNullException(nameof(repositoryManager));
         EnvironmentDoctor = environmentDoctor ?? throw new ArgumentNullException(nameof(environmentDoctor));
+        ApplicationIdentity = applicationIdentityService?.Current
+            ?? new ApplicationIdentity("development", "local", null);
         _uiContext = SynchronizationContext.Current;
         _exceptionReporter.ExceptionReported += OnExceptionReported;
 
@@ -47,6 +51,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public RepositoryManagerViewModel RepositoryManager { get; }
 
     public EnvironmentDoctorViewModel EnvironmentDoctor { get; }
+
+    public ApplicationIdentity ApplicationIdentity { get; }
+
+    public string ApplicationIdentityText => ApplicationIdentity.DisplayText;
 
     public bool IsDashboardVisible => CurrentPage == ShellPage.Dashboard;
 
