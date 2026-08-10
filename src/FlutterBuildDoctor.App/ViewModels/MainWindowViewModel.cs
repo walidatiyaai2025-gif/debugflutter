@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlutterBuildDoctor.App.Services;
 using FlutterBuildDoctor.Application.Errors;
+using AppIdentity = FlutterBuildDoctor.App.Services.ApplicationIdentity;
 
 namespace FlutterBuildDoctor.App.ViewModels;
 
@@ -36,7 +37,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RepositoryManager = repositoryManager ?? throw new ArgumentNullException(nameof(repositoryManager));
         EnvironmentDoctor = environmentDoctor ?? throw new ArgumentNullException(nameof(environmentDoctor));
         ApplicationIdentity = applicationIdentityService?.Current
-            ?? new ApplicationIdentity("development", "local", null);
+            ?? new AppIdentity("development", "local", null);
         _uiContext = SynchronizationContext.Current;
         _exceptionReporter.ExceptionReported += OnExceptionReported;
 
@@ -52,7 +53,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public EnvironmentDoctorViewModel EnvironmentDoctor { get; }
 
-    public ApplicationIdentity ApplicationIdentity { get; }
+    public AppIdentity ApplicationIdentity { get; }
 
     public string ApplicationIdentityText => ApplicationIdentity.DisplayText;
 
