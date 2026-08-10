@@ -1,4 +1,5 @@
 using FlutterBuildDoctor.Android.Detection;
+using FlutterBuildDoctor.Android.Devices;
 using FlutterBuildDoctor.App.EnvironmentSnapshots;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
@@ -23,6 +24,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
     {
         services.TryAddSingleton<IProcessSecretRedactor, DefaultProcessSecretRedactor>();
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
+        services.TryAddSingleton<IDetachedProcessLauncher, DetachedProcessLauncher>();
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
         services.TryAddSingleton<IVariableValueSource, SystemVariableValueSource>();
         services.TryAddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>();
@@ -42,6 +44,10 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IArtifactHashService, Sha256ArtifactHashService>();
         services.TryAddSingleton<IBuildRetryPolicy>(_ => new BuildRetryPolicy(maxRetries: 1));
         services.TryAddSingleton<IFlutterBuildService, FlutterBuildService>();
+        services.TryAddSingleton<IAdbDevicesParser, AdbDevicesParser>();
+        services.TryAddSingleton<IAvdListParser, AvdListParser>();
+        services.TryAddSingleton<IAndroidDeviceMetadataProjector, AndroidDeviceMetadataProjector>();
+        services.TryAddSingleton<IAndroidDeviceManager, AndroidDeviceManager>();
         services.TryAddSingleton<IDartSdkDetector, DartSdkDetector>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();

@@ -21,6 +21,8 @@ public sealed class ProcessRunner : IProcessRunner
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.FileName);
         ArgumentNullException.ThrowIfNull(request.Arguments);
+        if (request.MaxCapturedOutputLines is <= 0)
+            throw new ArgumentOutOfRangeException(nameof(request.MaxCapturedOutputLines), "Captured output limit must be positive when supplied.");
 
         var executionId = Guid.NewGuid();
         var startedAt = DateTimeOffset.UtcNow;
@@ -29,6 +31,7 @@ public sealed class ProcessRunner : IProcessRunner
             string.IsNullOrWhiteSpace(request.DisplayName) ? request.FileName : request.DisplayName,
             request);
         var output = new ConcurrentQueue<ProcessOutputLine>();
+        var capturedCount = 0;
         using var process = new Process { StartInfo = CreateStartInfo(request), EnableRaisingEvents = true };
 
         process.OutputDataReceived += (_, e) => Publish(e.Data, ProcessStream.StdOut);
@@ -85,6 +88,13 @@ public sealed class ProcessRunner : IProcessRunner
                 stream,
                 _secretRedactor.RedactText(text, request));
             output.Enqueue(line);
+            Interlocked.Increment(ref capturedCount);
+            if (request.MaxCapturedOutputLines is { } maximum)
+            {
+                while (Volatile.Read(ref capturedCount) > maximum && output.TryDequeue(out _))
+                    Interlocked.Decrement(ref capturedCount);
+            }
+
             progress?.Report(line);
         }
 
