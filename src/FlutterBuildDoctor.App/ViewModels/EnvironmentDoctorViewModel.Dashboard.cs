@@ -21,9 +21,22 @@ public sealed partial class EnvironmentDoctorViewModel
 
     partial void OnHasScannedChanged(bool value)
     {
-        if (!value)
-            return;
+        if (value)
+        {
+            RefreshReadinessDashboard();
+        }
+    }
 
+    partial void OnLastScannedAtChanged(DateTimeOffset? value)
+    {
+        if (value.HasValue && HasScanned)
+        {
+            RefreshReadinessDashboard();
+        }
+    }
+
+    private void RefreshReadinessDashboard()
+    {
         var states = new[]
         {
             IsReady(WindowsSummary, "Not Windows", "Unavailable", "Not scanned"),
