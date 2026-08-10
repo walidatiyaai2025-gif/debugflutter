@@ -1,0 +1,7 @@
+[✓] Flutter (Channel stable, 3.24.5, on Microsoft Windows 11 Pro)
+    • Flutter version 3.24.5 on channel stable
+[✓] Windows Version (Installed version of Windows is version 10 or higher)
+[!] Android toolchain - develop for Android devices (Android SDK version 35.0.0)
+    ! Some Android licenses not accepted.
+[✓] Android Studio (version 2024.2)
+[✓] Connected device (2 available)
