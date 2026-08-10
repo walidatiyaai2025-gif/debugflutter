@@ -46,15 +46,15 @@ public sealed class EnvironmentDoctorSnapshotDashboardTests
         await viewModel.ScanCommand.ExecuteAsync(null);
 
         Assert.Equal("Environment ready", viewModel.OverallReadinessSummary);
-        Assert.Equal(14, viewModel.ReadyComponentCount);
+        Assert.Equal(13, viewModel.ReadyComponentCount);
         Assert.Equal(0, viewModel.AttentionComponentCount);
-        Assert.Equal(14, viewModel.TotalComponentCount);
+        Assert.Equal(13, viewModel.TotalComponentCount);
         Assert.Equal("Accepted / Ready", viewModel.AndroidLicenseSummary);
 
         await viewModel.ScanCommand.ExecuteAsync(null);
 
-        Assert.Equal("13/14 checks ready", viewModel.OverallReadinessSummary);
-        Assert.Equal(13, viewModel.ReadyComponentCount);
+        Assert.Equal("12/13 checks ready", viewModel.OverallReadinessSummary);
+        Assert.Equal(12, viewModel.ReadyComponentCount);
         Assert.Equal(1, viewModel.AttentionComponentCount);
         Assert.Equal("Action required", viewModel.AndroidLicenseSummary);
         Assert.Equal(2, snapshotService.CallCount);
