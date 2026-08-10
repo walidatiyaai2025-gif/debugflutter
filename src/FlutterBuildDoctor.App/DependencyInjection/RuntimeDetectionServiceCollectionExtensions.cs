@@ -1,5 +1,6 @@
 using FlutterBuildDoctor.Android.Detection;
 using FlutterBuildDoctor.App.EnvironmentSnapshots;
+using FlutterBuildDoctor.Application.Compatibility;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Services;
@@ -33,6 +34,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IFlutterVersionProbe, FlutterVersionProbe>();
         services.TryAddSingleton<IFlutterDoctorParser, FlutterDoctorParser>();
         services.TryAddSingleton<IFlutterDoctorProbe, FlutterDoctorProbe>();
+        services.TryAddSingleton<ICompatibilityEngine>(_ => CompatibilityEngine.CreateDefault());
         services.TryAddSingleton<IDartSdkDetector, DartSdkDetector>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
