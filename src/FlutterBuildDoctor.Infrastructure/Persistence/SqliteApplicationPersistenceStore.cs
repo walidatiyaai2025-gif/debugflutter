@@ -16,7 +16,8 @@ public sealed class SqliteApplicationPersistenceStore : IApplicationPersistenceS
         {
             DataSource = DatabasePath,
             Mode = SqliteOpenMode.ReadWriteCreate,
-            Cache = SqliteCacheMode.Shared
+            Cache = SqliteCacheMode.Shared,
+            Pooling = false
         }.ToString();
     }
 
