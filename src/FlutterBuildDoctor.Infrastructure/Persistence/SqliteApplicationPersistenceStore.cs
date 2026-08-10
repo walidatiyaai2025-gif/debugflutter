@@ -29,7 +29,7 @@ public sealed class SqliteApplicationPersistenceStore : IApplicationPersistenceS
         await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken).ConfigureAwait(false);
         await ExecuteAsync(connection, "PRAGMA journal_mode = WAL;", cancellationToken).ConfigureAwait(false);
 
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        using var transaction = connection.BeginTransaction();
         await ExecuteAsync(connection, """
             CREATE TABLE IF NOT EXISTS schema_info (
                 singleton_id INTEGER NOT NULL PRIMARY KEY CHECK (singleton_id = 1),
@@ -54,7 +54,7 @@ public sealed class SqliteApplicationPersistenceStore : IApplicationPersistenceS
             throw new InvalidOperationException($"Database schema version {version} is newer than supported version {CurrentSchemaVersion}.");
         }
 
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        transaction.Commit();
     }
 
     public async Task<int> GetSchemaVersionAsync(CancellationToken cancellationToken = default)
