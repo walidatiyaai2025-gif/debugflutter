@@ -1,5 +1,6 @@
 using FlutterBuildDoctor.Application.Persistence;
 using FlutterBuildDoctor.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
 
 namespace FlutterBuildDoctor.UnitTests.Persistence;
 
@@ -100,7 +101,7 @@ public sealed class SqliteApplicationPersistenceStoreTests : IDisposable
     {
         var store = Store();
         await store.InitializeAsync();
-        await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_databasePath}"))
+        await using (var connection = new SqliteConnection($"Data Source={_databasePath}"))
         {
             await connection.OpenAsync();
             await using var command = connection.CreateCommand();
@@ -115,6 +116,10 @@ public sealed class SqliteApplicationPersistenceStoreTests : IDisposable
 
     public void Dispose()
     {
+        // The production persistence store disables pooling in the upstream UX base.
+        // Clear provider test pools as well so this stacked branch has deterministic
+        // teardown on Windows before that upstream commit is reconciled into it.
+        SqliteConnection.ClearAllPools();
         if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true);
     }
 }
