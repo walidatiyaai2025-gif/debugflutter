@@ -18,7 +18,7 @@ public sealed class EnvironmentDoctorSnapshotDashboardTests
         {
             AndroidLicenses = new AndroidLicenseDetectionResult(
                 AndroidLicenseDetectionStatus.Pending,
-                ready.AndroidSdk.AndroidSdkRoot,
+                ready.AndroidSdk.EffectiveCandidate?.NormalizedPath,
                 ready.AndroidCommandLineTools.EffectiveCandidate?.SdkManagerPath,
                 ready.AndroidCommandLineTools.EffectiveCandidate?.Revision,
                 new[] { "android-sdk-license" },
@@ -109,6 +109,7 @@ public sealed class EnvironmentDoctorSnapshotDashboardTests
             "stable",
             Array.Empty<FlutterSdkCandidate>(),
             false,
+            FlutterVersionMetadataSource.None,
             "Flutter ready.");
 
         var dartCandidate = new DartSdkCandidate(
