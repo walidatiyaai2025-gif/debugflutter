@@ -64,12 +64,6 @@ public sealed record VersionConstraint(
         SemanticVersion? upper = null;
         var upperInclusive = false;
         var tokens = text.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (tokens.Length == 1 && TryParseComparator(tokens[0], out var exactOperator, out var exactVersion) &&
-            exactOperator == Comparator.Exact)
-        {
-            constraint = new VersionConstraint(exactVersion, true, exactVersion, true);
-            return true;
-        }
 
         foreach (var token in tokens)
         {
@@ -81,38 +75,20 @@ public sealed record VersionConstraint(
             switch (comparator)
             {
                 case Comparator.Exact:
-                    lower = version;
-                    lowerInclusive = true;
-                    upper = version;
-                    upperInclusive = true;
+                    MergeLower(ref lower, ref lowerInclusive, version, true);
+                    MergeUpper(ref upper, ref upperInclusive, version, true);
                     break;
                 case Comparator.GreaterThan:
-                    if (lower is null || version >= lower.Value)
-                    {
-                        lower = version;
-                        lowerInclusive = false;
-                    }
+                    MergeLower(ref lower, ref lowerInclusive, version, false);
                     break;
                 case Comparator.GreaterThanOrEqual:
-                    if (lower is null || version > lower.Value || (version == lower.Value && !lowerInclusive))
-                    {
-                        lower = version;
-                        lowerInclusive = true;
-                    }
+                    MergeLower(ref lower, ref lowerInclusive, version, true);
                     break;
                 case Comparator.LessThan:
-                    if (upper is null || version <= upper.Value)
-                    {
-                        upper = version;
-                        upperInclusive = false;
-                    }
+                    MergeUpper(ref upper, ref upperInclusive, version, false);
                     break;
                 case Comparator.LessThanOrEqual:
-                    if (upper is null || version < upper.Value || (version == upper.Value && !upperInclusive))
-                    {
-                        upper = version;
-                        upperInclusive = true;
-                    }
+                    MergeUpper(ref upper, ref upperInclusive, version, true);
                     break;
                 default:
                     throw new InvalidOperationException($"Unsupported comparator {comparator}.");
@@ -124,13 +100,55 @@ public sealed record VersionConstraint(
             return false;
         }
 
-        if (lower is { } minimumValue && upper is { } maximumValue && minimumValue > maximumValue)
+        if (lower is { } minimumValue && upper is { } maximumValue)
         {
-            return false;
+            var comparison = minimumValue.CompareTo(maximumValue);
+            if (comparison > 0 || (comparison == 0 && (!lowerInclusive || !upperInclusive)))
+            {
+                return false;
+            }
         }
 
         constraint = new VersionConstraint(lower, lowerInclusive, upper, upperInclusive);
         return true;
+    }
+
+    private static void MergeLower(
+        ref SemanticVersion? current,
+        ref bool currentInclusive,
+        SemanticVersion candidate,
+        bool candidateInclusive)
+    {
+        if (current is null || candidate > current.Value)
+        {
+            current = candidate;
+            currentInclusive = candidateInclusive;
+            return;
+        }
+
+        if (candidate == current.Value)
+        {
+            currentInclusive = currentInclusive && candidateInclusive;
+        }
+    }
+
+    private static void MergeUpper(
+        ref SemanticVersion? current,
+        ref bool currentInclusive,
+        SemanticVersion candidate,
+        bool candidateInclusive)
+    {
+        if (current is null || candidate < current.Value)
+        {
+            current = candidate;
+            currentInclusive = candidateInclusive;
+            return;
+        }
+
+        if (candidate == current.Value)
+        {
+            currentInclusive = currentInclusive && candidateInclusive;
+        }
     }
 
     private static bool TryParseComparator(string token, out Comparator comparator, out SemanticVersion version)

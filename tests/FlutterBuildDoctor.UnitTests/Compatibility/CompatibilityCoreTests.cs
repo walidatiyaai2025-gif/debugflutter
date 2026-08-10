@@ -23,11 +23,21 @@ public sealed class CompatibilityCoreTests
     [InlineData("^3.2.0", "4.0.0", false)]
     [InlineData("^0.2.3", "0.2.9", true)]
     [InlineData("^0.2.3", "0.3.0", false)]
+    [InlineData(">3.0.0 >=3.0.0", "3.0.0", false)]
+    [InlineData("<4.0.0 <=4.0.0", "4.0.0", false)]
     public void VersionConstraint_EvaluatesPubStyleRanges(string expression, string version, bool expected)
     {
         var constraint = VersionConstraint.Parse(expression);
 
         Assert.Equal(expected, constraint.Contains(SemanticVersion.Parse(version)));
+    }
+
+    [Theory]
+    [InlineData(">3.0.0 <=3.0.0")]
+    [InlineData(">=4.0.0 <4.0.0")]
+    public void VersionConstraint_RejectsEmptyIntersections(string expression)
+    {
+        Assert.False(VersionConstraint.TryParse(expression, out _));
     }
 
     [Theory]
