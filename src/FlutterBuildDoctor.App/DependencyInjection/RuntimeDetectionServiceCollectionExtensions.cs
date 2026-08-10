@@ -37,7 +37,7 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IRepairBackupService, FileSystemRepairBackupService>();
         services.TryAddSingleton<IApplicationPersistenceStore>(_ => new SqliteApplicationPersistenceStore(
             Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
                 "FlutterBuildDoctor",
                 "flutter-build-doctor.db")));
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
