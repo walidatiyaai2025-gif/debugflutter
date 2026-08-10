@@ -3,6 +3,7 @@ using FlutterBuildDoctor.Android.Devices;
 using FlutterBuildDoctor.Android.Repairs;
 using FlutterBuildDoctor.App.EnvironmentSnapshots;
 using FlutterBuildDoctor.Application.Environment;
+using FlutterBuildDoctor.Application.Persistence;
 using FlutterBuildDoctor.Application.Processes;
 using FlutterBuildDoctor.Application.Repairs;
 using FlutterBuildDoctor.Application.Services;
@@ -16,6 +17,7 @@ using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Cloning;
 using FlutterBuildDoctor.Git.Repository;
 using FlutterBuildDoctor.Infrastructure.Environment;
+using FlutterBuildDoctor.Infrastructure.Persistence;
 using FlutterBuildDoctor.Infrastructure.Processes;
 using FlutterBuildDoctor.Infrastructure.Repairs;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +35,11 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IRepairVerifier, RepairVerifier>();
         services.TryAddSingleton<IProjectPathGuard, ProjectPathGuard>();
         services.TryAddSingleton<IRepairBackupService, FileSystemRepairBackupService>();
+        services.TryAddSingleton<IApplicationPersistenceStore>(_ => new SqliteApplicationPersistenceStore(
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "FlutterBuildDoctor",
+                "flutter-build-doctor.db")));
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
         services.TryAddSingleton<IVariableValueSource, SystemVariableValueSource>();
         services.TryAddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>();
