@@ -1,18 +1,22 @@
 using FlutterBuildDoctor.Android.Detection;
 using FlutterBuildDoctor.Android.Devices;
+using FlutterBuildDoctor.Android.Repairs;
 using FlutterBuildDoctor.App.EnvironmentSnapshots;
 using FlutterBuildDoctor.Application.Environment;
 using FlutterBuildDoctor.Application.Processes;
+using FlutterBuildDoctor.Application.Repairs;
 using FlutterBuildDoctor.Application.Services;
 using FlutterBuildDoctor.Flutter.Build;
 using FlutterBuildDoctor.Flutter.Commands;
 using FlutterBuildDoctor.Flutter.Detection;
 using FlutterBuildDoctor.Flutter.Doctor;
+using FlutterBuildDoctor.Flutter.Repairs;
 using FlutterBuildDoctor.Git.Branches;
 using FlutterBuildDoctor.Git.Cloning;
 using FlutterBuildDoctor.Git.Repository;
 using FlutterBuildDoctor.Infrastructure.Environment;
 using FlutterBuildDoctor.Infrastructure.Processes;
+using FlutterBuildDoctor.Infrastructure.Repairs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -25,6 +29,9 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IProcessSecretRedactor, DefaultProcessSecretRedactor>();
         services.TryAddSingleton<IProcessRunner, ProcessRunner>();
         services.TryAddSingleton<IDetachedProcessLauncher, DetachedProcessLauncher>();
+        services.TryAddSingleton<IRepairVerifier, RepairVerifier>();
+        services.TryAddSingleton<IProjectPathGuard, ProjectPathGuard>();
+        services.TryAddSingleton<IRepairBackupService, FileSystemRepairBackupService>();
         services.TryAddSingleton<IPathExecutableDiscovery, WindowsPathExecutableDiscovery>();
         services.TryAddSingleton<IVariableValueSource, SystemVariableValueSource>();
         services.TryAddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>();
@@ -48,6 +55,10 @@ public static class RuntimeDetectionServiceCollectionExtensions
         services.TryAddSingleton<IAvdListParser, AvdListParser>();
         services.TryAddSingleton<IAndroidDeviceMetadataProjector, AndroidDeviceMetadataProjector>();
         services.TryAddSingleton<IAndroidDeviceManager, AndroidDeviceManager>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IRepairRecipe, FlutterCleanRepairRecipe>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IRepairRecipe, DependencyRefreshRepairRecipe>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IRepairRecipe, AdbRestartRepairRecipe>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IRepairRecipe, StaleBuildDirectoryCleanupRecipe>());
         services.TryAddSingleton<IDartSdkDetector, DartSdkDetector>();
         services.TryAddSingleton<IJavaInstallationDetector, JavaInstallationDetector>();
         services.TryAddSingleton<IAndroidSdkRootDetector, AndroidSdkRootDetector>();
