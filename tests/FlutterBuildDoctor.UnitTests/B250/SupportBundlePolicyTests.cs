@@ -18,7 +18,7 @@ public sealed class SupportBundlePolicyTests
             environmentSummary: "password:supersecret",
             problemSummary: "Bearer abc.def.ghi");
         var second = SupportBundlePolicy.Build(
-            items.Reverse(),
+            items.AsEnumerable().Reverse(),
             environmentSummary: "password:supersecret",
             problemSummary: "Bearer abc.def.ghi");
 
