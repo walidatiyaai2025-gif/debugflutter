@@ -15,7 +15,7 @@ public sealed class EnvironmentSafetyPolicyTests
         };
 
         var first = EnvironmentSafetyPolicy.Evaluate(variables, new[] { @"C:\Tools\", @"c:\tools", @"C:\Flutter" });
-        var second = EnvironmentSafetyPolicy.Evaluate(variables.Reverse(), new[] { @"C:\Flutter", @"C:\Tools" });
+        var second = EnvironmentSafetyPolicy.Evaluate(variables.AsEnumerable().Reverse(), new[] { @"C:\Flutter", @"C:\Tools" });
 
         Assert.Equal(2, first.SafeEntries.Count);
         Assert.Equal("ANDROID_HOME", first.SafeEntries[0].Name);
