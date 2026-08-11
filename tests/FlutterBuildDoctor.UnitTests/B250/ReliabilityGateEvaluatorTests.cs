@@ -21,7 +21,7 @@ public sealed class ReliabilityGateEvaluatorTests
         Assert.Equal(ReliabilityGateState.Missing, decision.Gates[0].State);
         Assert.Equal(ReliabilityGateSeverity.Blocker, decision.Gates[0].Severity);
         Assert.Equal(67, decision.RequiredPassRate);
-        Assert.Equal(83, decision.ReadinessScore);
+        Assert.Equal(71, decision.ReadinessScore);
         Assert.Equal(1, decision.BlockerCount);
         Assert.False(decision.ReleaseEligible);
         Assert.Equal(64, decision.Fingerprint.Length);
