@@ -75,7 +75,9 @@ public sealed class ReliabilityGateEvaluatorTests
         };
 
         var first = ReliabilityGateEvaluator.Evaluate(required, evidence);
-        var second = ReliabilityGateEvaluator.Evaluate(required.Reverse(), evidence.Reverse());
+        var second = ReliabilityGateEvaluator.Evaluate(
+            required.AsEnumerable().Reverse(),
+            evidence.AsEnumerable().Reverse());
 
         Assert.Equal(first.Fingerprint, second.Fingerprint);
         Assert.Equal(first.Gates.Select(gate => gate.Name), second.Gates.Select(gate => gate.Name));
