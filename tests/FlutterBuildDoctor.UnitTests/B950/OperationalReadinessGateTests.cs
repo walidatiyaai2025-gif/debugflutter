@@ -27,7 +27,7 @@ public sealed class OperationalReadinessGateTests
         Assert.Equal(83, first.Score);
         Assert.Equal("operational-readiness-ready", first.ReasonCode);
         Assert.Equal(first.Fingerprint, second.Fingerprint);
-        Assert.Equal(new[] { "build", "tests", "telemetry" }, first.Checks.Select(check => check.Identity));
+        Assert.Equal(new[] { "telemetry", "build", "tests" }, first.Checks.Select(check => check.Identity));
     }
 
     [Fact]
