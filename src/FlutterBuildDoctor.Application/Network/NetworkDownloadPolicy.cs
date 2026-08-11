@@ -45,7 +45,7 @@ public static partial class NetworkDownloadPolicy
 
         var approvedHosts = NormalizeApprovedHosts(request.ApprovedHosts);
         var effectiveUri = request.RedirectTarget ?? request.Source;
-        var hostAllowed = approvedHosts.Count == 0 || approvedHosts.Contains(effectiveUri.IdnHost, StringComparer.OrdinalIgnoreCase);
+        var hostAllowed = approvedHosts.Length == 0 || approvedHosts.Contains(effectiveUri.IdnHost, StringComparer.OrdinalIgnoreCase);
         var fileName = NormalizeDestinationFileName(request.DestinationFileName);
         var timeout = TimeSpan.FromSeconds(Math.Clamp(request.Timeout.TotalSeconds, MinTimeout.TotalSeconds, MaxTimeout.TotalSeconds));
         var maxBytes = Math.Clamp(request.MaxBytes, MinMaxBytes, MaxMaxBytes);
