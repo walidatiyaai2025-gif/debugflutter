@@ -15,7 +15,7 @@ public sealed class DependencyLockfilePolicyTests
         };
 
         var first = DependencyLockfilePolicy.Evaluate(" PUBSPEC-LOCK ", input, stableOnly: true, requireChecksums: true);
-        var second = DependencyLockfilePolicy.Evaluate("pubspec-lock", input.Reverse(), stableOnly: true, requireChecksums: true);
+        var second = DependencyLockfilePolicy.Evaluate("pubspec-lock", input.AsEnumerable().Reverse(), stableOnly: true, requireChecksums: true);
 
         Assert.Equal("pubspec-lock", first.Identity);
         Assert.Equal(new[] { "alpha.pkg", "zeta_pkg" }, first.Dependencies.Select(item => item.Name));
