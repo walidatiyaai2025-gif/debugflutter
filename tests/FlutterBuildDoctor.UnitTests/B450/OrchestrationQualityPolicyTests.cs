@@ -39,7 +39,7 @@ public sealed class OrchestrationQualityPolicyTests
         };
 
         var first = OrchestrationQualityPolicy.Evaluate(new[] { "restore", "build" }, evidence);
-        var second = OrchestrationQualityPolicy.Evaluate(new[] { "build", "restore" }, evidence.Reverse());
+        var second = OrchestrationQualityPolicy.Evaluate(new[] { "build", "restore" }, evidence.AsEnumerable().Reverse());
 
         Assert.Equal(0, first.BlockerCount);
         Assert.True(first.Successful);
