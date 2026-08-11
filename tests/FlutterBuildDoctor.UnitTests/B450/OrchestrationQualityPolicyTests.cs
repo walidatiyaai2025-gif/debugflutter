@@ -20,7 +20,7 @@ public sealed class OrchestrationQualityPolicyTests
         Assert.False(result.Successful);
         Assert.Equal(67, result.RequiredCompletionRate);
         Assert.Equal(25, result.QualityScore);
-        Assert.Equal(OrchestrationPhaseState.Missing, result.Phases.First().State);
+        Assert.Contains(result.Phases, phase => phase.Name == "test" && phase.State == OrchestrationPhaseState.Missing && phase.Blocker);
         Assert.Contains(result.Phases, phase => phase.Name == "build" && phase.Blocker);
         Assert.Equal(TimeSpan.FromSeconds(10), result.Phases.Single(phase => phase.Name == "restore").Duration);
         Assert.Equal(TimeSpan.Zero, result.Phases.Single(phase => phase.Name == "restore").StartedAtUtc!.Value.Offset);
