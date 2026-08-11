@@ -18,7 +18,7 @@ public sealed class EvidenceCorrelationPolicyTests
         };
 
         var first = EvidenceCorrelationPolicy.Correlate(evidence);
-        var second = EvidenceCorrelationPolicy.Correlate(evidence.Reverse());
+        var second = EvidenceCorrelationPolicy.Correlate(evidence.AsEnumerable().Reverse());
 
         Assert.Equal(2, first.Groups.Count);
         Assert.Equal("GRADLE.FAILURE", first.Groups[0].ProblemCode);
