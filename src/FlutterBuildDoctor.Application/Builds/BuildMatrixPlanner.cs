@@ -85,7 +85,7 @@ public static class BuildMatrixPlanner
 
         var normalized = target.Trim().Replace('\\', '/');
         while (normalized.StartsWith("./", StringComparison.Ordinal)) normalized = normalized[2..];
-        if (normalized.StartsWith('/', StringComparison.Ordinal) || normalized.Contains("../", StringComparison.Ordinal) || normalized.Length > 260)
+        if (normalized.StartsWith("/", StringComparison.Ordinal) || normalized.Contains("../", StringComparison.Ordinal) || normalized.Length > 260)
         {
             throw new ArgumentException("Dart target must be a bounded project-relative path.", nameof(target));
         }
