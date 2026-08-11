@@ -15,7 +15,7 @@ public sealed class SdkPathResolutionPolicyTests
         };
 
         var first = SdkPathResolutionPolicy.Resolve(candidates, new[] { @"C:\Sdk" });
-        var second = SdkPathResolutionPolicy.Resolve(candidates.Reverse(), new[] { @"C:\Sdk" });
+        var second = SdkPathResolutionPolicy.Resolve(candidates.AsEnumerable().Reverse(), new[] { @"C:\Sdk" });
 
         Assert.NotNull(first.Selected);
         Assert.Equal(SdkCandidateSource.Explicit, first.Selected!.Source);
