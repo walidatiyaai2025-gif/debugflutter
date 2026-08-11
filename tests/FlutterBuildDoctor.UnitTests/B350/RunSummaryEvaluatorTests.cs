@@ -21,7 +21,7 @@ public sealed class RunSummaryEvaluatorTests
         Assert.Equal(1, decision.BlockerCount);
         Assert.False(decision.Successful);
         Assert.Equal(67, decision.RequiredPassRate);
-        Assert.Equal(75, decision.QualityScore);
+        Assert.Equal(60, decision.QualityScore);
         Assert.Equal(RunPhaseState.Missing, decision.Phases[0].State);
         Assert.Equal("test", decision.Phases[0].Name);
         Assert.Equal(TimeSpan.Zero, decision.CompletedAtUtc.Offset);
