@@ -16,7 +16,7 @@ public sealed class DiagnosticSessionPlannerTests
         };
 
         var first = DiagnosticSessionPlanner.Create(steps, started);
-        var second = DiagnosticSessionPlanner.Create(steps.Reverse(), started);
+        var second = DiagnosticSessionPlanner.Create(steps.AsEnumerable().Reverse(), started);
 
         Assert.NotEqual(Guid.Empty, first.SessionId);
         Assert.Equal(TimeSpan.Zero, first.StartedAtUtc.Offset);
