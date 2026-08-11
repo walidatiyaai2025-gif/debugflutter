@@ -78,7 +78,7 @@ public static class ArtifactManifestIntegrityPolicy
         }
 
         var normalized = value.Trim().Replace('\\', '/');
-        if (Path.IsPathRooted(normalized) || normalized.StartsWith('/', StringComparison.Ordinal) || normalized.Contains(':'))
+        if (Path.IsPathRooted(normalized) || normalized.StartsWith('/') || normalized.Contains(':'))
         {
             throw new ArgumentException("Artifact path must be relative.", nameof(value));
         }
