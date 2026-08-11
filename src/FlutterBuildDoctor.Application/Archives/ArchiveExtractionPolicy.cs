@@ -66,7 +66,7 @@ public static class ArchiveExtractionPolicy
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(entryPath);
         var value = entryPath.Trim().Replace('\\', '/');
-        if (value.StartsWith('/', StringComparison.Ordinal)
+        if (value.StartsWith('/')
             || Path.IsPathRooted(value)
             || value.Contains(':'))
         {
