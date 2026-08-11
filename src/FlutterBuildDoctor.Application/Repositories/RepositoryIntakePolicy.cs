@@ -71,10 +71,10 @@ public static partial class RepositoryIntakePolicy
     {
         var value = string.IsNullOrWhiteSpace(branch) ? "main" : branch.Trim();
         if (value.Contains("..", StringComparison.Ordinal)
-            || value.Contains('\\', StringComparison.Ordinal)
+            || value.Contains('\\')
             || value.Contains("@{", StringComparison.Ordinal)
-            || value.StartsWith('/', StringComparison.Ordinal)
-            || value.EndsWith('/', StringComparison.Ordinal))
+            || value.StartsWith('/')
+            || value.EndsWith('/'))
         {
             throw new ArgumentException("Branch contains unsafe traversal or ref syntax.", nameof(branch));
         }
