@@ -42,7 +42,7 @@ public static class NetworkRetryBudgetPolicy
             throw new ArgumentOutOfRangeException(nameof(elapsed));
         }
 
-        if (retryAfter is < TimeSpan.Zero)
+        if (retryAfter.HasValue && retryAfter.Value < TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(retryAfter));
         }
