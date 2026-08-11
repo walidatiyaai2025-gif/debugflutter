@@ -15,7 +15,7 @@ public sealed class ExecutionAuditPolicyTests
         };
 
         var first = ExecutionAuditPolicy.Sanitize(events);
-        var second = ExecutionAuditPolicy.Sanitize(events.Reverse());
+        var second = ExecutionAuditPolicy.Sanitize(events.AsEnumerable().Reverse());
 
         Assert.Equal("build.error", first.Events[0].Name);
         Assert.Equal(AuditSeverity.Critical, first.Events[0].Severity);
