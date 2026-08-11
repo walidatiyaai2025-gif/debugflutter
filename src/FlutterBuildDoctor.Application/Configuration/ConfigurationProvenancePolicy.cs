@@ -71,8 +71,8 @@ public static partial class ConfigurationProvenancePolicy
             .ThenByDescending(item => item.ObservedAt)
             .ThenBy(item => item.Value, StringComparer.Ordinal)
             .ToArray();
-        var highest = ordered.Length == 0 ? null : ordered[0].Source;
-        var top = highest is null ? Array.Empty<ConfigurationEvidence>() : ordered.Where(item => item.Source == highest).ToArray();
+        ConfigurationSource? highest = ordered.Length == 0 ? null : ordered[0].Source;
+        var top = highest is null ? Array.Empty<ConfigurationEvidence>() : ordered.Where(item => item.Source == highest.Value).ToArray();
         var values = top.Select(item => item.Value).Distinct(StringComparer.Ordinal).ToArray();
         var conflict = values.Length > 1;
         var selected = conflict || top.Length == 0 ? null : top[0];
