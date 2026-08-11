@@ -41,12 +41,12 @@ public static partial class CommandArgumentPolicy
     public static string NormalizeExecutable(string executable)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executable);
-        var normalized = executable.Trim();
-        if (normalized.Any(char.IsControl))
+        if (executable.Any(char.IsControl))
         {
             throw new ArgumentException("Executable contains control characters.", nameof(executable));
         }
-        return normalized;
+
+        return executable.Trim();
     }
 
     public static void ValidateArgument(string argument)
