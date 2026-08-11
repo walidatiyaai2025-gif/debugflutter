@@ -15,7 +15,7 @@ public sealed class ArtifactLifecyclePolicyTests
         };
 
         var first = ArtifactLifecyclePolicy.Evaluate(artifacts, now);
-        var second = ArtifactLifecyclePolicy.Evaluate(artifacts.Reverse(), now);
+        var second = ArtifactLifecyclePolicy.Evaluate(artifacts.AsEnumerable().Reverse(), now);
 
         Assert.Equal("new", first.Artifacts[0].Identity);
         Assert.Equal("new-build.aab", first.Artifacts[0].FileName);
