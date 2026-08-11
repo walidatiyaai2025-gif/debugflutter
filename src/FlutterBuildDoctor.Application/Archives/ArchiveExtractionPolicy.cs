@@ -68,7 +68,7 @@ public static class ArchiveExtractionPolicy
         var value = entryPath.Trim().Replace('\\', '/');
         if (value.StartsWith('/', StringComparison.Ordinal)
             || Path.IsPathRooted(value)
-            || value.Contains(':', StringComparison.Ordinal))
+            || value.Contains(':'))
         {
             throw new ArgumentException("Archive entry must be relative and drive-independent.", nameof(entryPath));
         }
