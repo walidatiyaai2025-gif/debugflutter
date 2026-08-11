@@ -69,7 +69,8 @@ public static partial class EvidenceCorrelationPolicy
 
     private static EvidenceGroup BuildGroup(string code, IEnumerable<DiagnosticEvidence> evidence)
     {
-        var unique = evidence
+        var all = evidence.ToArray();
+        var unique = all
             .GroupBy(item => $"{item.Key}\u001f{item.Message}\u001f{item.CapturedAt:O}", StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(item => item.Severity).First())
             .OrderBy(item => item.CapturedAt)
@@ -77,10 +78,10 @@ public static partial class EvidenceCorrelationPolicy
             .ToArray();
 
         var bounded = unique.Take(MaxEvidencePerGroup).ToArray();
-        var first = unique.Length == 0 ? DateTimeOffset.UnixEpoch : unique.Min(item => item.CapturedAt);
-        var last = unique.Length == 0 ? DateTimeOffset.UnixEpoch : unique.Max(item => item.CapturedAt);
-        var severity = unique.Length == 0 ? CorrelatedEvidenceSeverity.Info : unique.Max(item => item.Severity);
-        return new EvidenceGroup(code.ToUpperInvariant(), unique.Length, first, last, severity, bounded);
+        var first = all.Length == 0 ? DateTimeOffset.UnixEpoch : all.Min(item => item.CapturedAt);
+        var last = all.Length == 0 ? DateTimeOffset.UnixEpoch : all.Max(item => item.CapturedAt);
+        var severity = all.Length == 0 ? CorrelatedEvidenceSeverity.Info : all.Max(item => item.Severity);
+        return new EvidenceGroup(code.ToUpperInvariant(), all.Length, first, last, severity, bounded);
     }
 
     private static string ValidateToken(string value, string parameterName)
