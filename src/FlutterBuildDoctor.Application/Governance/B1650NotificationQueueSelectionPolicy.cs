@@ -19,7 +19,7 @@ public static class NotificationQueueSelectionPolicy
             ArgumentNullException.ThrowIfNull(item);
             var identity = B1550PolicyHelpers.Identity(item.Identity, nameof(item.Identity));
             var created = B1550PolicyHelpers.Utc(item.CreatedAt);
-            var expires = item.ExpiresAt is null ? null : B1550PolicyHelpers.Utc(item.ExpiresAt.Value);
+            DateTimeOffset? expires = item.ExpiresAt is null ? null : B1550PolicyHelpers.Utc(item.ExpiresAt.Value);
             if (expires is not null && expires < created) throw new ArgumentException("Notification expiration cannot precede creation.", nameof(items));
             return new NotificationQueueItem(identity, Math.Clamp(item.Priority, 0, 100), created, expires, item.Mandatory);
         }).ToArray();
