@@ -96,20 +96,20 @@ public static class OfflineNetworkModePolicy
                 _ => true
             };
 
-        var deferred = normalized.Where(ShouldDefer)
+        var blocked = normalized.Where(ShouldDefer)
             .OrderBy(operation => operation.DeferredSequence)
             .ThenBy(operation => operation.Identity, StringComparer.Ordinal)
-            .Take(deferredLimit)
+            .ToArray();
+        var deferred = blocked.Take(deferredLimit)
             .Select(operation => operation.Identity)
             .ToArray();
-        var deferredSet = deferred.ToHashSet(StringComparer.Ordinal);
-        var allowed = normalized.Where(operation => !deferredSet.Contains(operation.Identity))
+        var allowed = normalized.Where(operation => !ShouldDefer(operation))
             .OrderBy(operation => operation.Identity, StringComparer.Ordinal)
             .Select(operation => operation.Identity)
             .ToArray();
-        var reconnectRequired = state != "online" && deferred.Length > 0;
-        var reason = state == "online" ? "network-mode-online" : deferred.Length > 0 ? "network-mode-deferred" : $"network-mode-{state}";
-        var payload = $"{state}|{deferredLimit}|{reconnectRequired}|{string.Join(",", allowed)}|{string.Join(",", deferred)}";
+        var reconnectRequired = state != "online" && blocked.Length > 0;
+        var reason = state == "online" ? "network-mode-online" : blocked.Length > 0 ? "network-mode-deferred" : $"network-mode-{state}";
+        var payload = $"{state}|{deferredLimit}|{reconnectRequired}|{blocked.Length}|{string.Join(",", allowed)}|{string.Join(",", deferred)}";
         return new OfflineNetworkModeDecision(state, allowed, deferred, reconnectRequired, deferredLimit, reason, B1350PolicyHelpers.Hash(payload));
     }
 }
