@@ -80,7 +80,7 @@ public sealed class NetworkBandwidthBudgetPolicyTests
     [Fact]
     public void Evaluate_ClampsLimitsComputesRemainingThrottleAndExhaustion()
     {
-        var throttled = NetworkBandwidthBudgetPolicy.Evaluate("transfer-a", 1_500, 1_000, long.MaxValue, long.MaxValue);
+        var throttled = NetworkBandwidthBudgetPolicy.Evaluate("transfer-a", 1_500_000, 1_000, long.MaxValue, long.MaxValue);
         var exhausted = NetworkBandwidthBudgetPolicy.Evaluate("transfer-b", 1_100, 1_000, 100, 100);
 
         Assert.Equal(NetworkBandwidthBudgetPolicy.MaxBandwidthBytesPerSecond, throttled.BandwidthBytesPerSecond);
