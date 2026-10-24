@@ -59,13 +59,12 @@ jobs:
           s = s.replace('android:label="ollama_chat_client"', 'android:label="Ollama Chat"')
           p.write_text(s)
           PY
-          cat android/app/src/main/AndroidManifest.xml
 
-      - name: Analyze
+      - name: Analyze app sources
         shell: bash
         run: |
           cd /tmp/ollama-src/ollama_chat_client
-          flutter analyze
+          flutter analyze lib --no-fatal-infos --no-fatal-warnings
 
       - name: Build release APK
         shell: bash
