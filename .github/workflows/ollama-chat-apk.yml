@@ -1,0 +1,85 @@
+name: Build Ollama Chat APK
+
+on:
+  push:
+    branches:
+      - build/ollama-chat-apk
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: stable
+          cache: true
+
+      - name: Restore source ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ollama-src
+          cat ollama_build/source.part*.b64 | base64 --decode > /tmp/ollama-src/source.zip
+          unzip -q /tmp/ollama-src/source.zip -d /tmp/ollama-src
+          test -f /tmp/ollama-src/ollama_chat_client/pubspec.yaml
+
+      - name: Bootstrap Flutter platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/ollama-src/ollama_chat_client
+          bash bootstrap.sh
+
+      - name: Configure Android release networking
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/ollama-src/ollama_chat_client
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if 'android.permission.INTERNET' not in s:
+              s = s.replace('<application', '<uses-permission android:name="android.permission.INTERNET" />\n    <application', 1)
+          s = s.replace('android:label="ollama_chat_client"', 'android:label="Ollama Chat"')
+          p.write_text(s)
+          PY
+          cat android/app/src/main/AndroidManifest.xml
+
+      - name: Analyze
+        shell: bash
+        run: |
+          cd /tmp/ollama-src/ollama_chat_client
+          flutter analyze
+
+      - name: Build release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/ollama-src/ollama_chat_client
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk "$GITHUB_WORKSPACE/OllamaChat-1.0.0.apk"
+          sha256sum "$GITHUB_WORKSPACE/OllamaChat-1.0.0.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OllamaChat-Android-APK
+          path: OllamaChat-1.0.0.apk
+          if-no-files-found: error
+          retention-days: 7
